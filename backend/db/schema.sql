@@ -76,3 +76,5 @@ CREATE TABLE IF NOT EXISTS wiki_items (
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS wiki_items_boat_id_idx ON wiki_items(boat_id);
+
+ALTER TABLE wiki_items ADD COLUMN IF NOT EXISTS cloudinary_id VARCHAR(500);

@@ -13,12 +13,30 @@ function extractYoutubeId(url) {
   return m ? m[1] : null;
 }
 
-function readFileAsDataUrl(file) {
+function uploadToCloudinary(file, onProgress) {
   return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = e => resolve(e.target.result);
-    r.onerror = reject;
-    r.readAsDataURL(file);
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', uploadPreset);
+
+    const xhr = new XMLHttpRequest();
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        resolve({ url: data.secure_url, cloudinaryId: data.public_id });
+      } else {
+        reject(new Error('Upload failed'));
+      }
+    };
+    xhr.onerror = () => reject(new Error('Upload failed'));
+    xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/upload`);
+    xhr.send(formData);
   });
 }
 
@@ -43,17 +61,23 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
   const [title, setTitle] = useState(item?.title || '');
   const [description, setDescription] = useState(item?.description || '');
   const [url, setUrl] = useState(item?.url || '');
-  const [textMode, setTextMode] = useState('upload'); // 'upload' | 'type'
+  const [textMode, setTextMode] = useState('upload');
   const [typedText, setTypedText] = useState('');
   const [fileData, setFileData] = useState(null);
   const [fileName, setFileName] = useState(item?.file_name || '');
   const [fileSize, setFileSize] = useState(item?.file_size || 0);
   const [youtubeId, setYoutubeId] = useState(item?.youtube_id || null);
   const [youtubePreview, setYoutubePreview] = useState(Boolean(item?.youtube_id));
+  // PDF Cloudinary upload state
+  const [pdfFile, setPdfFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [cloudinaryUrl, setCloudinaryUrl] = useState(null);
+  const [cloudinaryId, setCloudinaryId] = useState(null);
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  // Extract YouTube ID as user types URL
   useEffect(() => {
     if (type !== 'youtube') return;
     const id = url ? extractYoutubeId(url) : null;
@@ -77,11 +101,26 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
         setError(t('wiki.form.unsupportedType'));
         return;
       }
-      const data = await readFileAsDataUrl(file);
-      setFileData(data);
+      setPdfFile({ name: file.name, size: file.size });
       setFileName(file.name);
       setFileSize(file.size);
       if (!title) setTitle(nameWithoutExt(file.name));
+
+      setUploading(true);
+      setUploadProgress(0);
+      setCloudinaryUrl(null);
+      setCloudinaryId(null);
+
+      try {
+        const { url: cUrl, cloudinaryId: cId } = await uploadToCloudinary(file, setUploadProgress);
+        setCloudinaryUrl(cUrl);
+        setCloudinaryId(cId);
+      } catch {
+        setError(t('wiki.form.uploadFailed'));
+        setPdfFile(null);
+      } finally {
+        setUploading(false);
+      }
     } else if (type === 'text') {
       const allowed = ['.txt', '.md', 'text/plain', 'text/markdown', 'text/x-markdown'];
       const ok = allowed.some(a => file.name.toLowerCase().endsWith(a.replace('.*', '')) || file.type === a);
@@ -112,7 +151,10 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
       return;
     }
     if (!isEdit) {
-      if (type === 'pdf' && !fileData) { setError(t('wiki.form.fileHint')); return; }
+      if (type === 'pdf') {
+        if (uploading) { setError(t('wiki.form.uploadWait')); return; }
+        if (!cloudinaryUrl) { setError(t('wiki.form.fileHint')); return; }
+      }
       if (type === 'text' && textMode === 'upload' && !fileData) { setError(t('wiki.form.textHint')); return; }
       if (type === 'text' && textMode === 'type' && !typedText.trim()) {
         setError(t('wiki.form.textHint')); return;
@@ -139,8 +181,9 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
           type,
           title: title.trim(),
           description: description.trim() || null,
-          url: (type === 'url' || type === 'youtube') ? url.trim() : null,
-          file_data: (type === 'pdf' || type === 'text') ? actualFileData : null,
+          url: type === 'pdf' ? cloudinaryUrl : (type === 'url' || type === 'youtube') ? url.trim() : null,
+          cloudinary_id: type === 'pdf' ? cloudinaryId : null,
+          file_data: type === 'text' ? actualFileData : null,
           file_name: (type === 'pdf' || type === 'text') ? actualFileName : null,
           file_size: (type === 'pdf' || type === 'text') ? actualFileSize : null,
           youtube_id: type === 'youtube' ? youtubeId : null,
@@ -176,7 +219,16 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
                 <button
                   key={tp}
                   type="button"
-                  onClick={() => { setType(tp); setError(''); setFileData(null); setFileName(''); setFileSize(0); }}
+                  onClick={() => {
+                    setType(tp);
+                    setError('');
+                    setFileData(null);
+                    setFileName('');
+                    setFileSize(0);
+                    setPdfFile(null);
+                    setCloudinaryUrl(null);
+                    setCloudinaryId(null);
+                  }}
                   className={`flex flex-col items-center gap-1 py-3 rounded-xl border text-xs font-medium transition-colors ${
                     type === tp
                       ? 'bg-ocean-600 text-white border-ocean-600'
@@ -215,20 +267,35 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
             />
           </div>
 
-          {/* Type-specific inputs */}
-          {(type === 'pdf') && !isEdit && (
+          {/* PDF upload */}
+          {type === 'pdf' && !isEdit && (
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">{t('wiki.form.file')}</label>
               <div
-                onClick={() => fileRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl px-4 py-5 text-center cursor-pointer transition-colors ${
-                  fileData ? 'border-ocean-400 bg-ocean-50' : 'border-slate-200 hover:border-ocean-300 hover:bg-slate-50'
+                onClick={() => !uploading && !cloudinaryUrl && fileRef.current?.click()}
+                className={`border-2 border-dashed rounded-xl px-4 py-5 text-center transition-colors ${
+                  cloudinaryUrl
+                    ? 'border-ocean-400 bg-ocean-50 cursor-default'
+                    : uploading
+                    ? 'border-ocean-300 bg-ocean-50 cursor-wait'
+                    : 'border-slate-200 hover:border-ocean-300 hover:bg-slate-50 cursor-pointer'
                 }`}
               >
-                {fileData ? (
+                {cloudinaryUrl ? (
                   <div>
-                    <p className="text-sm font-medium text-ocean-700">📄 {fileName}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{(fileSize / 1024).toFixed(0)} KB</p>
+                    <p className="text-sm font-medium text-ocean-700">✓ {pdfFile?.name}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{((pdfFile?.size || 0) / 1024).toFixed(0)} KB — uploaded</p>
+                  </div>
+                ) : uploading ? (
+                  <div>
+                    <p className="text-sm text-slate-600 mb-2">📤 {pdfFile?.name}</p>
+                    <div className="w-full bg-slate-200 rounded-full h-2">
+                      <div
+                        className="bg-ocean-500 h-2 rounded-full transition-all duration-200"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">{uploadProgress}%</p>
                   </div>
                 ) : (
                   <div>
@@ -247,6 +314,7 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
             </div>
           )}
 
+          {/* Text upload/type */}
           {type === 'text' && !isEdit && (
             <div>
               <div className="flex gap-1 mb-2">
@@ -355,10 +423,10 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
           <div className="flex gap-2 pt-1 pb-2">
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || uploading}
               className="flex-1 bg-ocean-600 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-ocean-700 disabled:opacity-60 transition-colors"
             >
-              {saving ? t('wiki.form.saving') : t('wiki.form.save')}
+              {saving ? t('wiki.form.saving') : uploading ? t('wiki.form.uploading') : t('wiki.form.save')}
             </button>
             <button
               type="button"

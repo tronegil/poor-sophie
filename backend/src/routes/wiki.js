@@ -1,8 +1,31 @@
 const router = require('express').Router({ mergeParams: true });
+const https = require('https');
+const http = require('http');
 const pool = require('../config/db');
 const { authenticate } = require('../middleware/auth');
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB decoded
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const pdfParse = require('pdf-parse/lib/pdf-parse.js');
+
+function fetchBuffer(url, timeoutMs = 8000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Timeout')), timeoutMs);
+    const mod = url.startsWith('https') ? https : http;
+    const chunks = [];
+    const req = mod.get(url, (res) => {
+      res.on('data', chunk => chunks.push(chunk));
+      res.on('end', () => { clearTimeout(timer); resolve(Buffer.concat(chunks)); });
+      res.on('error', err => { clearTimeout(timer); reject(err); });
+    });
+    req.on('error', err => { clearTimeout(timer); reject(err); });
+  });
+}
 
 async function requireBoatOwner(req, res) {
   const { rows } = await pool.query('SELECT user_id FROM boats WHERE id = $1', [req.params.boatId]);
@@ -32,7 +55,7 @@ router.get('/items', authenticate, async (req, res) => {
   res.json(rows);
 });
 
-// Single item — includes file_data for PDF/text viewing
+// Single item — includes file_data for text viewing
 router.get('/items/:id', authenticate, async (req, res) => {
   const boat = await requireBoatOwner(req, res);
   if (!boat) return;
@@ -49,7 +72,7 @@ router.post('/items', authenticate, async (req, res) => {
   const boat = await requireBoatOwner(req, res);
   if (!boat) return;
 
-  const { type, title, description, url, file_data, file_name, file_size, youtube_id } = req.body;
+  const { type, title, description, url, cloudinary_id, file_data, file_name, file_size, youtube_id } = req.body;
 
   if (!['pdf', 'text', 'url', 'youtube'].includes(type))
     return res.status(400).json({ error: 'Invalid type' });
@@ -59,20 +82,33 @@ router.post('/items', authenticate, async (req, res) => {
     return res.status(400).json({ error: 'URL is required' });
   if (type === 'youtube' && !youtube_id)
     return res.status(400).json({ error: 'YouTube ID is required' });
-  if ((type === 'pdf' || type === 'text') && !file_data)
+  if (type === 'pdf' && !url)
+    return res.status(400).json({ error: 'Cloudinary URL is required' });
+  if (type === 'text' && !file_data)
     return res.status(400).json({ error: 'File content is required' });
 
-  // Guard against oversized payloads slipping through
-  if (file_data && Buffer.byteLength(file_data, 'utf8') > MAX_FILE_BYTES * 1.5)
+  if (file_data && Buffer.byteLength(file_data, 'utf8') > 15 * 1024 * 1024)
     return res.status(400).json({ error: 'File too large (max 10 MB)' });
 
+  let storedFileData = type === 'text' ? file_data : null;
+  if (type === 'pdf') {
+    try {
+      const buf = await fetchBuffer(url);
+      const parsed = await pdfParse(buf);
+      storedFileData = parsed.text || '';
+    } catch {
+      storedFileData = '';
+    }
+  }
+
   const { rows } = await pool.query(
-    `INSERT INTO wiki_items (boat_id, type, title, description, url, file_data, file_name, file_size, youtube_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-    [req.params.boatId, type, title.trim(), description || null, url || null,
-     file_data || null, file_name || null, file_size || null, youtube_id || null]
+    `INSERT INTO wiki_items (boat_id, type, title, description, url, cloudinary_id, file_data, file_name, file_size, youtube_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+    [req.params.boatId, type, title.trim(), description || null,
+     url || null, cloudinary_id || null, storedFileData,
+     file_name || null, file_size || null, youtube_id || null]
   );
-  const { file_data: _fd, ...item } = rows[0];
+  const { file_data: _fd, cloudinary_id: _cid, ...item } = rows[0];
   res.status(201).json(item);
 });
 
@@ -103,10 +139,19 @@ router.delete('/items/:id', authenticate, async (req, res) => {
   if (!boat) return;
 
   const { rows } = await pool.query(
-    'SELECT id FROM wiki_items WHERE id = $1 AND boat_id = $2',
+    'SELECT id, type, cloudinary_id FROM wiki_items WHERE id = $1 AND boat_id = $2',
     [req.params.id, req.params.boatId]
   );
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
+
+  const item = rows[0];
+  if (item.type === 'pdf' && item.cloudinary_id) {
+    try {
+      await cloudinary.uploader.destroy(item.cloudinary_id, { resource_type: 'raw' });
+    } catch {
+      // best-effort cleanup
+    }
+  }
 
   await pool.query('DELETE FROM wiki_items WHERE id = $1', [req.params.id]);
   res.json({ ok: true });

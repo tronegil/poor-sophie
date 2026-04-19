@@ -78,3 +78,14 @@ CREATE TABLE IF NOT EXISTS wiki_items (
 CREATE INDEX IF NOT EXISTS wiki_items_boat_id_idx ON wiki_items(boat_id);
 
 ALTER TABLE wiki_items ADD COLUMN IF NOT EXISTS cloudinary_id VARCHAR(500);
+
+-- Phase 4: AI Chat
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  boat_id    UUID NOT NULL REFERENCES boats(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role       VARCHAR(20) NOT NULL CHECK (role IN ('user', 'assistant')),
+  content    TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS chat_messages_boat_user_idx ON chat_messages(boat_id, user_id, created_at);

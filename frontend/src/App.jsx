@@ -11,6 +11,7 @@ import Settings from './pages/Settings';
 import PublicBoat from './pages/PublicBoat';
 import Maintenance from './pages/Maintenance';
 import Wiki from './pages/Wiki';
+import Chat from './pages/Chat';
 
 function NavLayout() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
               <Route path="/boats/:id/edit" element={<EditBoat />} />
               <Route path="/boats/:id/maintenance" element={<Maintenance />} />
               <Route path="/boats/:id/wiki" element={<Wiki />} />
+              <Route path="/boats/:id/chat" element={<Chat />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>

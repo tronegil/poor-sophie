@@ -92,6 +92,16 @@ export default {
       confirmDelete: 'Slette dette wiki-elementet?',
     },
   },
+  chat: {
+    title: 'AI-assistent',
+    empty: 'Spør meg hva som helst om båten din',
+    emptyHint: 'Jeg kjenner wikien din og hele vedlikeholdshistorikken.',
+    placeholder: 'Spør om båten din…',
+    sendHint: 'Enter for å sende · Shift+Enter for ny linje',
+    clear: 'Slett samtale',
+    confirmClear: 'Slette all samtalehistorikk?',
+    error: 'Noe gikk galt. Prøv igjen.',
+  },
   maintenance: {
     title: 'Vedlikehold',
     addTask: 'Legg til oppgave',

@@ -92,6 +92,13 @@ export default function BoatProfile() {
                 {t('wiki.title')}
               </Link>
               <Link
+                to={`/boats/${id}/chat`}
+                className="bg-ocean-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-ocean-700 transition-colors flex items-center gap-1.5"
+              >
+                <span>🤖</span>
+                {t('chat.title')}
+              </Link>
+              <Link
                 to={`/boats/${id}/edit`}
                 className="border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
               >

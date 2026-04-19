@@ -92,6 +92,16 @@ export default {
       confirmDelete: 'Delete this wiki item?',
     },
   },
+  chat: {
+    title: 'AI Assistant',
+    empty: 'Ask me anything about your boat',
+    emptyHint: 'I know your wiki documents and full maintenance history.',
+    placeholder: 'Ask about your boat…',
+    sendHint: 'Enter to send · Shift+Enter for new line',
+    clear: 'Clear chat',
+    confirmClear: 'Clear all conversation history?',
+    error: 'Something went wrong. Please try again.',
+  },
   maintenance: {
     title: 'Maintenance',
     addTask: 'Add Custom Task',

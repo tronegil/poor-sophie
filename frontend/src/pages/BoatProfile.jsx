@@ -78,8 +78,22 @@ export default function BoatProfile() {
           {isOwner && (
             <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-100">
               <Link
+                to={`/boats/${id}/maintenance`}
+                className="bg-ocean-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-ocean-700 transition-colors flex items-center gap-1.5"
+              >
+                <span>🔧</span>
+                {t('maintenance.title')}
+              </Link>
+              <Link
+                to={`/boats/${id}/wiki`}
+                className="bg-ocean-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-ocean-700 transition-colors flex items-center gap-1.5"
+              >
+                <span>📚</span>
+                {t('wiki.title')}
+              </Link>
+              <Link
                 to={`/boats/${id}/edit`}
-                className="bg-ocean-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-ocean-700 transition-colors"
+                className="border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
               >
                 {t('boat.edit')}
               </Link>

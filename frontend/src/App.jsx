@@ -9,6 +9,8 @@ import AddBoat from './pages/AddBoat';
 import EditBoat from './pages/EditBoat';
 import Settings from './pages/Settings';
 import PublicBoat from './pages/PublicBoat';
+import Maintenance from './pages/Maintenance';
+import Wiki from './pages/Wiki';
 
 function NavLayout() {
   return (
@@ -34,6 +36,8 @@ export default function App() {
               <Route path="/boats/new" element={<AddBoat />} />
               <Route path="/boats/:id" element={<BoatProfile />} />
               <Route path="/boats/:id/edit" element={<EditBoat />} />
+              <Route path="/boats/:id/maintenance" element={<Maintenance />} />
+              <Route path="/boats/:id/wiki" element={<Wiki />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>

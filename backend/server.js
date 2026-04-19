@@ -31,7 +31,10 @@ app.use('/api/boats/:boatId/wiki', wikiRoutes);
 app.use('/api/users', userRoutes);
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// In serverless (Vercel) the exported app is used directly — no listener needed
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 3001;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
 
 module.exports = app;

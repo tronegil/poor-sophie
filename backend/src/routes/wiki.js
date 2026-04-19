@@ -68,6 +68,31 @@ router.get('/items/:id', authenticate, async (req, res) => {
   res.json(rows[0]);
 });
 
+// PDF proxy — fetches from Cloudinary using backend credentials, streams to browser
+router.get('/items/:id/pdf', authenticate, async (req, res) => {
+  const boat = await requireBoatOwner(req, res);
+  if (!boat) return;
+
+  const { rows } = await pool.query(
+    'SELECT type, url, file_name FROM wiki_items WHERE id = $1 AND boat_id = $2',
+    [req.params.id, req.params.boatId]
+  );
+  if (!rows.length) return res.status(404).json({ error: 'Not found' });
+
+  const item = rows[0];
+  if (item.type !== 'pdf' || !item.url) return res.status(400).json({ error: 'Not a PDF' });
+
+  try {
+    const buf = await fetchBuffer(item.url);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${item.file_name || 'document.pdf'}"`);
+    res.setHeader('Content-Length', buf.length);
+    res.send(buf);
+  } catch {
+    res.status(502).json({ error: 'Could not fetch PDF from storage' });
+  }
+});
+
 router.post('/items', authenticate, async (req, res) => {
   const boat = await requireBoatOwner(req, res);
   if (!boat) return;

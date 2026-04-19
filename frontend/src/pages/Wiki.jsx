@@ -216,8 +216,7 @@ export default function Wiki() {
 
   const handleOpen = async (item) => {
     if (item.type === 'pdf' && item.url) {
-      const pdfUrl = item.url.replace('/image/upload/', '/raw/upload/');
-      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+      window.open(`/api/boats/${boatId}/wiki/items/${item.id}/pdf`, '_blank', 'noopener,noreferrer');
       return;
     }
     setOpeningId(item.id);

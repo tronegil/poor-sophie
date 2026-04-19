@@ -24,12 +24,12 @@ app.use(express.json({ limit: '20mb' }));
 app.use(cookieParser());
 app.use(passport.initialize());
 
-app.use('/api/auth', authRoutes);
-app.use('/api/boats', boatRoutes);
-app.use('/api/boats/:boatId/maintenance', maintenanceRoutes);
-app.use('/api/boats/:boatId/wiki', wikiRoutes);
-app.use('/api/users', userRoutes);
-app.get('/api/health', (_req, res) => res.json({ ok: true }));
+app.use('/auth', authRoutes);
+app.use('/boats', boatRoutes);
+app.use('/boats/:boatId/maintenance', maintenanceRoutes);
+app.use('/boats/:boatId/wiki', wikiRoutes);
+app.use('/users', userRoutes);
+app.get('/health', (_req, res) => res.json({ ok: true }));
 
 // In serverless (Vercel) the exported app is used directly — no listener needed
 if (!process.env.VERCEL) {

@@ -95,7 +95,7 @@ export default function BoatProfile() {
                 to={`/boats/${id}/chat`}
                 className="bg-ocean-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-ocean-700 transition-colors flex items-center gap-1.5"
               >
-                <span>🤖</span>
+                <span>🧭</span>
                 {t('chat.title')}
               </Link>
               <Link

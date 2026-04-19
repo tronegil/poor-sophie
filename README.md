@@ -1,57 +1,104 @@
 # ⛵ Poor Sophie
 
-> A full-stack web app for managing, maintaining, and documenting your sailboat — built with love for **Miss Sophie**, a 1987 Compromis 888 who deserves better than a spreadsheet.
+> *A full-stack web app for managing, maintaining, and having deeply philosophical conversations with your sailboat.*
 
-Poor Sophie started as a simple boat profile manager and has grown into a proper digital logbook: seasonal maintenance tracking, cost summaries, a searchable knowledge base, YouTube manuals, scanned receipts, and more. Built to be used on the dock with a phone in one hand and a coffee in the other.
+Built with love, frustration, and an unhealthy number of late nights for **Miss Sophie** — a 1987 Compromis 888 who has survived more deferred maintenance than any boat deserves, and is now finally getting the digital infrastructure she's owed.
+
+If you've ever stood on a dock in the rain, trying to remember whether you winterized the engine last year, or frantically googled "how to bleed diesel fuel system" while your marina neighbors pretend not to watch — **this app is for you.**
 
 ---
 
-## 🚀 Phases
+## 🤔 What is this, exactly?
+
+Poor Sophie is a **boat management platform** that combines:
+
+- 🔐 **Authentication** — Google login, no passwords to lose
+- ⛵ **Boat profiles** — your fleet, publicly shareable if you're brave
+- 🔧 **Seasonal maintenance planning** — 22 pre-loaded tasks, because antifouling season waits for no one
+- 📚 **A searchable knowledge base** — PDFs, manuals, notes, YouTube videos, all in one place
+- 🧭 **Gunnar Fokkeslask** — your AI first mate, Chief Officer of Not-Sinking
+
+It runs in your browser, looks good on your phone, and won't judge you for the state of your bilge.
+
+---
+
+## 🚀 Feature Overview
 
 ### ✅ Phase 1 — Boat Profiles & Auth
 *The foundation. Getting aboard.*
 
-- **Google OAuth** login — one click, no passwords to forget
+- **Google OAuth** login — one click, no passwords to forget or tattoo on your forearm
 - **Boat profiles** with name, type, build year, description, and photo URL
-- **Create, edit, and delete** boats
-- **Public sharing** — generate a shareable link for each boat that anyone can view, no login needed
-- **English / Norwegian** language support throughout, persisted per user
+- **Full CRUD** — create, edit, and delete boats (the digital kind is consequence-free)
+- **Public sharing** — generate a shareable link so your sailing club can admire Miss Sophie
+- **English / Norwegian** language support, persisted per user
 - Responsive design with a maritime navy-and-ocean-blue theme
 
 ---
 
 ### ✅ Phase 2 — Maintenance Planner
-*Because antifouling season waits for no one.*
+*Because "I think I serviced the engine two years ago, maybe" is not a maintenance strategy.*
 
-- **22 pre-loaded template tasks** across all four seasons, covering everything a sailboat needs:
-  - 🌸 **Spring** — antifouling, hull inspection, engine service, rigging check, winch service, safety gear, sea cocks, sail inspection, battery check, through-hull fittings
-  - ☀️ **Summer** — navigation lights, bilge pump test, EPIRB/PLB check, flares expiry
-  - 🍂 **Autumn** — engine winterizing, sail storage, freshwater drain, hull wash & wax, battery maintenance
-  - ❄️ **Winter** — insurance renewal, mooring check, equipment inventory, VHF radio service
-- **Add your own custom tasks** on top of the template for each season
-- **Enable / disable** any task — irrelevant tasks stay hidden, not deleted
+**22 pre-loaded seasonal tasks** covering everything a sailboat needs across all four seasons:
+
+| Season | Tasks |
+|--------|-------|
+| 🌸 **Spring** | Antifouling, hull inspection, engine service, rigging check, winch service, safety gear, sea cocks, sail inspection, battery check, through-hull fittings |
+| ☀️ **Summer** | Navigation lights, bilge pump test, EPIRB/PLB check, flares expiry |
+| 🍂 **Autumn** | Engine winterizing, sail storage, freshwater drain, hull wash & wax, battery maintenance |
+| ❄️ **Winter** | Insurance renewal, mooring check, equipment inventory, VHF radio service |
+
+**Additional features:**
+- Add your own custom tasks on top of the templates
+- Enable / disable any task — irrelevant tasks stay hidden, not deleted (for boats without a VHF or boats that haven't had one "since the incident")
 - **Log completed tasks** with date, notes, cost in NOK, and photos
-  - Two photo categories per log entry: **job photos** and **receipts**
-  - Photos are compressed client-side before upload — works great from a phone camera
-- **Cost summary** table — NOK totals broken down by season and year
-- **Year selector** — browse any past year's history
-- Auto-detects the current season on page load
+  - Two photo categories: **job photos** and **receipts** (for when the receipts are somehow more depressing than the job photos)
+  - Photos are compressed client-side — works great from a phone camera
+- **Cost summary** table — NOK totals broken down by season and year, so you can stare at the number and feel things
+- **Year selector** — browse any past year's history, or revisit past financial traumas
+- Auto-detects the current season on load
 
 ---
 
 ### ✅ Phase 3 — Boat Wiki
-*Every manual, every video, every note. All in one place.*
+*Every manual, every video, every note. All in one place. No more "I know I saved that PDF somewhere".*
 
-- **Upload PDFs** — engine manuals, class certificates, insurance documents
+- **Upload PDFs** — engine manuals, class certificates, insurance documents, that 40-page rigging guide you'll definitely read someday
 - **Upload text / markdown files** — notes, checklists, procedures
 - **Type text directly** — no file needed, just paste your notes into the editor
-- **Add web links** — useful resources, manufacturer pages, forum threads
+- **Add web links** — useful resources, manufacturer pages, forum threads, that one Stack Exchange post that saved your engine
 - **YouTube videos** — paste a link, get a live embedded player with thumbnail preview right on the card
 - **Instant search** — filter all wiki items by title or description
 - **Grid and list views** — toggle between card grid and compact list
 - Auto-fills the title from the filename when you upload a file
-- PDFs open in a new browser tab via blob URL — works on mobile without any app
+- PDFs open via a secure backend proxy — no Cloudinary auth headaches
 - Works offline for already-loaded content
+
+> **Note on PDF storage:** PDFs are uploaded directly to Cloudinary from the browser (bypassing Vercel's 4.5 MB request limit), stored securely in the cloud, and served through the backend. The PDF text is also extracted and stored for the AI assistant.
+
+---
+
+### ✅ Phase 4 — Gunnar Fokkeslask, AI First Mate
+*"I've been sailing these waters for thirty years and I have never once forgotten to bleed the fuel system. Unlike some people."*
+
+Each boat gets its own AI assistant — **Gunnar Fokkeslask**, Chief Officer of Not-Sinking.
+
+Gunnar is a weathered, knowledgeable old sea dog powered by Claude (Anthropic). He knows everything in your wiki and your full maintenance history. He will answer your questions, cite his sources, occasionally make a dry sailing joke, and freely admit when the grog has been involved in a decision.
+
+**Ask Gunnar things like:**
+- *"When did I last service the engine?"*
+- *"What does the manual say about bleeding the fuel system?"*
+- *"What have I spent on maintenance this year?"*
+- *"Find that YouTube video about replacing the impeller"*
+- *"What's the recommended antifouling for the hull?"*
+- *"How do I adjust the backstay tensioner?"*
+
+**How it works:**
+- All your wiki documents and maintenance logs are sent as context to Claude with each message
+- Gunnar always checks your boat's own documents first and cites the source
+- Conversation history is saved per user per boat — Gunnar remembers what you talked about last time
+- Gunnar responds in English or Norwegian depending on which language you write in
+- About 1 in 5 or 6 responses, expect a dry nautical observation. Don't say you weren't warned.
 
 ---
 
@@ -61,7 +108,9 @@ Poor Sophie started as a simple boat profile manager and has grown into a proper
 |---|---|
 | **Frontend** | React 18, Vite, Tailwind CSS, React Router v6, i18next (EN/NO) |
 | **Backend** | Node.js, Express, Passport.js (Google OAuth 2.0), JWT in httpOnly cookies |
-| **Database** | PostgreSQL — raw `pg` queries, no ORM |
+| **Database** | PostgreSQL — raw `pg` queries, no ORM (an ORM would hide the suffering) |
+| **AI** | Anthropic Claude API (`claude-sonnet-4-5`) |
+| **File storage** | Cloudinary (PDFs via direct browser upload) |
 | **Hosting** | Vercel (monorepo — frontend + backend in one project) |
 | **Database hosting** | [Neon](https://neon.tech) with pgBouncer pooler |
 
@@ -73,7 +122,9 @@ Poor Sophie started as a simple boat profile manager and has grown into a proper
 
 - Node.js 18+
 - A PostgreSQL database (local install or [Neon free tier](https://neon.tech))
-- Google OAuth credentials — [create them here](https://console.cloud.google.com) (takes ~5 minutes)
+- Google OAuth credentials — [create them here](https://console.cloud.google.com) (takes ~5 minutes, feels like more)
+- An Anthropic API key — [get one here](https://console.anthropic.com) (for Gunnar)
+- A Cloudinary account — [free tier here](https://cloudinary.com) (for PDF uploads)
 
 ### 1. Clone and install
 
@@ -89,7 +140,7 @@ npm install && npm install --prefix frontend && npm install --prefix backend
 cp .env.example backend/.env
 ```
 
-Open `backend/.env` and fill in your values (see the full list below).
+Open `backend/.env` and fill in your values. See the full table below.
 
 ### 3. Initialise the database
 
@@ -97,7 +148,7 @@ Open `backend/.env` and fill in your values (see the full list below).
 psql $DATABASE_URL -f backend/db/schema.sql
 ```
 
-This is idempotent — safe to re-run after each phase adds new tables.
+This is idempotent — safe to re-run. Each phase added tables with `CREATE TABLE IF NOT EXISTS` and `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`, so running it again won't hurt anything (unlike some maintenance jobs we could mention).
 
 ### 4. Start the dev servers
 
@@ -116,17 +167,30 @@ The Vite dev server proxies all `/api/*` requests to the backend automatically �
 
 ## 🔑 Environment Variables
 
-All variables live in `backend/.env`. None are needed in the frontend for local development.
+### Backend (`backend/.env`)
 
 | Variable | Example | Description |
 |---|---|---|
 | `DATABASE_URL` | `postgresql://user:pass@host/db` | PostgreSQL connection string |
-| `JWT_SECRET` | `some-long-random-string` | Signs the auth cookies — keep it secret |
+| `JWT_SECRET` | `some-long-random-string` | Signs auth cookies — keep it secret, keep it safe |
 | `GOOGLE_CLIENT_ID` | `123...apps.googleusercontent.com` | From Google Cloud Console |
 | `GOOGLE_CLIENT_SECRET` | `GOCSPX-...` | From Google Cloud Console |
-| `GOOGLE_CALLBACK_URL` | `http://localhost:3001/api/auth/google/callback` | OAuth redirect — change to your domain in prod |
-| `FRONTEND_URL` | `http://localhost:5173` | Used for post-auth redirects — change to your domain in prod |
-| `NODE_ENV` | `production` | Set to `production` on Vercel to enable secure cookies |
+| `GOOGLE_CALLBACK_URL` | `http://localhost:3001/api/auth/google/callback` | OAuth redirect URI |
+| `FRONTEND_URL` | `http://localhost:5173` | Used for post-auth redirects |
+| `NODE_ENV` | `production` | Set to `production` on Vercel for secure cookies |
+| `ANTHROPIC_API_KEY` | `sk-ant-...` | For Gunnar. He needs this to function. |
+| `CLOUDINARY_CLOUD_NAME` | `dzqvjzhmu` | Your Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | `123456789012345` | Cloudinary API key (for deleting PDFs) |
+| `CLOUDINARY_API_SECRET` | `abc123...` | Cloudinary API secret |
+
+### Frontend (Vercel Project Settings or `frontend/.env` locally)
+
+| Variable | Example | Description |
+|---|---|---|
+| `VITE_CLOUDINARY_CLOUD_NAME` | `dzqvjzhmu` | Same cloud name as above |
+| `VITE_CLOUDINARY_UPLOAD_PRESET` | `PoorSophie` | An **unsigned** upload preset from Cloudinary |
+
+> ⚠️ `VITE_` prefixed variables are baked into the frontend bundle at **build time** by Vite. Adding them to Vercel Project Settings only takes effect after the next deployment.
 
 ### Google OAuth setup
 
@@ -136,13 +200,18 @@ All variables live in `backend/.env`. None are needed in the frontend for local 
    - Local: `http://localhost:3001/api/auth/google/callback`
    - Production: `https://your-app.vercel.app/api/auth/google/callback`
 
+### Cloudinary setup
+
+1. Create a free account at [cloudinary.com](https://cloudinary.com)
+2. Go to **Settings** → **Upload** → **Upload presets**
+3. Create a new preset: **Signing mode: Unsigned**, **Resource type: Auto**
+4. Note the preset name and your cloud name from the dashboard
+
 ---
 
 ## 🌍 Deployment (Vercel)
 
-Poor Sophie deploys as a **single Vercel project** from the repo root — frontend and backend in one deployment.
-
-The `vercel.json` at the root uses `experimentalServices` to wire up both:
+Poor Sophie deploys as a **single Vercel project** from the repo root — frontend and backend in one deployment, using `experimentalServices` in `vercel.json`.
 
 ```
 /        → frontend (Vite build)
@@ -151,9 +220,9 @@ The `vercel.json` at the root uses `experimentalServices` to wire up both:
 
 ### Steps
 
-1. Import the repo into Vercel and set **Root Directory** to blank (project root)
-2. Add all environment variables from the table above in the Vercel dashboard
-3. For `DATABASE_URL`, use the Neon **pgBouncer pooler** connection string (avoids connection exhaustion in serverless):
+1. Import the repo into Vercel. Set **Root Directory** to blank (the project root — not `/backend`, not `/frontend`)
+2. Add all environment variables in **Project Settings → Environment Variables** (not Team Settings — those don't propagate to projects)
+3. For `DATABASE_URL`, use the Neon **pgBouncer pooler** connection string to avoid connection exhaustion in serverless:
    ```
    postgresql://user:pass@ep-xxx.region.aws.neon.tech/dbname?pgbouncer=true&connection_limit=1
    ```
@@ -163,7 +232,7 @@ The `vercel.json` at the root uses `experimentalServices` to wire up both:
 
 ## 🗄️ Database Schema
 
-The schema is a single file at `backend/db/schema.sql`. Apply it with:
+Single schema file: `backend/db/schema.sql`. Apply it with:
 
 ```bash
 psql $DATABASE_URL -f backend/db/schema.sql
@@ -174,25 +243,74 @@ psql $DATABASE_URL -f backend/db/schema.sql
 | `users` | Google OAuth users with language preference |
 | `boats` | Boat profiles, public/private flag |
 | `maintenance_tasks` | Per-boat tasks (template-seeded + custom) |
-| `maintenance_logs` | Completion records with date, notes, cost |
+| `maintenance_logs` | Completion records with date, notes, cost in NOK |
 | `maintenance_photos` | Base64 photos attached to log entries |
-| `wiki_items` | Wiki entries (PDF, text, URL, YouTube) |
+| `wiki_items` | Wiki entries (PDF via Cloudinary, text, URL, YouTube) |
+| `chat_messages` | Gunnar's conversation history, per user per boat |
 
 ---
 
-## 🤖 Coming Soon — Phase 4: AI Assistant
+## 📁 Project Structure
 
-*The big one.*
+```
+poor-sophie/
+├── frontend/               # React + Vite
+│   ├── src/
+│   │   ├── pages/          # Route-level components
+│   │   ├── components/     # Shared UI components
+│   │   ├── api/client.js   # Axios instance (baseURL /api, withCredentials)
+│   │   ├── contexts/       # AuthContext
+│   │   └── i18n/           # en.js and no.js translations
+│   └── vercel.json         # {} — no standalone config
+│
+├── backend/                # Node.js + Express
+│   ├── server.js           # App entry point
+│   ├── src/
+│   │   ├── routes/         # auth, boats, maintenance, wiki, chat
+│   │   ├── middleware/      # JWT auth
+│   │   └── config/         # DB pool, Passport
+│   └── db/schema.sql       # Full DB schema, idempotent
+│
+└── vercel.json             # experimentalServices monorepo config
+```
 
-Each boat will get its own AI assistant that knows everything about it. Ask it anything:
+---
 
-- *"When did I last service the engine?"*
-- *"What does the manual say about bleeding the fuel system?"*
-- *"What have I spent on maintenance this year?"*
-- *"Find that YouTube video about replacing the impeller"*
+## 🏗️ Architecture Notes
 
-The assistant will search across maintenance logs, wiki documents, and the web — all in context of **your specific boat**. Conversation history saved per user. Available in English and Norwegian, naturally.
+**Auth flow:**
+1. Browser hits `/api/auth/google` → Passport.js redirects to Google
+2. Google returns to `/api/auth/google/callback` → JWT issued as httpOnly cookie (30-day expiry)
+3. All protected routes verify the JWT cookie via `backend/src/middleware/auth.js`
+4. Frontend `AuthContext` bootstraps via `GET /api/auth/me` on mount
+
+**Vercel routing:**
+- `experimentalServices` in root `vercel.json` strips the `/api` prefix before forwarding to Express
+- Express mounts routes without `/api` prefix (e.g. `/boats`, `/auth`)
+- Vite dev proxy mirrors this with a `rewrite` rule — local dev behaves identically to production
+
+**PDF uploads:**
+- Browser uploads directly to Cloudinary (avoids Vercel's hard 4.5 MB request limit)
+- Backend receives the Cloudinary URL, fetches the PDF, extracts text with `pdf-parse`, stores URL + text in DB
+- PDFs are served back through a backend proxy endpoint (`GET /api/boats/:id/wiki/items/:id/pdf`) so Cloudinary auth isn't exposed to the browser
+
+**AI context:**
+- Each chat request includes the full system prompt with all wiki document text + last 50 maintenance log entries
+- Conversation history (last 20 messages) is included for continuity
+- Documents are truncated per-item at 20,000 chars and total at 80,000 chars to stay well within Claude's context window
+
+---
+
+## 🧭 Who is Gunnar Fokkeslask?
+
+Gunnar Fokkeslask is Miss Sophie's AI first mate and Chief Officer of Not-Sinking. He is powered by Claude, deeply knowledgeable about sailing, and has strong opinions about the importance of bleeding fuel systems and not skipping antifouling season.
+
+He responds in the language you write in. He occasionally makes a dry sailing joke. He may or may not have been enjoying a tot of grog when he wrote that last response.
+
+His one job is to make sure Miss Sophie doesn't sink. He takes it very seriously.
 
 ---
 
 *Built for Miss Sophie. She's worth it.* ⚓
+
+*— and for all the other neglected, beloved, infuriating, wonderful boats out there that deserve better than a spreadsheet.*

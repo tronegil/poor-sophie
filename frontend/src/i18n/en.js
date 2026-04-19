@@ -93,9 +93,9 @@ export default {
     },
   },
   chat: {
-    title: 'AI Assistant',
-    empty: 'Ask me anything about your boat',
-    emptyHint: 'I know your wiki documents and full maintenance history.',
+    title: 'Gunnar Fokkeslask',
+    empty: 'Gunnar is standing by',
+    emptyHint: 'First mate. Chief Officer of Not-Sinking. Ask him anything.',
     placeholder: 'Ask about your boat…',
     sendHint: 'Enter to send · Shift+Enter for new line',
     clear: 'Clear chat',

@@ -81,7 +81,7 @@ export default function Chat() {
           <Link to={`/boats/${boatId}`} className="text-sm text-ocean-600 hover:underline">
             ← {boat?.name}
           </Link>
-          <h1 className="text-2xl font-bold text-slate-800 mt-1">🤖 {t('chat.title')}</h1>
+          <h1 className="text-2xl font-bold text-slate-800 mt-1">🧭 {t('chat.title')}</h1>
         </div>
         {messages.length > 0 && (
           <button

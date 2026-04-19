@@ -93,9 +93,9 @@ export default {
     },
   },
   chat: {
-    title: 'AI-assistent',
-    empty: 'Spør meg hva som helst om båten din',
-    emptyHint: 'Jeg kjenner wikien din og hele vedlikeholdshistorikken.',
+    title: 'Gunnar Fokkeslask',
+    empty: 'Gunnar er klar',
+    emptyHint: 'Førstestyrmann. Ansvarlig for å ikke synke. Spør om hva som helst.',
     placeholder: 'Spør om båten din…',
     sendHint: 'Enter for å sende · Shift+Enter for ny linje',
     clear: 'Slett samtale',

@@ -1,4 +1,22 @@
 require('dotenv').config();
+
+const REQUIRED_ENV = ['JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_CALLBACK_URL', 'FRONTEND_URL'];
+const missing = REQUIRED_ENV.filter(k => !process.env[k]);
+if (missing.length) {
+  console.error(`[startup] Missing required env vars: ${missing.join(', ')}`);
+  process.exit(1);
+}
+if (process.env.NODE_ENV === 'production') {
+  if (process.env.FRONTEND_URL.includes('localhost')) {
+    console.error(`[startup] FRONTEND_URL is set to "${process.env.FRONTEND_URL}" in production — must be the production domain`);
+    process.exit(1);
+  }
+  if (process.env.GOOGLE_CALLBACK_URL.includes('localhost')) {
+    console.error(`[startup] GOOGLE_CALLBACK_URL is set to "${process.env.GOOGLE_CALLBACK_URL}" in production — must be the production domain`);
+    process.exit(1);
+  }
+}
+
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');

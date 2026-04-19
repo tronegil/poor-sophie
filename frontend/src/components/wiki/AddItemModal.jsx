@@ -21,6 +21,7 @@ function uploadToCloudinary(file, onProgress) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', uploadPreset);
+    formData.append('resource_type', 'raw');
 
     const xhr = new XMLHttpRequest();
     xhr.upload.onprogress = (e) => {
@@ -29,13 +30,15 @@ function uploadToCloudinary(file, onProgress) {
     xhr.onload = () => {
       if (xhr.status === 200) {
         const data = JSON.parse(xhr.responseText);
-        resolve({ url: data.secure_url, cloudinaryId: data.public_id });
+        // Normalize URL to raw path in case the preset overrides resource_type
+        const url = data.secure_url.replace('/image/upload/', '/raw/upload/');
+        resolve({ url, cloudinaryId: data.public_id });
       } else {
         reject(new Error('Upload failed'));
       }
     };
     xhr.onerror = () => reject(new Error('Upload failed'));
-    xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/upload`);
+    xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`);
     xhr.send(formData);
   });
 }

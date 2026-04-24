@@ -102,6 +102,21 @@ Gunnar is a weathered, knowledgeable old sea dog powered by Claude (Anthropic). 
 
 ---
 
+### ✅ Phase 5 — Admin Dashboard
+*Because someone has to know what's going on.*
+
+A password-free admin panel at `/admin`, accessible only to whitelisted email addresses via the `ADMIN_EMAILS` environment variable. Non-admins are silently redirected to the dashboard — they'll never know it exists.
+
+**What you can see:**
+
+- 📊 **Live stats** — total users, boats, wiki items, maintenance logs, and Gunnar messages at a glance
+- 👤 **All users** — name, email, language preference, number of boats, number of AI messages, join date
+- ⛵ **All boats** — name, type/year, owner, public/private status, and counts for tasks, logs, wiki items, and chat messages
+
+No delete buttons, no danger zone — it's a read-only overview. The kind of dashboard you open when you want to feel like things are under control, even if they aren't.
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Tech |

@@ -12,6 +12,7 @@ import PublicBoat from './pages/PublicBoat';
 import Maintenance from './pages/Maintenance';
 import Wiki from './pages/Wiki';
 import Chat from './pages/Chat';
+import Admin from './pages/Admin';
 
 function NavLayout() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
               <Route path="/boats/:id/wiki" element={<Wiki />} />
               <Route path="/boats/:id/chat" element={<Chat />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/admin" element={<Admin />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

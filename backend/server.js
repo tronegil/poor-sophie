@@ -31,6 +31,7 @@ const userRoutes = require('./src/routes/users');
 const maintenanceRoutes = require('./src/routes/maintenance');
 const wikiRoutes = require('./src/routes/wiki');
 const chatRoutes = require('./src/routes/chat');
+const adminRoutes = require('./src/routes/admin');
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use('/boats/:boatId/maintenance', maintenanceRoutes);
 app.use('/boats/:boatId/wiki', wikiRoutes);
 app.use('/boats/:boatId/chat', chatRoutes);
 app.use('/users', userRoutes);
+app.use('/admin', adminRoutes);
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
 // In serverless (Vercel) the exported app is used directly — no listener needed

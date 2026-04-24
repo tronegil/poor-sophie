@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function Navbar() {
   const { t } = useTranslation();
-  const { user, logout } = useAuth();
+  const { user, logout, adminView } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -27,6 +27,14 @@ export default function Navbar() {
               alt={user.name}
               className="h-8 w-8 rounded-full ring-2 ring-ocean-600"
             />
+          )}
+          {user?.is_admin && adminView && (
+            <Link
+              to="/admin"
+              className="text-sm text-ocean-200 hover:text-white transition-colors"
+            >
+              🛠️ Admin
+            </Link>
           )}
           <Link
             to="/settings"

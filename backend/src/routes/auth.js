@@ -36,7 +36,8 @@ router.get('/me', authenticate, async (req, res) => {
     [req.user.id]
   );
   if (!rows.length) return res.status(404).json({ error: 'User not found' });
-  res.json(rows[0]);
+  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  res.json({ ...rows[0], is_admin: adminEmails.includes(rows[0].email.toLowerCase()) });
 });
 
 router.post('/logout', (_req, res) => {

@@ -43,6 +43,10 @@ export default {
     norwegian: 'Norwegian',
     save: 'Save',
     saved: 'Saved!',
+    adminView: 'Admin view',
+    adminViewHint: 'Show admin tools in the navigation bar.',
+    adminViewOn: 'On',
+    adminViewOff: 'Off',
   },
   errors: {
     nameRequired: 'Boat name is required',

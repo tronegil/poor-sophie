@@ -6,7 +6,7 @@ import i18n from '../i18n';
 
 export default function Settings() {
   const { t } = useTranslation();
-  const { user, setUser } = useAuth();
+  const { user, setUser, adminView, setAdminView } = useAuth();
   const [language, setLanguage] = useState(user?.language || 'en');
   const [saved, setSaved] = useState(false);
 
@@ -54,6 +54,28 @@ export default function Settings() {
         >
           {saved ? t('settings.saved') : t('settings.save')}
         </button>
+
+        {user?.is_admin && (
+          <div className="pt-4 border-t border-slate-100">
+            <p className="text-sm font-medium text-slate-700 mb-1">{t('settings.adminView')}</p>
+            <p className="text-xs text-slate-400 mb-3">{t('settings.adminViewHint')}</p>
+            <button
+              onClick={() => setAdminView(!adminView)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                adminView ? 'bg-ocean-600' : 'bg-slate-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  adminView ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className="ml-3 text-sm text-slate-600">
+              {adminView ? t('settings.adminViewOn') : t('settings.adminViewOff')}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

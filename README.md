@@ -17,6 +17,7 @@ Poor Sophie is a **boat management platform** that combines:
 - 🔧 **Seasonal maintenance planning** — 22 pre-loaded tasks, because antifouling season waits for no one
 - 📚 **A searchable knowledge base** — PDFs, manuals, notes, YouTube videos, all in one place
 - 🧭 **Gunnar Fokkeslask** — your AI first mate, Chief Officer of Not-Sinking
+- 🤢 **Seasickness Score** — plot a passage on the sea chart and find out, in advance, who's going to need the bucket
 
 It runs in your browser, looks good on your phone, and won't judge you for the state of your bilge.
 
@@ -117,6 +118,44 @@ No delete buttons, no danger zone — it's a read-only overview. The kind of das
 
 ---
 
+### ✅ Phase 6 — Seasickness Score
+*Because "it looked fine from the pontoon" is how every bad story starts.*
+
+Plot a passage on a real nautical chart, pick a departure time and speed, and get a **0–10 seasickness score** — for the whole trip, for each leg, and for every hour along the way. Not a weather forecast: a *motion* forecast, for *your* boat.
+
+**How it works, in one breath:** the route is split into segments, the wave forecast is fetched for the exact time the boat will be at each one, and a physics model turns waves + speed + heading + hull into the vertical acceleration your inner ear is going to complain about — weighted by frequency and accumulated over time, per ISO 2631-1.
+
+**What goes into it:**
+
+| Input | Source |
+|---|---|
+| Wave height, peak & mean period, direction, **wind sea vs. swell**, wind, surface current | [MET Norway MyWaveWAM 800 m](https://thredds.met.no/thredds/catalog/fou-hi/mywavewam800current.html) — five coastal domains, read point-by-point over OPeNDAP |
+| Same, for open Skagerrak / North Sea / Danish & Swedish waters | [MET Norway WAVEWATCH III 4 km](https://thredds.met.no/thredds/catalog/fou-hi/ww3_4km.html) |
+| Last-resort fallback (no period — estimated from height) | [api.met.no](https://api.met.no) Oceanforecast + Locationforecast |
+| Tidal phase — rising / falling / slack | [Kartverket Se havnivå](https://vannstand.kartverket.no/tideapi_no.html) |
+| Your boat: LOA, displacement, hull type, keel type | The boat profile (new fields — fill them in or get sensible 9 m fin-keeler defaults) |
+
+**What the model actually does:**
+
+- **Encounter period** — head sea at 6 kn turns a 6 s swell into a 4 s pounding; following sea stretches it out. Computed from wave period, boat speed and the angle between course and waves.
+- **Hull response** — heave falls off as hull length approaches wavelength; heavier boats (displacement/length ratio) move less; long keels roll less than fin keels; multihulls barely roll but bob quicker.
+- **Extras** — short steep seas, cross seas (wind sea and swell > 60° apart), and wind against current each add a little.
+- **Frequency weighting** — ISO 2631-1 *W<sub>f</sub>*, peaking at ~0.17 Hz. Quick jolts and long lazy swells count less than the 6-second bob.
+- **Accumulation** — Motion Sickness Dose Value, *MSDV = a<sub>w</sub> · √t*, integrated along the route. Five hours of moderate motion can out-score one rough hour. *MSDV ÷ 3* ≈ the percentage of an unadapted crew that will actually be sick.
+
+**What you see:**
+
+- Kartverket's official **sea chart tiles** (over OpenStreetMap for the bits Norway doesn't chart) — click to drop waypoints
+- Legs coloured by score, sample points with hover details
+- The headline score and band — *Flat calm · Comfortable · Uncomfortable · Bucket ready · Stay ashore*
+- **Top three factors** in plain language ("Head sea — pounding into it, encounter period 4.9 s")
+- An hour-by-hour timeline and table: waves, swell, wind, current, score
+- An ⓘ **"How is this calculated?"** dialog with the model explained in five steps, every data source linked, and the literature it leans on (ISO 2631-1; O'Hanlon & McCauley 1974; McCauley et al. 1976; Lawther & Griffin 1987)
+
+It's an estimate, not a measurement. Forecasts are forecasts, no two hulls move alike, and people vary enormously. Use it to compare departure times and routes — and to decide who gets the helm.
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Tech |
@@ -125,6 +164,8 @@ No delete buttons, no danger zone — it's a read-only overview. The kind of das
 | **Backend** | Node.js, Express, Passport.js (Google OAuth 2.0), JWT in httpOnly cookies |
 | **Database** | PostgreSQL — raw `pg` queries, no ORM (an ORM would hide the suffering) |
 | **AI** | Anthropic Claude API (`claude-sonnet-4-5`) |
+| **Maps** | Leaflet + react-leaflet, Kartverket sea chart WMTS over OpenStreetMap |
+| **Ocean data** | MET Norway wave models over OPeNDAP (thredds.met.no), api.met.no, Kartverket tidal API — all free, no keys |
 | **File storage** | Cloudinary (PDFs via direct browser upload) |
 | **Hosting** | Vercel (monorepo — frontend + backend in one project) |
 | **Database hosting** | [Neon](https://neon.tech) with pgBouncer pooler |
@@ -256,7 +297,7 @@ psql $DATABASE_URL -f backend/db/schema.sql
 | Table | Purpose |
 |---|---|
 | `users` | Google OAuth users with language preference |
-| `boats` | Boat profiles, public/private flag |
+| `boats` | Boat profiles, public/private flag, hull data for the seasickness model (`loa_m`, `displacement_kg`, `hull_type`, `keel_type`) |
 | `maintenance_tasks` | Per-boat tasks (template-seeded + custom) |
 | `maintenance_logs` | Completion records with date, notes, cost in NOK |
 | `maintenance_photos` | Base64 photos attached to log entries |
@@ -271,8 +312,8 @@ psql $DATABASE_URL -f backend/db/schema.sql
 poor-sophie/
 ├── frontend/               # React + Vite
 │   ├── src/
-│   │   ├── pages/          # Route-level components
-│   │   ├── components/     # Shared UI components
+│   │   ├── pages/          # Route-level components (Passage.jsx is lazy-loaded — Leaflet is heavy)
+│   │   ├── components/     # Shared UI components (components/passage/ = map, explainer, band colours)
 │   │   ├── api/client.js   # Axios instance (baseURL /api, withCredentials)
 │   │   ├── contexts/       # AuthContext
 │   │   └── i18n/           # en.js and no.js translations
@@ -280,7 +321,8 @@ poor-sophie/
 ├── backend/                # Node.js + Express
 │   ├── server.js           # App entry point
 │   ├── src/
-│   │   ├── routes/         # auth, boats, maintenance, wiki, chat
+│   │   ├── routes/         # auth, boats, maintenance, wiki, chat, passage
+│   │   ├── services/       # waves (OPeNDAP), met (api.met.no), tides (Kartverket), seasickness (the model)
 │   │   ├── middleware/      # JWT auth
 │   │   └── config/         # DB pool, Passport
 │   └── db/schema.sql       # Full DB schema, idempotent
@@ -312,6 +354,15 @@ poor-sophie/
 - Each chat request includes the full system prompt with all wiki document text + last 50 maintenance log entries
 - Conversation history (last 20 messages) is included for continuity
 - Documents are truncated per-item at 20,000 chars and total at 80,000 chars to stay well within Claude's context window
+
+**Seasickness score:**
+- `POST /api/boats/:id/passage/score` takes waypoints, departure and speed; nothing is stored
+- The route is sampled every ~5 nm (max 14 points). Each sample is one OPeNDAP request for a 5×5 cell neighbourhood (nearest wet cell wins, so positions just inside the coastline still resolve); fetched two at a time, as MET asks for gentle OPeNDAP use
+- Grid metadata is cached in memory and only the last ~10 days of each dataset's time axis is read — the aggregations carry years of hourly steps
+- Datasets are tried in order: the five MyWaveWAM 800 m `*_curr_be` domains, then WAVEWATCH III 4 km, then api.met.no. The older `mywavewam800{s,m,n}_be` datasets stopped updating in October 2025 but still answer requests — don't use them
+- Both wave models use a rotated-pole grid (pole at 140°E / 22°N); `services/waves.js` does the transform
+- The model lives in `services/seasickness.js` as pure functions with every coefficient in one `C` object, so it can be tuned (or unit-tested) without touching I/O
+- Warm requests take ~1–2 s; a cold start can take 10–20 s, so the backend service runs with `maxDuration: 60`
 
 ---
 

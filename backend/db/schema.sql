@@ -89,3 +89,9 @@ CREATE TABLE IF NOT EXISTS chat_messages (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS chat_messages_boat_user_idx ON chat_messages(boat_id, user_id, created_at);
+
+-- Phase 6: Passage seasickness score — hull data the motion model needs
+ALTER TABLE boats ADD COLUMN IF NOT EXISTS loa_m NUMERIC(5,2);
+ALTER TABLE boats ADD COLUMN IF NOT EXISTS displacement_kg INTEGER;
+ALTER TABLE boats ADD COLUMN IF NOT EXISTS hull_type VARCHAR(20) CHECK (hull_type IN ('monohull','catamaran','trimaran'));
+ALTER TABLE boats ADD COLUMN IF NOT EXISTS keel_type VARCHAR(20) CHECK (keel_type IN ('fin','long','bilge','lifting','centerboard'));

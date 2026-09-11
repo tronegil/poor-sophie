@@ -7,3 +7,15 @@
     @apply bg-slate-50 text-slate-800 antialiased;
   }
 }
+
+/* Leaflet: numbered waypoint labels without the tooltip chrome */
+.leaflet-tooltip.wp-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 0;
+}
+.leaflet-tooltip.wp-label::before { display: none; }

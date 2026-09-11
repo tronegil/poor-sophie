@@ -10,6 +10,10 @@ export default function BoatForm({ initialData = {}, onSubmit, onCancel }) {
     description: initialData.description ?? '',
     photo_url:   initialData.photo_url   ?? '',
     is_public:   initialData.is_public   ?? false,
+    loa_m:           initialData.loa_m           ?? '',
+    displacement_kg: initialData.displacement_kg ?? '',
+    hull_type:       initialData.hull_type       ?? '',
+    keel_type:       initialData.keel_type       ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
@@ -29,6 +33,10 @@ export default function BoatForm({ initialData = {}, onSubmit, onCancel }) {
         ...form,
         year: form.year ? parseInt(form.year, 10) : null,
         photo_url: form.photo_url.trim() || null,
+        loa_m: form.loa_m ? parseFloat(form.loa_m) : null,
+        displacement_kg: form.displacement_kg ? parseInt(form.displacement_kg, 10) : null,
+        hull_type: form.hull_type || null,
+        keel_type: form.keel_type || null,
       });
     } catch {
       setError(t('errors.generic'));
@@ -102,6 +110,34 @@ export default function BoatForm({ initialData = {}, onSubmit, onCancel }) {
           placeholder="https://…"
         />
       </div>
+
+      <fieldset className="border-t border-slate-100 pt-4">
+        <legend className="text-sm font-medium text-slate-700 pr-2">{t('boat.hullSection')}</legend>
+        <div className="grid grid-cols-2 gap-4 mt-2">
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">{t('boat.loa')}</label>
+            <input type="number" step="0.1" min="3" max="60" value={form.loa_m} onChange={set('loa_m')} className={inputClass} placeholder="8.9" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">{t('boat.displacement')}</label>
+            <input type="number" step="50" min="200" value={form.displacement_kg} onChange={set('displacement_kg')} className={inputClass} placeholder="3300" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">{t('boat.hullType')}</label>
+            <select value={form.hull_type} onChange={set('hull_type')} className={inputClass}>
+              <option value="">—</option>
+              {['monohull', 'catamaran', 'trimaran'].map(h => <option key={h} value={h}>{t(`boat.hull.${h}`)}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">{t('boat.keelType')}</label>
+            <select value={form.keel_type} onChange={set('keel_type')} className={inputClass}>
+              <option value="">—</option>
+              {['fin', 'long', 'bilge', 'lifting', 'centerboard'].map(k => <option key={k} value={k}>{t(`boat.keel.${k}`)}</option>)}
+            </select>
+          </div>
+        </div>
+      </fieldset>
 
       <label className="flex items-start gap-3 cursor-pointer">
         <input

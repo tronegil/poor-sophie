@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -14,6 +15,9 @@ import Wiki from './pages/Wiki';
 import Chat from './pages/Chat';
 import Admin from './pages/Admin';
 
+// Leaflet is heavy; only load it when someone actually plans a passage
+const Passage = lazy(() => import('./pages/Passage'));
+
 function NavLayout() {
   return (
     <div className="min-h-screen flex flex-col">
@@ -21,6 +25,14 @@ function NavLayout() {
       <main className="flex-1 container mx-auto px-4 py-6 max-w-4xl">
         <Outlet />
       </main>
+    </div>
+  );
+}
+
+function Spinner() {
+  return (
+    <div className="flex justify-center py-12">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ocean-600" />
     </div>
   );
 }
@@ -41,6 +53,7 @@ export default function App() {
               <Route path="/boats/:id/maintenance" element={<Maintenance />} />
               <Route path="/boats/:id/wiki" element={<Wiki />} />
               <Route path="/boats/:id/chat" element={<Chat />} />
+              <Route path="/boats/:id/passage" element={<Suspense fallback={<Spinner />}><Passage /></Suspense>} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/admin" element={<Admin />} />
             </Route>

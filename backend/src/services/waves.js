@@ -14,6 +14,7 @@
 const THREDDS = 'https://thredds.met.no/thredds/dodsC';
 const FILL = -9999999;
 const META_TTL_MS = 60 * 60 * 1000;
+const TIME_TAIL = 240; // hourly steps ≈ last 10 days, covers analysis + forecast
 
 // Canonical field -> dataset variable. `dir` says whether direction fields are
 // "to" (oceanographic) or "from" (meteorological) in that dataset.
@@ -63,11 +64,18 @@ async function getMeta(ds) {
   const plon = Number(das.match(/grid_north_pole_longitude ([\d.-]+)/)?.[1] ?? 140);
   const plat = Number(das.match(/grid_north_pole_latitude ([\d.-]+)/)?.[1] ?? 22);
 
-  const text = await fetchText(`${THREDDS}/${ds.path}.ascii?rlat,rlon,time`, 40000);
+  // The aggregations carry years of hourly steps; only the tail is a forecast.
+  // Read the axis length from the DDS and fetch just the last TIME_TAIL steps.
+  const dds = await fetchText(`${THREDDS}/${ds.path}.dds`);
+  const nTime = Number(dds.match(/time = (\d+)/)?.[1]);
+  if (!nTime) throw new Error(`No time axis in ${ds.path}`);
+  const t0 = Math.max(0, nTime - TIME_TAIL);
+  const text = await fetchText(`${THREDDS}/${ds.path}.ascii?rlat,rlon,${encodeConstraint(`time[${t0}:1:${nTime - 1}]`)}`, 30000);
   const meta = {
     rlat: parseArray(text, 'rlat'),
     rlon: parseArray(text, 'rlon'),
     time: parseArray(text, 'time'), // seconds since epoch, not contiguous
+    timeOffset: t0,                 // index of time[0] in the full axis
     pole: { plon, plat },
     fetchedAt: Date.now(),
   };
@@ -125,8 +133,9 @@ async function readDataset(ds, lat, lon, date) {
   if (!inside(meta.rlat, r.rlat) || !inside(meta.rlon, r.rlon)) return null;
 
   const t = date.getTime() / 1000;
-  const ti = nearestIndex(meta.time, t);
-  if (Math.abs(meta.time[ti] - t) > 3 * 3600) return null; // outside horizon
+  const tk = nearestIndex(meta.time, t);
+  if (Math.abs(meta.time[tk] - t) > 3 * 3600) return null; // outside horizon
+  const ti = meta.timeOffset + tk;
 
   // 5×5 neighbourhood so positions a few hundred metres inshore still resolve.
   const i = nearestIndex(meta.rlat, r.rlat);
@@ -160,7 +169,7 @@ async function readDataset(ds, lat, lon, date) {
   return {
     source: ds.id,
     dataset: ds.path,
-    validTime: new Date(meta.time[ti] * 1000).toISOString(),
+    validTime: new Date(meta.time[tk] * 1000).toISOString(),
     hs: get('hs'),
     tp: get('tp'),
     tm: get('tm'),

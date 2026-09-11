@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import api from '../api/client';
 import PassageMap from '../components/passage/PassageMap';
 import { bandColor, bandFor } from '../components/passage/bands';
+import HowItWorks from '../components/passage/HowItWorks';
 
 function nextFullHour() {
   const d = new Date();
@@ -100,6 +101,7 @@ export default function Passage() {
         <Link to={`/boats/${boatId}`} className="text-sm text-ocean-600 hover:underline">← {boat?.name}</Link>
         <h1 className="text-2xl font-bold text-slate-800 mt-1">🤢 {t('passage.title')}</h1>
         <p className="text-sm text-slate-500 mt-1">{t('passage.subtitle')}</p>
+        <div className="mt-2"><HowItWorks /></div>
       </div>
 
       {boat && !(boat.loa_m && boat.displacement_kg && boat.hull_type && boat.keel_type) && (

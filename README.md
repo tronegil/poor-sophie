@@ -226,7 +226,7 @@ The Vite dev server proxies all `/api/*` requests to the backend automatically �
 
 ## 🌍 Deployment (Vercel)
 
-Poor Sophie deploys as a **single Vercel project** from the repo root — frontend and backend in one deployment, using `experimentalServices` in `vercel.json`.
+Poor Sophie deploys as a **single Vercel project** from the repo root — frontend and backend in one deployment, using [Vercel services](https://vercel.com/docs/services) in `vercel.json`.
 
 ```
 /        → frontend (Vite build)
@@ -276,7 +276,6 @@ poor-sophie/
 │   │   ├── api/client.js   # Axios instance (baseURL /api, withCredentials)
 │   │   ├── contexts/       # AuthContext
 │   │   └── i18n/           # en.js and no.js translations
-│   └── vercel.json         # {} — no standalone config
 │
 ├── backend/                # Node.js + Express
 │   ├── server.js           # App entry point
@@ -286,7 +285,7 @@ poor-sophie/
 │   │   └── config/         # DB pool, Passport
 │   └── db/schema.sql       # Full DB schema, idempotent
 │
-└── vercel.json             # experimentalServices monorepo config
+└── vercel.json             # Vercel services config (frontend + backend)
 ```
 
 ---
@@ -300,9 +299,9 @@ poor-sophie/
 4. Frontend `AuthContext` bootstraps via `GET /api/auth/me` on mount
 
 **Vercel routing:**
-- `experimentalServices` in root `vercel.json` strips the `/api` prefix before forwarding to Express
-- Express mounts routes without `/api` prefix (e.g. `/boats`, `/auth`)
-- Vite dev proxy mirrors this with a `rewrite` rule — local dev behaves identically to production
+- Root `vercel.json` defines two services; top-level rewrites send `/api/*` to the Express service and everything else to the Vite frontend
+- Express receives the original `/api/...` path and strips the prefix itself, then mounts routes without it (e.g. `/boats`, `/auth`)
+- Vite dev proxy forwards `/api/*` to `localhost:3001` — local dev behaves identically to production
 
 **PDF uploads:**
 - Browser uploads directly to Cloudinary (avoids Vercel's hard 4.5 MB request limit)

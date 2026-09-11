@@ -46,15 +46,14 @@ app.use(cors({
 app.use(cookieParser());
 app.use(passport.initialize());
 
-// On Vercel the /api prefix is stripped before requests reach Express. Locally
-// the Vite proxy does the same — but Google's OAuth callback hits port 3001
-// directly with the prefix intact, so accept both forms outside Vercel.
-if (!process.env.VERCEL) {
-  app.use((req, _res, next) => {
-    if (req.url === '/api' || req.url.startsWith('/api/') || req.url.startsWith('/api?')) req.url = req.url.slice(4) || '/';
-    next();
-  });
-}
+// Public URLs are /api/*; Express routes are mounted without the prefix.
+// Vercel services pass the original path through, the Vite dev proxy strips
+// it, and Google's OAuth callback hits the backend port directly with the
+// prefix intact — so strip it here for every environment.
+app.use((req, _res, next) => {
+  if (req.url === '/api' || req.url.startsWith('/api/') || req.url.startsWith('/api?')) req.url = req.url.slice(4) || '/';
+  next();
+});
 
 app.use('/auth', authRoutes);
 app.use('/boats', boatRoutes);

@@ -47,6 +47,7 @@ psql $DATABASE_URL -f backend/db/schema.sql
 Single schema file: `backend/db/schema.sql`. Two tables: `users` and `boats`. UUIDs via `pgcrypto`. No ORM — raw `pg` pool queries.
 
 ### Vercel deployment
-- `frontend/vercel.json` — SPA rewrite (`/*` → `/index.html`)
-- `backend/vercel.json` — routes all traffic to `server.js` via `@vercel/node`
+- Root `vercel.json` uses Vercel **services**: `frontend` (Vite, SPA fallback to `index.html`) and `backend` (Express, `server.js`, 60 s maxDuration). Top-level rewrites send `/api/*` to the backend and everything else to the frontend.
+- The backend receives the original path *with* the `/api` prefix; `server.js` strips it before the routers (same middleware also makes the Google OAuth callback work locally on port 3001).
+- The earlier `experimentalServices` config stopped routing `/api` once Vercel's CLI moved past v51 — don't go back to it.
 - For production DB, use Neon with pgBouncer pooler endpoint to avoid connection exhaustion in serverless

@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -53,7 +54,7 @@ export default function App() {
               <Route path="/boats/:id/maintenance" element={<Maintenance />} />
               <Route path="/boats/:id/wiki" element={<Wiki />} />
               <Route path="/boats/:id/chat" element={<Chat />} />
-              <Route path="/boats/:id/passage" element={<Suspense fallback={<Spinner />}><Passage /></Suspense>} />
+              <Route path="/boats/:id/passage" element={<ErrorBoundary><Suspense fallback={<Spinner />}><Passage /></Suspense></ErrorBoundary>} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/admin" element={<Admin />} />
             </Route>

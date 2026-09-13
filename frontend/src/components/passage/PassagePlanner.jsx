@@ -57,12 +57,10 @@ export default function PassagePlanner({ storageKey, score, extraControls = null
     }
   };
 
-  const mapCenter = useMemo(() => (waypoints.length ? [waypoints[0].lat, waypoints[0].lon] : undefined), []); // eslint-disable-line react-hooks/exhaustive-deps
-
   return (
     <div className="space-y-5">
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 space-y-3">
-        <PassageMap waypoints={waypoints} result={result} onAddWaypoint={addWaypoint} center={mapCenter} heightClass={mapHeight} scrollWheelZoom={mapScrollZoom} />
+        <PassageMap waypoints={waypoints} result={result} onAddWaypoint={addWaypoint} heightClass={mapHeight} scrollWheelZoom={mapScrollZoom} />
 
         <div className="grid sm:grid-cols-[1fr_auto_auto] gap-3 items-end">
           {extraControls ? <div>{extraControls}</div> : <div />}

@@ -1,4 +1,5 @@
-import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMapEvents } from 'react-leaflet';
+import { useEffect } from 'react';
+import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { bandColor } from './bands';
 
@@ -7,12 +8,26 @@ import { bandColor } from './bands';
 const OSM = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const SJOKART = 'https://cache.kartverket.no/v1/wmts/1.0.0/sjokartraster/default/webmercator/{z}/{y}/{x}.png';
 
+// Default start view: Boknafjorden / Kvitsøy off Stavanger.
+export const DEFAULT_CENTER = [59.05, 5.5];
+export const DEFAULT_ZOOM = 11;
+
+// Fit the view to a saved route once on mount, so a returning visitor sees
+// their whole passage instead of the default view.
+function FitOnce({ points }) {
+  const map = useMap();
+  useEffect(() => {
+    if (points.length >= 2) map.fitBounds(points, { padding: [40, 40], maxZoom: 12 });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
+}
+
 function ClickHandler({ onClick }) {
   useMapEvents({ click: e => onClick({ lat: e.latlng.lat, lon: e.latlng.lng }) });
   return null;
 }
 
-export default function PassageMap({ waypoints, result, onAddWaypoint, center = [59.0, 10.4], zoom = 8, heightClass = 'h-80 sm:h-96', scrollWheelZoom = true }) {
+export default function PassageMap({ waypoints, result, onAddWaypoint, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, heightClass = 'h-80 sm:h-96', scrollWheelZoom = true }) {
   const path = waypoints.map(w => [w.lat, w.lon]);
   const legs = result?.legs ?? [];
 
@@ -21,6 +36,7 @@ export default function PassageMap({ waypoints, result, onAddWaypoint, center = 
       <TileLayer url={OSM} attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
       <TileLayer url={SJOKART} attribution='© <a href="https://www.kartverket.no">Kartverket</a>' opacity={0.9} />
       <ClickHandler onClick={onAddWaypoint} />
+      <FitOnce points={path} />
 
       {/* Route: one grey line while planning, one coloured line per leg once scored */}
       {!result && path.length > 1 && <Polyline positions={path} pathOptions={{ color: '#0369a1', weight: 3, dashArray: '6 6' }} />}

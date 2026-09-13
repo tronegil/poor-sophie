@@ -7,6 +7,7 @@ export default {
   login: {
     title: 'Poor Sophie',
     subtitle: 'Hold oversikt over og administrer seilbåtene dine',
+    backToIndex: 'Tilbake til Kvalmeindeksen',
     signIn: 'Logg inn med Google',
   },
   dashboard: {
@@ -182,6 +183,7 @@ export default {
     sources: 'Data: Meteorologisk institutts bølgemodeller (MyWaveWAM 800 m, WAVEWATCH III 4 km), Kartverket tidevann.',
     noData: 'Ingen varseldata for denne ruten og tiden. Varslene dekker omtrent de neste 2–3 døgnene.',
     error: 'Noe gikk galt. Prøv igjen.',
+    rateLimited: 'For mange beregninger fra nettverket ditt akkurat nå — prøv igjen om noen minutter.',
     swell: 'dønning',
     how: {
       title: 'Hvordan regnes dette ut?',
@@ -231,5 +233,34 @@ export default {
       wind_against_current: 'Vind mot strøm ({{currentKn}} kn) gjør sjøen krappere',
       long_exposure: 'Lang eksponering — {{hours}} timer med dette',
     },
+  },
+  landing: {
+    brand: 'Kvalmeindeks',
+    title: 'Hvor sjøsyk blir du på turen?',
+    lead: 'Tegn overfarten i sjøkartet, velg båt, avgang og fart — og få en indeks fra 0 til 10 for hele turen, time for time. Bygget på Meteorologisk institutts bølgemodeller og forskningen på bevegelsessyke, tilpasset skroget ditt.',
+    pills: ['MET 800 m bølgemodell', 'Din båt, din fart, din kurs', 'ISO 2631 kvalmedose'],
+    boat: 'Båt',
+    customBoat: 'Annen båt',
+    tryHint: 'Klikk to eller flere punkter i kartet for å tegne ruten. Trykk så Beregn.',
+    howTitle: 'Slik virker det',
+    how: [
+      { icon: '🌊', h: 'Sjøen langs ruten din', p: 'Ikke ett varsel for ett punkt: ruten deles opp, og bølgene leses for det nøyaktige tidspunktet båten er på hver bit — høyde, periode, retning, dønning, vind og strøm.' },
+      { icon: '⛵', h: 'Din båt, din kurs', p: 'Motsjø i seks knop gjør en lat 6-sekunders dønning om til 4-sekunders stamping. Skroglengde, deplasement og kjøltype avgjør hvor mye av det som når cockpiten.' },
+      { icon: '🤢', h: 'Balanseorganet ditt', p: 'Bevegelsen vektes etter frekvensene folk faktisk blir syke av (~0,17 Hz) og summeres over turen, etter ISO 2631-1. Langt og moderat kan slå kort og grovt.' },
+    ],
+    fullMath: 'Hele regnestykket, kilder og referanser',
+    bandsTitle: 'Hva tallene betyr',
+    bands: [
+      { band: 'flat', range: '0–2', p: 'Kaffen blir i koppen.' },
+      { band: 'comfortable', range: '2–4', p: 'Greit for de fleste. Følsomme bør se på horisonten.' },
+      { band: 'uncomfortable', range: '4–6', p: 'Noen blir stille. Spis før, ikke underveis.' },
+      { band: 'bucket', range: '6–8', p: 'Planlegg for det: tabletter kvelden før, bøtte innen rekkevidde, ror til den som har det verst.' },
+      { band: 'ashore', range: '8–10', p: 'Det finnes alltid en i morgen.' },
+    ],
+    whyTitle: 'Hvorfor dette finnes',
+    why: 'Alle værapper viser bølgehøyde og vind. Ingen svarer på det skipperen faktisk lurer på kvelden før: for min båt, på denne kursen, i denne farten — hvor ille blir det, og hvem kommer til å lide? Det gjør denne. Den er gratis, den er laget for norskekysten først, og den er et anslag, ikke et løfte.',
+    footerData: 'Bølgedata: Meteorologisk institutt (MyWaveWAM 800 m, WAVEWATCH III 4 km). Tidevann: Kartverket. Kart: Kartverket / OpenStreetMap.',
+    footerOwners: 'Båteiere: Poor Sophie — vedlikeholdslogg, wiki og indeks for din egen båt.',
+    footerLogin: 'Logg inn',
   },
 };

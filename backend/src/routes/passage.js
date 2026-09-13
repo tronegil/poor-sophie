@@ -76,19 +76,27 @@ function buildSamples(waypoints, departure, speedKn) {
   return { legs, samples, totalNm, totalH: elapsedH };
 }
 
-router.post('/score', authenticate, async (req, res) => {
-  const boatRow = await requireBoatOwner(req, res);
-  if (!boatRow) return;
-
-  const { waypoints, departure, speedKn } = req.body;
-  if (!Array.isArray(waypoints) || waypoints.length < 2) return res.status(400).json({ error: 'At least two waypoints are required' });
-  if (waypoints.length > MAX_WAYPOINTS) return res.status(400).json({ error: `Max ${MAX_WAYPOINTS} waypoints` });
-  if (!waypoints.every(w => Number.isFinite(w?.lat) && Number.isFinite(w?.lon))) return res.status(400).json({ error: 'Invalid waypoint' });
+// Validates the shared request shape. Returns { error } or the parsed input.
+function parseScoreRequest(body) {
+  const { waypoints, departure, speedKn } = body || {};
+  if (!Array.isArray(waypoints) || waypoints.length < 2) return { error: 'At least two waypoints are required' };
+  if (waypoints.length > MAX_WAYPOINTS) return { error: `Max ${MAX_WAYPOINTS} waypoints` };
+  if (!waypoints.every(w => Number.isFinite(w?.lat) && Number.isFinite(w?.lon) && Math.abs(w.lat) <= 90 && Math.abs(w.lon) <= 180)) return { error: 'Invalid waypoint' };
   const dep = new Date(departure);
-  if (Number.isNaN(dep.getTime())) return res.status(400).json({ error: 'Invalid departure time' });
+  if (Number.isNaN(dep.getTime())) return { error: 'Invalid departure time' };
   const speed = Number(speedKn);
-  if (!(speed >= 1 && speed <= 30)) return res.status(400).json({ error: 'Speed must be 1–30 knots' });
+  if (!(speed >= 1 && speed <= 30)) return { error: 'Speed must be 1–30 knots' };
+  return { waypoints: waypoints.map(w => ({ lat: Number(w.lat), lon: Number(w.lon) })), dep, speed };
+}
 
+/**
+ * Score a passage. Shared by the per-boat route and the public endpoint.
+ * @param {{waypoints:{lat:number,lon:number}[], dep:Date, speed:number}} input
+ * @param {object} boatRow  hull fields (+ optional name); normalised here
+ * @returns {Promise<{status:number, body:object}>}
+ */
+async function scorePassage(input, boatRow) {
+  const { waypoints, dep, speed } = input;
   const boat = normalizeBoat(boatRow);
   const boatComplete = !!(boatRow.loa_m && boatRow.displacement_kg && boatRow.hull_type && boatRow.keel_type);
   const { legs, samples, totalNm, totalH } = buildSamples(waypoints, dep, speed);
@@ -128,7 +136,7 @@ router.post('/score', authenticate, async (req, res) => {
   });
 
   const withData = scored.filter(s => !s.noData);
-  if (!withData.length) return res.status(422).json({ error: 'No forecast data for this route/time', code: 'NO_DATA' });
+  if (!withData.length) return { status: 422, body: { error: 'No forecast data for this route/time', code: 'NO_DATA' } };
 
   const tide = await tidePromise;
   const tideAt = tide ? scored.map(s => phaseAt(tide.series, new Date(s.time))) : null;
@@ -139,20 +147,35 @@ router.post('/score', authenticate, async (req, res) => {
     return { ...leg, nm: Math.round(leg.nm * 10) / 10, bearing: Math.round(leg.bearing), score, band: score == null ? null : band(score) };
   });
 
-  res.json({
-    boat: { ...boat, name: boatRow.name, complete: boatComplete },
-    departure: dep.toISOString(),
-    speedKn: speed,
-    totalNm: Math.round(totalNm * 10) / 10,
-    totalHours: Math.round(totalH * 10) / 10,
-    total: accumulate(withData),
-    factors: topFactors(withData),
-    legs: perLeg,
-    samples: scored.map((s, i) => ({ ...s, tide: tideAt?.[i] ?? null })),
-    tideStation: tide?.station ?? null,
-    sources: [...new Set(withData.map(s => s.wave.source))],
-  });
+  return {
+    status: 200,
+    body: {
+      boat: { ...boat, name: boatRow.name ?? null, complete: boatComplete },
+      departure: dep.toISOString(),
+      speedKn: speed,
+      totalNm: Math.round(totalNm * 10) / 10,
+      totalHours: Math.round(totalH * 10) / 10,
+      total: accumulate(withData),
+      factors: topFactors(withData),
+      legs: perLeg,
+      samples: scored.map((s, i) => ({ ...s, tide: tideAt?.[i] ?? null })),
+      tideStation: tide?.station ?? null,
+      sources: [...new Set(withData.map(s => s.wave.source))],
+    },
+  };
+}
+
+// Per-boat: hull data comes from the owner's boat profile.
+router.post('/score', authenticate, async (req, res) => {
+  const boatRow = await requireBoatOwner(req, res);
+  if (!boatRow) return;
+  const input = parseScoreRequest(req.body);
+  if (input.error) return res.status(400).json({ error: input.error });
+  const { status, body } = await scorePassage(input, boatRow);
+  res.status(status).json(body);
 });
 
 module.exports = router;
 module.exports.buildSamples = buildSamples;
+module.exports.parseScoreRequest = parseScoreRequest;
+module.exports.scorePassage = scorePassage;

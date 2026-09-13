@@ -7,6 +7,7 @@ export default {
   login: {
     title: 'Poor Sophie',
     subtitle: 'Track and manage your sailing vessels',
+    backToIndex: 'Back to the Seasickness Index',
     signIn: 'Sign in with Google',
   },
   dashboard: {
@@ -182,6 +183,7 @@ export default {
     sources: 'Data: MET Norway wave models (MyWaveWAM 800 m, WAVEWATCH III 4 km), Kartverket tides.',
     noData: 'No forecast data for this route and time. Forecasts cover roughly the next 2–3 days.',
     error: 'Something went wrong. Please try again.',
+    rateLimited: 'Too many calculations from your network right now — try again in a few minutes.',
     swell: 'swell',
     how: {
       title: 'How is this calculated?',
@@ -231,5 +233,34 @@ export default {
       wind_against_current: 'Wind against current ({{currentKn}} kn) steepens the sea',
       long_exposure: 'Long exposure — {{hours}} hours of it',
     },
+  },
+  landing: {
+    brand: 'Seasickness Index',
+    title: 'How seasick will you get on the way?',
+    lead: 'Plot your passage on the sea chart, pick your boat, departure and speed — and get a 0–10 index for the whole trip, hour by hour. Built on MET Norway’s wave models and the science of motion sickness, tuned to your hull.',
+    pills: ['MET Norway 800 m wave model', 'Your boat, your speed, your course', 'ISO 2631 motion-sickness dose'],
+    boat: 'Boat',
+    customBoat: 'Other boat',
+    tryHint: 'Click two or more points on the chart to draw the route. Then hit Calculate.',
+    howTitle: 'How it works',
+    how: [
+      { icon: '🌊', h: 'The sea along your route', p: 'Not one forecast for one spot: the route is split into segments and the waves are read for the exact time your boat will be at each one — height, period, direction, swell, wind and current.' },
+      { icon: '⛵', h: 'Your boat, your course', p: 'Head sea at six knots turns a lazy 6-second swell into a 4-second pounding. Hull length, displacement and keel type decide how much of that reaches the cockpit.' },
+      { icon: '🤢', h: 'Your inner ear', p: 'The motion is weighted by the frequencies people actually get sick from (~0.17 Hz) and accumulated over the trip, per ISO 2631-1. Long and moderate can beat short and rough.' },
+    ],
+    fullMath: 'The full calculation, sources and references',
+    bandsTitle: 'What the numbers mean',
+    bands: [
+      { band: 'flat', range: '0–2', p: 'Coffee stays in the cup.' },
+      { band: 'comfortable', range: '2–4', p: 'Fine for most. Sensitive crew should look at the horizon.' },
+      { band: 'uncomfortable', range: '4–6', p: 'Someone will go quiet. Eat before, not during.' },
+      { band: 'bucket', range: '6–8', p: 'Plan for it: pills the night before, bucket within reach, helm to whoever is worst.' },
+      { band: 'ashore', range: '8–10', p: 'There is always tomorrow.' },
+    ],
+    whyTitle: 'Why this exists',
+    why: 'Every weather app shows wave height and wind. None of them answers the question a skipper actually has the evening before: for my boat, on this course, at this speed — how bad will it be, and who is going to suffer? This does. It is free, it is Norwegian coastal waters first, and it is an estimate, not a promise.',
+    footerData: 'Wave data: MET Norway (MyWaveWAM 800 m, WAVEWATCH III 4 km). Tides: Kartverket. Chart: Kartverket / OpenStreetMap.',
+    footerOwners: 'Boat owners: Poor Sophie — maintenance log, wiki and your own boat’s index.',
+    footerLogin: 'Log in',
   },
 };

@@ -12,12 +12,12 @@ function ClickHandler({ onClick }) {
   return null;
 }
 
-export default function PassageMap({ waypoints, result, onAddWaypoint, center = [59.0, 10.4], zoom = 8 }) {
+export default function PassageMap({ waypoints, result, onAddWaypoint, center = [59.0, 10.4], zoom = 8, heightClass = 'h-80 sm:h-96', scrollWheelZoom = true }) {
   const path = waypoints.map(w => [w.lat, w.lon]);
   const legs = result?.legs ?? [];
 
   return (
-    <MapContainer center={center} zoom={zoom} className="h-80 sm:h-96 w-full rounded-2xl z-0" scrollWheelZoom>
+    <MapContainer center={center} zoom={zoom} className={`${heightClass} w-full rounded-2xl z-0`} scrollWheelZoom={scrollWheelZoom}>
       <TileLayer url={OSM} attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
       <TileLayer url={SJOKART} attribution='© <a href="https://www.kartverket.no">Kartverket</a>' opacity={0.9} />
       <ClickHandler onClick={onAddWaypoint} />

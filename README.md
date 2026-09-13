@@ -1,6 +1,6 @@
 # ⛵ Poor Sophie
 
-> *A full-stack web app for managing, maintaining, and having deeply philosophical conversations with your sailboat.*
+> *A public seasickness index for the Norwegian coast — and, behind a small link in the footer, a full-stack web app for managing, maintaining, and having deeply philosophical conversations with your sailboat.*
 
 Built with love, frustration, and an unhealthy number of late nights for **Miss Sophie** — a 1987 Compromis 888 who has survived more deferred maintenance than any boat deserves, and is now finally getting the digital infrastructure she's owed.
 
@@ -10,7 +10,11 @@ If you've ever stood on a dock in the rain, trying to remember whether you winte
 
 ## 🤔 What is this, exactly?
 
-Poor Sophie is a **boat management platform** that combines:
+Two things sharing one deployment:
+
+**🤢 Kvalmeindeks (the Seasickness Index)** — the public front page at `/`. Anyone can plot a passage on the sea chart, pick a boat type, departure and speed, and get a 0–10 seasickness index for the whole trip, hour by hour. No account, no login. Norwegian by default, English on a click.
+
+**⛵ Poor Sophie** — the boat management platform behind the discreet *Log in* link in the footer. It combines:
 
 - 🔐 **Authentication** — Google login, no passwords to lose
 - ⛵ **Boat profiles** — your fleet, publicly shareable if you're brave
@@ -151,6 +155,8 @@ Plot a passage on a real nautical chart, pick a departure time and speed, and ge
 - **Top three factors** in plain language ("Head sea — pounding into it, encounter period 4.9 s")
 - An hour-by-hour timeline and table: waves, swell, wind, current, score
 - An ⓘ **"How is this calculated?"** dialog with the model explained in five steps, every data source linked, and the literature it leans on (ISO 2631-1; O'Hanlon & McCauley 1974; McCauley et al. 1976; Lawther & Griffin 1987)
+
+**Public front page (`/`):** the same tool, open to everyone. Pick a boat from a list of ~20 common types on the Norwegian coast (Folkebåt to Colin Archer, with hull data filled in) or type your own, and score away. Backed by `POST /api/passage/score` — unauthenticated, rate-limited to 30 calculations per IP per 10 minutes. Logged-in owners get the same thing per boat, with the hull data from the boat profile.
 
 It's an estimate, not a measurement. Forecasts are forecasts, no two hulls move alike, and people vary enormously. Use it to compare departure times and routes — and to decide who gets the helm.
 
@@ -312,8 +318,8 @@ psql $DATABASE_URL -f backend/db/schema.sql
 poor-sophie/
 ├── frontend/               # React + Vite
 │   ├── src/
-│   │   ├── pages/          # Route-level components (Passage.jsx is lazy-loaded — Leaflet is heavy)
-│   │   ├── components/     # Shared UI components (components/passage/ = map, explainer, band colours)
+│   │   ├── pages/          # Route-level components (Landing.jsx and Passage.jsx are lazy-loaded — Leaflet is heavy)
+│   │   ├── components/     # Shared UI (components/passage/ = planner, map, results, boat picker & presets, explainer)
 │   │   ├── api/client.js   # Axios instance (baseURL /api, withCredentials)
 │   │   ├── contexts/       # AuthContext
 │   │   └── i18n/           # en.js and no.js translations
@@ -321,7 +327,7 @@ poor-sophie/
 ├── backend/                # Node.js + Express
 │   ├── server.js           # App entry point
 │   ├── src/
-│   │   ├── routes/         # auth, boats, maintenance, wiki, chat, passage
+│   │   ├── routes/         # auth, boats, maintenance, wiki, chat, passage (per boat), publicPassage (no auth)
 │   │   ├── services/       # waves (OPeNDAP), met (api.met.no), tides (Kartverket), seasickness (the model)
 │   │   ├── middleware/      # JWT auth
 │   │   └── config/         # DB pool, Passport
@@ -355,8 +361,13 @@ poor-sophie/
 - Conversation history (last 20 messages) is included for continuity
 - Documents are truncated per-item at 20,000 chars and total at 80,000 chars to stay well within Claude's context window
 
+**Frontend routing:**
+- `/` — public landing page with the seasickness index (no auth)
+- `/login` — Google sign-in for Poor Sophie; `/dashboard`, `/boats/…`, `/settings`, `/admin` are behind `ProtectedRoute` as before
+- Unknown paths go to `/`
+
 **Seasickness score:**
-- `POST /api/boats/:id/passage/score` takes waypoints, departure and speed; nothing is stored
+- `POST /api/boats/:id/passage/score` (owner) and `POST /api/passage/score` (public, hull data in the body, 30 req / IP / 10 min) share one scoring function; nothing is stored
 - The route is sampled every ~5 nm (max 14 points). Each sample is one OPeNDAP request for a 5×5 cell neighbourhood (nearest wet cell wins, so positions just inside the coastline still resolve); fetched two at a time, as MET asks for gentle OPeNDAP use
 - Grid metadata is cached in memory and only the last ~10 days of each dataset's time axis is read — the aggregations carry years of hourly steps
 - Datasets are tried in order: the five MyWaveWAM 800 m `*_curr_be` domains, then WAVEWATCH III 4 km, then api.met.no. The older `mywavewam800{s,m,n}_be` datasets stopped updating in October 2025 but still answer requests — don't use them

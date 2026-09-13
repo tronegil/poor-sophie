@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // Small info button that opens a plain-language explanation of the model.
-export default function HowItWorks() {
+export default function HowItWorks({ label, buttonClassName }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const steps = t('passage.how.steps', { returnObjects: true });
@@ -21,11 +21,11 @@ export default function HowItWorks() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 text-xs text-ocean-600 hover:text-ocean-800 hover:underline"
+        className={buttonClassName || 'inline-flex items-center gap-1 text-xs text-ocean-600 hover:text-ocean-800 hover:underline'}
         aria-haspopup="dialog"
       >
         <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-current text-[10px] font-bold">i</span>
-        {t('passage.how.title')}
+        {label || t('passage.how.title')}
       </button>
 
       {open && (

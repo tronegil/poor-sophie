@@ -18,6 +18,7 @@ import Admin from './pages/Admin';
 
 // Leaflet is heavy; only load it when someone actually plans a passage
 const Passage = lazy(() => import('./pages/Passage'));
+const Landing = lazy(() => import('./pages/Landing'));
 
 function NavLayout() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route path="/" element={<ErrorBoundary><Suspense fallback={<Spinner />}><Landing /></Suspense></ErrorBoundary>} />
           <Route path="/login" element={<Login />} />
           <Route path="/boats/public/:id" element={<PublicBoat />} />
           <Route element={<ProtectedRoute />}>
@@ -59,7 +61,7 @@ export default function App() {
               <Route path="/admin" element={<Admin />} />
             </Route>
           </Route>
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

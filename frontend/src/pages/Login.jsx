@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -30,7 +30,9 @@ export default function Login() {
         </a>
       </div>
 
-      <div className="mt-10 opacity-30">
+      <Link to="/" className="mt-8 text-sm text-ocean-200 hover:text-white transition-colors">← {t('login.backToIndex')}</Link>
+
+      <div className="mt-8 opacity-30">
         <WaveDivider />
       </div>
     </div>

@@ -32,6 +32,7 @@ psql $DATABASE_URL -f backend/db/schema.sql
 4. Frontend `AuthContext` bootstraps by calling `GET /api/auth/me` on mount; loading state gates all protected routes via `ProtectedRoute`
 
 ### Frontend routing
+- `/` — public landing page (`pages/Landing.jsx`): the seasickness index for anonymous users, calls `POST /api/passage/score` (no auth, IP rate-limited in `routes/publicPassage.js`). Poor Sophie login is a small link in its footer.
 - `/login` — public, redirects to `/dashboard` if already authed
 - `/boats/public/:id` — public shareable boat view (no auth required)
 - Everything else — wrapped in `ProtectedRoute` → `NavLayout` (Navbar + `<Outlet>`)
@@ -41,6 +42,8 @@ psql $DATABASE_URL -f backend/db/schema.sql
 - Vite proxies `/api/*` → `localhost:3001` in dev — no CORS issues locally
 - i18n translations are in `frontend/src/i18n/en.js` and `no.js`; language persisted in `localStorage` and synced to `users.language` in DB via `PUT /api/users/language`
 - Boat photos are URL-based in Phase 1 (no file upload)
+- Passage planner UI lives in `components/passage/` (`PassagePlanner` owns route/time/speed state, `PassageResults` renders the score); both the boat page and the landing page compose these. Boat presets for the public picker are in `components/passage/boatPresets.js`
+- Default language is Norwegian for `nb/nn/no` browsers, else English (`i18n/index.js`)
 - Public vs private boats: `GET /api/boats/:id` checks `is_public`; private boats require a valid JWT cookie belonging to the owner
 
 ### Database

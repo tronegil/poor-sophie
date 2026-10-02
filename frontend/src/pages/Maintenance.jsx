@@ -5,6 +5,8 @@ import api from '../api/client';
 import LogModal from '../components/maintenance/LogModal';
 import CostSummary from '../components/maintenance/CostSummary';
 import { Sprout, Sun, Leaf, Snowflake, Camera, X } from 'lucide-react';
+import { numberLocale } from '../i18n/format';
+import i18n from '../i18n';
 
 const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 const SEASON_ICONS = { spring: Sprout, summer: Sun, autumn: Leaf, winter: Snowflake };
@@ -69,7 +71,7 @@ function TaskCard({ task, lang, logsThisYear, expanded, onExpand, onLog, onEditL
                   <span className="text-sm text-slate-700 font-medium">{fmtDate(log.completed_date)}</span>
                   {log.cost_nok && (
                     <span className="text-xs bg-band-uncomfortable/15 text-ink px-2 py-0.5 rounded-full font-medium">
-                      {Number(log.cost_nok).toLocaleString()} kr
+                      {Number(log.cost_nok).toLocaleString(numberLocale(i18n.language))} kr
                     </span>
                   )}
                   {log.photos?.length > 0 && (

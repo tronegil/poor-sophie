@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import api from '../api/client';
 import AddItemModal from '../components/wiki/AddItemModal';
 import { FileText, NotebookPen, Link2, PlayCircle, Play, X, Search, LayoutGrid, List, BookOpen } from 'lucide-react';
+import { formatNumber } from '../i18n/format';
+import i18n from '../i18n';
 
 const TYPE_META = {
   pdf:     { icon: FileText,   bg: 'bg-shallow', text: 'text-ink', border: 'border-line' },
@@ -19,8 +21,8 @@ function fmtDate(ts) {
 function fmtSize(bytes) {
   if (!bytes) return '';
   if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024 * 1024) return `${formatNumber(bytes / 1024, 0, i18n.language)} KB`;
+  return `${formatNumber(bytes / (1024 * 1024), 1, i18n.language)} MB`;
 }
 
 function getDomain(url) {

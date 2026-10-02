@@ -1,9 +1,11 @@
+import { numberLocale } from '../../i18n/format';
+
 const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 
-function fmtCost(val) {
+function fmtCost(val, lang) {
   const n = Number(val);
   if (!n) return '—';
-  return n.toLocaleString() + ' kr';
+  return n.toLocaleString(numberLocale(lang)) + ' kr';
 }
 
 export default function CostSummary({ summary, t, lang, selectedYear }) {
@@ -49,12 +51,12 @@ export default function CostSummary({ summary, t, lang, selectedYear }) {
                 const row = get(year, s);
                 return (
                   <td key={s} className="text-right py-2 px-2 text-slate-600">
-                    {row ? fmtCost(row.total_cost) : '—'}
+                    {row ? fmtCost(row.total_cost, lang) : '—'}
                   </td>
                 );
               })}
               <td className="text-right py-2 pl-2 font-semibold text-slate-800">
-                {fmtCost(yearTotal(year))}
+                {fmtCost(yearTotal(year), lang)}
               </td>
             </tr>
           ))}

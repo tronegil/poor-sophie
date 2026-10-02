@@ -13,6 +13,7 @@ import Wordmark from '../components/brand/Wordmark';
 import Isobaths from '../components/brand/Isobaths';
 import { parseShareParams } from '../components/passage/shareLink';
 import ThemePicker from '../components/brand/ThemePicker';
+import InstallApp from '../components/brand/InstallApp';
 
 // Icons for the three "how it works" cards, in order: sea, boat, inner ear.
 const HOW_ICONS = [Waves, Sailboat, Ear];
@@ -204,6 +205,7 @@ export default function Landing() {
             <span>{t('landing.footerOwners')}</span>
             <Link to="/login" className="text-magenta hover:underline underline-offset-2">{t('landing.footerLogin')}</Link>
           </p>
+          <InstallApp className="pt-2" />
         </div>
       </footer>
     </div>

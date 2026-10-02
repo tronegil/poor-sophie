@@ -4,9 +4,11 @@ import PassageMap from './PassageMap';
 import PassageResults from './PassageResults';
 import DepartureStrip from './DepartureStrip';
 import ShareTrip from './ShareTrip';
+import SaveTrip from './SaveTrip';
 import PlaceSearch from './PlaceSearch';
 import { DEFAULT_CREW, isCrew } from './crew';
-import { RefreshCw, TriangleAlert } from 'lucide-react';
+import { RefreshCw, TriangleAlert, WifiOff } from 'lucide-react';
+import useOnline from '../../hooks/useOnline';
 import { useFormat } from '../../i18n/format';
 
 // Value for <input type="datetime-local">, in local time.
@@ -49,19 +51,34 @@ export const inputClass = 'border border-line rounded px-3 py-2 text-sm text-ink
  *   optional: scores every departure in the next 48 h for the "best departure" strip
  * @param {string} [windowKey] changes when something outside the planner (the boat) changes the score
  * @param {object} [shareBoat] hull data for the share link (omit to hide the share button)
- * @param {{waypoints, departure?:Date, speed?:number}} [initial] a shared trip to open and score right away
+ * @param {{waypoints, departure?:Date, speed?:number, crew?:string}} [initial] a trip to open and score right away
+ * @param {(trip:{name, id, waypoints, speedKn, crew}) => Promise} [onSaveTrip] shows "Save passage" (owners only)
+ * @param {{id, name}} [loadedTrip] the saved passage currently open, so saving can update it
  */
-export default function PassagePlanner({ storageKey, score, scoreWindow, windowKey = '', shareBoat, initial, extraControls = null, onResult, mapHeight, mapScrollZoom = true }) {
-  const { t } = useTranslation();
+export default function PassagePlanner({ storageKey, score, scoreWindow, windowKey = '', shareBoat, initial, onSaveTrip, loadedTrip, extraControls = null, onResult, mapHeight, mapScrollZoom = true }) {
+  const { t, i18n } = useTranslation();
   const { num } = useFormat();
   const saved = useMemo(() => { try { return JSON.parse(localStorage.getItem(storageKey)) || {}; } catch { return {}; } }, [storageKey]);
 
   const [waypoints, setWaypoints] = useState(initial?.waypoints ?? saved.waypoints ?? []);
   const [departure, setDeparture] = useState(() => (initial?.departure ? toLocalInput(initial.departure) : nextFullHour()));
   const [speed, setSpeed] = useState(initial?.speed ?? saved.speed ?? 5.5);
-  const [result, setResult] = useState(null);
+  // The last scored result for this route, kept so a returning visitor (or
+  // one at sea without a network) sees it straight away, marked as old.
+  const lastKey = `${storageKey}:last`;
+  const restored = useMemo(() => {
+    if (initial?.waypoints) return null;
+    try {
+      const last = JSON.parse(localStorage.getItem(lastKey));
+      const fresh = last && Date.now() - last.at < 7 * 24 * 3600e3;
+      return fresh && last.route === JSON.stringify(saved.waypoints ?? []) ? last : null;
+    } catch { return null; }
+  }, [lastKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [result, setResult] = useState(restored?.result ?? null);
+  const [resultAt, setResultAt] = useState(restored?.at ?? null);
+  const online = useOnline();
   const [crew, setCrew] = useState(initial?.crew ?? (isCrew(saved.crew) ? saved.crew : DEFAULT_CREW));
-  const [stale, setStale] = useState(false);
+  const [stale, setStale] = useState(restored ? 'saved' : null); // null | 'edited' | 'saved'
   const [focus, setFocus] = useState(null);       // last searched place, for the map to fly to      // inputs changed since `result` was scored
   const [lastPayload, setLastPayload] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -76,7 +93,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
   }, [waypoints, speed, crew, storageKey]);
 
   // Editing keeps the last result on screen, dimmed, until the next Beregn.
-  const reset = () => { if (result) setStale(true); setError(''); };
+  const reset = () => { if (result) setStale('edited'); setError(''); };
   const addWaypoint = wp => { if (waypoints.length >= MAX_WAYPOINTS) return; setWaypoints(w => [...w, wp]); reset(); };
   const moveWaypoint = (i, wp) => { setWaypoints(w => w.map((p, k) => (k === i ? wp : p))); reset(); };
   const removeWaypoint = i => { setWaypoints(w => w.filter((_, k) => k !== i)); reset(); };
@@ -86,7 +103,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
     addWaypoint({ lat: place.lat, lon: place.lon });
   };
   const undo = () => { setWaypoints(w => w.slice(0, -1)); reset(); };
-  const clear = () => { setWaypoints([]); setResult(null); setStale(false); setError(''); };
+  const clear = () => { setWaypoints([]); setResult(null); setStale(null); setError(''); };
 
   const nm = routeNm(waypoints);
   const minutes = Number(speed) > 0 ? Math.round(nm / Number(speed) * 60) : 0;
@@ -130,7 +147,9 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
     try {
       const data = await score(payload);
       setResult(data);
-      setStale(false);
+      setStale(null);
+      setResultAt(Date.now());
+      try { localStorage.setItem(lastKey, JSON.stringify({ result: data, at: Date.now(), route: JSON.stringify(waypoints) })); } catch { /* full or blocked: fine */ }
       onResult?.(data);
       // Bring the result into view on small screens, where it lands below the fold.
       requestAnimationFrame(() => {
@@ -145,6 +164,8 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
     }
   };
 
+  const whenText = at => (at ? new Date(at).toLocaleString(i18n.language?.startsWith('en') ? 'en-GB' : 'nb-NO', { weekday: 'short', hour: '2-digit', minute: '2-digit' }) : '');
+
   const pickDeparture = iso => {
     const local = toLocalInput(iso);
     setDeparture(local);
@@ -157,7 +178,11 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The boat changing (outside the planner) also makes the result stale.
-  useEffect(() => { if (result) setStale(true); }, [windowKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const firstWindowKey = useRef(true);
+  useEffect(() => {
+    if (firstWindowKey.current) { firstWindowKey.current = false; return; }
+    if (result) setStale('edited');
+  }, [windowKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // A different route, speed or boat makes the old window wrong.
   useEffect(() => {
@@ -171,7 +196,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
         <PassageMap
           waypoints={waypoints}
           focus={focus}
-          result={stale ? null : result}
+          result={stale === 'edited' ? null : result}
           onAddWaypoint={addWaypoint}
           onMoveWaypoint={moveWaypoint}
           onRemoveWaypoint={removeWaypoint}
@@ -198,6 +223,9 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
           {shareBoat && waypoints.length >= 2 && (
             <ShareTrip trip={{ waypoints, departure, speed, boat: shareBoat, crew }} />
           )}
+          {onSaveTrip && waypoints.length >= 2 && (
+            <SaveTrip loaded={loadedTrip} onSave={({ name, id }) => onSaveTrip({ name, id, waypoints, speedKn: Number(speed), crew })} />
+          )}
           <button onClick={clear} disabled={!waypoints.length} className="border border-line text-ink px-3 py-2 rounded-lg text-sm hover:bg-shallow hover:border-shallow transition-colors disabled:opacity-45 disabled:cursor-not-allowed">{t('passage.clear')}</button>
           <button
             onClick={() => calculate()}
@@ -220,13 +248,21 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
         )}
       </div>
 
+      {!online && (
+        <p role="status" className="flex items-center gap-2 text-sm bg-band-uncomfortable/15 border border-band-uncomfortable/50 text-ink rounded-lg px-4 py-2.5">
+          <WifiOff size={16} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
+          {result ? t('passage.offlineShowing') : t('passage.offlineNoResult')}
+        </p>
+      )}
       <div ref={resultsRef} className="space-y-5 scroll-mt-4">
         {(win || winLoading || winError) && (
           <DepartureStrip window={win?.data} loading={winLoading} error={winError} departure={departure} onPick={pickDeparture} />
         )}
         {stale && result && !loading && (
           <div className="flex flex-wrap items-center gap-3 text-sm bg-shallow text-ink rounded-lg px-4 py-3">
-            <p className="flex-1 min-w-[12rem]">{t('passage.staleNote')}</p>
+            <p className="flex-1 min-w-[12rem]">
+              {stale === 'saved' ? t('passage.lastResult', { when: whenText(resultAt) }) : t('passage.staleNote')}
+            </p>
             <button type="button" onClick={() => calculate()} className="bg-deep text-deep-on px-3.5 py-2 rounded-lg text-sm font-semibold hover:bg-deep-hover transition-colors">
               {t('passage.recalculate')}
             </button>
@@ -234,7 +270,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
         )}
         {loading && !result && <ResultSkeleton label={t('passage.reading', { n: waypoints.length })} />}
         {result && (
-          <div className={`relative space-y-5 transition-opacity ${stale || loading ? 'opacity-45' : ''}`} aria-busy={loading || undefined}>
+          <div className={`relative space-y-5 transition-opacity ${stale === 'edited' || loading ? 'opacity-45' : stale === 'saved' ? 'opacity-75' : ''}`} aria-busy={loading || undefined}>
             <PassageResults result={result} crew={crew} onCrewChange={setCrew} />
             {loading && <p className="absolute top-4 left-1/2 -translate-x-1/2 bg-surface border border-line rounded-full px-4 py-1.5 text-sm text-ink shadow-panel" role="status">{t('passage.calculating')}</p>}
           </div>

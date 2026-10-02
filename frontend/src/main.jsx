@@ -20,6 +20,14 @@ function showFatal(msg) {
 window.addEventListener('error', e => showFatal(`error: ${e.message} (${e.filename}:${e.lineno})`));
 window.addEventListener('unhandledrejection', e => showFatal(`unhandled: ${e.reason?.stack || e.reason?.message || e.reason}`));
 
+// Installable app + offline shell. Production only: in dev the worker would
+// cache Vite's modules and get in the way of hot reload.
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => console.warn('Service worker registration failed:', err));
+  });
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />

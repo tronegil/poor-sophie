@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Deep water, three depth contours and one chart-magenta light. -->
+  <rect width="512" height="512" fill="#12354d"/>
+  <g fill="none" stroke="#d6e9f2" stroke-linecap="round">
+    <path d="M512 300 A212 212 0 0 0 300 512" stroke-width="18" stroke-opacity=".9"/>
+    <path d="M512 200 A312 312 0 0 0 200 512" stroke-width="14" stroke-opacity=".55"/>
+    <path d="M512 100 A412 412 0 0 0 100 512" stroke-width="10" stroke-opacity=".3"/>
+  </g>
+  <circle cx="176" cy="176" r="64" fill="#b0186f"/>
+  <circle cx="176" cy="176" r="64" fill="none" stroke="#ffffff" stroke-width="10"/>
+</svg>

@@ -150,6 +150,8 @@ Plot a passage on a real nautical chart, pick a departure time and speed, and ge
 **What you see:**
 
 - Kartverket's official **sea chart tiles** (over OpenStreetMap for the bits Norway doesn't chart) — click to drop waypoints, **drag** them to move, tap one to remove it, tap the ring on a leg to insert a point there. Distance and time at your speed update as you draw
+- **Saved passages** (owners) — name a route on the boat's passage page and it's one tap away next time: open it and it's scored straight away with its speed and crew; edit it and *Update*, or *Save as new*. Stored per boat in the `trips` table via `/api/boats/:id/trips`
+- **Install it as an app** — the site is a PWA: add it to the home screen (an *Install the app* button where the browser offers one, a how-to on iPhone). The app shell opens without a network, and the last passage you scored is kept on the device and shown, marked with when it was scored, so you can check it at sea
 - **Who's going to be sick** — pick the crew (*Seasoned · Mixed · Children and first-timers*) and the result says roughly what share of them will be sick, with one concrete thing to do about it (tablets the evening before, keep people out of the cabin, or pick another day). ISO 2631-1's *Km = ⅓* is the mixed crew; the other two are rough multipliers (×0.5 and ×1.5). Changing crew needs no new forecast
 - **Search for a place** — type *Tau* or *Skudeneshavn* above the map; the map flies there and drops a waypoint. Backed by `GET /api/places?q=`, a cached proxy to Kartverket's place-name register (ws.geonorge.no)
 - **A first visit isn't an empty chart** — new visitors get the Boknafjorden crossing from Tananger to Skudeneshavn, already scored, with *Draw your own passage* to start fresh

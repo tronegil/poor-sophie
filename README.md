@@ -12,7 +12,7 @@ If you've ever stood on a dock in the rain, trying to remember whether you winte
 
 Two things sharing one deployment:
 
-**🤢 Kvalmeindeks (the Seasickness Index)** — the public front page at `/`. Anyone can plot a passage on the sea chart, pick a boat type, departure and speed, and get a 0–10 seasickness index for the whole trip, hour by hour. No account, no login. Norwegian by default, English on a click.
+**🤢 Kvalmeindeks (the Seasickness Index)** — the public front page at `/`. Anyone can plot a passage on the sea chart (or search for *Tau* and *Skudeneshavn*), pick a boat type, departure and speed, and get a 0–10 seasickness index for the whole trip, hour by hour — plus **the calmest departure in the next 48 hours**, **how much of your crew will be sick and what to do about it**, and a link to **send the whole thing to the crew**. No account, no login. Installs on your phone as an app, works in Dag (light) and Natt (dark), Norwegian by default, English on a click.
 
 **⛵ Poor Sophie** — the boat management platform behind the discreet *Log in* link in the footer. It combines:
 
@@ -22,6 +22,7 @@ Two things sharing one deployment:
 - 📚 **A searchable knowledge base** — PDFs, manuals, notes, YouTube videos, all in one place
 - 🧭 **Gunnar Fokkeslask** — your AI first mate, Chief Officer of Not-Sinking
 - 🤢 **Seasickness Score** — plot a passage on the sea chart and find out, in advance, who's going to need the bucket
+- 🔔 **Saved passages with calm-weather alerts** — your regular routes one tap away, and a push alert when the next 48 hours hold a calm departure
 
 It runs in your browser, looks good on your phone, and won't judge you for the state of your bilge.
 
@@ -37,7 +38,7 @@ It runs in your browser, looks good on your phone, and won't judge you for the s
 - **Full CRUD** — create, edit, and delete boats (the digital kind is consequence-free)
 - **Public sharing** — generate a shareable link so your sailing club can admire Miss Sophie
 - **English / Norwegian** language support, persisted per user
-- Responsive design with a maritime navy-and-ocean-blue theme
+- Responsive design (since Phase 8: the sea-chart design system, in light and dark)
 
 ---
 
@@ -149,16 +150,7 @@ Plot a passage on a real nautical chart, pick a departure time and speed, and ge
 
 **What you see:**
 
-- Kartverket's official **sea chart tiles** (over OpenStreetMap for the bits Norway doesn't chart) — click to drop waypoints, **drag** them to move, tap one to remove it, tap the ring on a leg to insert a point there. Distance and time at your speed update as you draw
-- **Alert me when it's calm** — the bell on a saved passage: pick *Flat calm*, *Comfortable* or *Uncomfortable* and you get a push alert on this device when the next 48 hours hold a departure that calm ("Calm departure: Home → Tau · Sat 14:00 · 2.1 Comfortable"). Tapping it opens the passage. A GitHub Action calls `POST /api/watches/run` every 3 h; each watched passage is rescored with the same window model as the best-departure strip; the same departure is never announced twice. Up to 10 alerts per user. On iPhone the app must be on the Home Screen
-- **Saved passages** (owners) — name a route on the boat's passage page and it's one tap away next time: open it and it's scored straight away with its speed and crew; edit it and *Update*, or *Save as new*. Stored per boat in the `trips` table via `/api/boats/:id/trips`
-- **Install it as an app** — the site is a PWA: add it to the home screen (an *Install the app* button where the browser offers one, a how-to on iPhone). The app shell opens without a network, and the last passage you scored is kept on the device and shown, marked with when it was scored, so you can check it at sea
-- **Who's going to be sick** — pick the crew (*Seasoned · Mixed · Children and first-timers*) and the result says roughly what share of them will be sick, with one concrete thing to do about it (tablets the evening before, keep people out of the cabin, or pick another day). ISO 2631-1's *Km = ⅓* is the mixed crew; the other two are rough multipliers (×0.5 and ×1.5). Changing crew needs no new forecast
-- **Search for a place** — type *Tau* or *Skudeneshavn* above the map; the map flies there and drops a waypoint. Backed by `GET /api/places?q=`, a cached proxy to Kartverket's place-name register (ws.geonorge.no)
-- **A first visit isn't an empty chart** — new visitors get the Boknafjorden crossing from Tananger to Skudeneshavn, already scored, with *Draw your own passage* to start fresh
-- **Share a passage** — *Share passage* puts the route, boat, departure and speed in a link (the phone's share sheet, or copied to the clipboard). Whoever opens it lands on the public page with the same trip, already scored, no account needed — handy for sending to the crew the night before
-- **Edits don't throw the answer away** — change the route, time, speed or boat and the last result stays on screen, dimmed, with *Recalculate*. Scoring shows a placeholder in the shape of the result; errors say what went wrong (no forecast, offline, rate limit) with *Try again*; a departure beyond the forecast horizon gets a hint before you press the button
-- **Best departure in the next 48 hours** — after scoring, the same route is scored for every departure three hours apart and shown as a strip of bars. The calmest is marked; tap any bar (or *Use calmest departure*) to score that trip
+- Kartverket's official **sea chart tiles** (over OpenStreetMap for the bits Norway doesn't chart), with the route drawn in chart magenta
 - Legs coloured by score, sample points with hover details
 - The headline score and band — *Flat calm · Comfortable · Uncomfortable · Bucket ready · Stay ashore*
 - **Top three factors** in plain language ("Head sea — pounding into it, encounter period 4.9 s")
@@ -171,9 +163,41 @@ It's an estimate, not a measurement. Forecasts are forecasts, no two hulls move 
 
 ---
 
+### ✅ Phase 7 — Planning Like a Skipper
+*The question isn't "how bad is it at 08:00?". It's "when do we go, who's going to suffer, and does the crew know?"*
+
+**Drawing the passage**
+- **Tap to drop waypoints, drag to move them**, tap one to remove it, tap the ring in the middle of a leg to insert a point there. On-map hints walk you through it; distance and time at your speed update as you draw (*3 punkter · 9,8 nm · ≈ 1 t 47 min*)
+- **Search for a place** — type *Tau* or *Skudeneshavn* above the map; it flies there and drops a waypoint. Kartverket's place-name register, through a cached proxy
+- **A first visit isn't an empty chart** — new visitors get the Boknafjorden crossing from Tananger to Skudeneshavn, already scored, with *Draw your own passage* to start fresh
+
+**When to go**
+- **Best departure in the next 48 hours** — after scoring, the same route is scored for every departure three hours apart and shown as a strip of bars. The calmest is marked; tap any bar, or *Use calmest departure*, to score that trip. Costs the same upstream requests as one score: each point on the route is read once as a time series
+- **Alert me when it's calm** 🔔 — the bell on a saved passage: pick *Flat calm*, *Comfortable* or *Uncomfortable* and get a push alert on your phone when the next 48 hours hold a departure that calm (*"Rolig avgang: Hjem → Tau · lør. 14:00 · 2,1 Behagelig"*). Tap it and the passage opens, scored. Checked every three hours; the same departure is never announced twice; up to 10 alerts per user. On iPhone the app must be on the Home Screen. Needs a little setup — see [Calm-passage alerts setup](#calm-passage-alerts-setup)
+
+**Who's going to be sick**
+- Pick the crew — *Seasoned · Mixed · Children and first-timers* — and the result says roughly what share of them will be sick (*≈ 32 % av barn og nybegynnere om bord blir sjøsyke*) and one concrete thing to do about it: tablets the evening before, keep people out of the cabin, give the helm to whoever feels worst, or pick another day. ISO 2631-1's *Km = ⅓* is the mixed crew; the other two are rough multipliers (×0.5 and ×1.5). Changing crew needs no new forecast
+
+**Keeping and sharing**
+- **Saved passages** (owners) — name a route on the boat's passage page (*Hjem → Tau*) and it's one tap away: open it and it's scored straight away with its speed and crew; edit it and *Update*, or *Save as new*
+- **Share a passage** — puts the route, boat, departure, speed and crew in a link (the phone's share sheet, or copied). Whoever opens it lands on the public page with the same trip, already scored, no account needed
+- **Edits don't throw the answer away** — change anything and the last result stays on screen, dimmed, with *Recalculate*. Scoring shows a placeholder in the shape of the result; errors say what went wrong (no forecast, offline, rate limit, server) with *Try again*; a departure beyond the forecast horizon gets a hint before you press the button
+
+---
+
+### ✅ Phase 8 — Looks Like a Sea Chart, Works at Sea
+*Miss Sophie deserved better than default Tailwind blue.*
+
+- **The sea-chart design system** — chart paper, deep navy water, sandy land and one chart-magenta accent; Bricolage Grotesque, Hanken Grotesk and IBM Plex Mono; Lucide icons instead of emoji. Details in [Design System](#-design-system--the-sea-chart) below
+- **Dag and Natt** — light and dark themes. Natt follows the device, or pin it in Settings or on the landing page; even the chart tiles turn into a night chart
+- **Norwegian decimal comma** — *6,4*, *1,6 m*, *5,5 kn* in Norwegian, *6.4* in English
+- **Install it as an app** — a PWA with its own icon: *Install the app* where the browser offers it, a how-to on iPhone. The app shell opens without a network, and the last passage you scored stays on the device, marked with when it was scored — so you can still look at it out of coverage
+
+---
+
 ## 🎨 Design System — the sea chart
 
-> **Status: live in the frontend**, in both themes: Dag (light) and Natt (dark). Natt follows the device by default and can be pinned in Settings or from the landing page. Source of truth in [`design/`](design/), browsable as the [Poor Sophie design system](https://claude.ai/artifact/GSZFJftFCbBkGjb8DDmdr8) (palette, type specimens, live component previews).
+> Live in the frontend in both themes, Dag (light) and Natt (dark). Source of truth in [`design/`](design/), browsable as the [Poor Sophie design system](https://claude.ai/artifact/GSZFJftFCbBkGjb8DDmdr8) (palette, type specimens, live component previews).
 
 Poor Sophie should look like a Norwegian sea chart: cool chart paper, deep navy water, sandy land, and a single **chart magenta** accent — the colour the chart uses for lights and marks. The seasickness index is the only place the app gets loud colour, and there the colour *means* something.
 
@@ -220,8 +244,10 @@ Poor Sophie should look like a Norwegian sea chart: cool chart paper, deep navy 
 | **Backend** | Node.js, Express, Passport.js (Google OAuth 2.0), JWT in httpOnly cookies |
 | **Database** | PostgreSQL — raw `pg` queries, no ORM (an ORM would hide the suffering) |
 | **AI** | Anthropic Claude API (`claude-sonnet-4-5`) |
-| **Maps** | Leaflet + react-leaflet, Kartverket sea chart WMTS over OpenStreetMap |
+| **Maps** | Leaflet + react-leaflet, Kartverket sea chart WMTS over OpenStreetMap, Kartverket place names (ws.geonorge.no) |
 | **Ocean data** | MET Norway wave models over OPeNDAP (thredds.met.no), api.met.no, Kartverket tidal API — all free, no keys |
+| **Tests** | `node --test` in `backend/`, fully offline (fake THREDDS server, in-memory database, VM-run service worker) |
+| **App & alerts** | PWA (manifest + service worker), Web Push with VAPID (`web-push`), GitHub Actions on a 3-hour schedule |
 | **File storage** | Cloudinary (PDFs via direct browser upload) |
 | **Hosting** | Vercel (monorepo — frontend + backend in one project) |
 | **Database hosting** | [Neon](https://neon.tech) with pgBouncer pooler |
@@ -275,6 +301,16 @@ npm run dev
 
 The Vite dev server proxies all `/api/*` requests to the backend automatically — no CORS setup needed locally.
 
+> The service worker (offline app, push alerts) only registers in production builds. To try it locally: `npm run build --prefix frontend && npm run preview --prefix frontend` (port 4173, still proxying `/api`).
+
+### 5. Run the tests
+
+```bash
+npm test --prefix backend
+```
+
+All offline: the wave model reads run against a fake THREDDS server, the saved-passage and alert routes against an in-memory database, and the service worker's alert handlers in a VM.
+
 ---
 
 ## 🔑 Environment Variables
@@ -291,6 +327,7 @@ The Vite dev server proxies all `/api/*` requests to the backend automatically �
 | `FRONTEND_URL` | `http://localhost:5173` | Used for post-auth redirects |
 | `NODE_ENV` | `production` | Set to `production` on Vercel for secure cookies |
 | `ANTHROPIC_API_KEY` | `sk-ant-...` | For Gunnar. He needs this to function. |
+| `ADMIN_EMAILS` | `you@example.com,crew@example.com` | Comma-separated emails that get the admin dashboard |
 | `CLOUDINARY_CLOUD_NAME` | `dzqvjzhmu` | Your Cloudinary cloud name |
 | `CLOUDINARY_API_KEY` | `123456789012345` | Cloudinary API key (for deleting PDFs) |
 | `CLOUDINARY_API_SECRET` | `abc123...` | Cloudinary API secret |
@@ -352,6 +389,8 @@ Poor Sophie deploys as a **single Vercel project** from the repo root — fronte
    postgresql://user:pass@ep-xxx.region.aws.neon.tech/dbname?pgbouncer=true&connection_limit=1
    ```
 4. Push to `main` — Vercel builds and deploys automatically
+5. **After a deploy that touches the schema**, re-run it against production: `psql $DATABASE_URL -f backend/db/schema.sql` (idempotent)
+6. For calm-passage alerts, do the [setup](#calm-passage-alerts-setup) once: VAPID keys and `WATCH_CRON_SECRET` in Vercel, `WATCH_CRON_SECRET` and `APP_URL` in GitHub Actions
 
 ---
 
@@ -372,6 +411,8 @@ psql $DATABASE_URL -f backend/db/schema.sql
 | `maintenance_photos` | Base64 photos attached to log entries |
 | `wiki_items` | Wiki entries (PDF via Cloudinary, text, URL, YouTube) |
 | `chat_messages` | Gunnar's conversation history, per user per boat |
+| `trips` | Saved passages per boat: name, waypoints, speed, crew — and the calm-passage alert (`watch_threshold`, when it was last checked and which departure was last announced) |
+| `push_subscriptions` | One row per device that allowed alerts (Web Push endpoint + keys) |
 
 ---
 
@@ -379,26 +420,35 @@ psql $DATABASE_URL -f backend/db/schema.sql
 
 ```
 poor-sophie/
-├── frontend/               # React + Vite
+├── frontend/                   # React + Vite
+│   ├── public/
+│   │   ├── manifest.webmanifest   # PWA manifest
+│   │   ├── sw.js               # Service worker: offline app shell, push alerts
+│   │   └── icons/              # App icons (any, maskable, apple-touch, favicon)
 │   ├── src/
-│   │   ├── pages/          # Route-level components (Landing.jsx and Passage.jsx are lazy-loaded — Leaflet is heavy)
-│   │   ├── components/     # Shared UI (components/passage/ = planner, map, results, boat picker & presets, explainer)
-│   │   ├── api/client.js   # Axios instance (baseURL /api, withCredentials)
-│   │   ├── contexts/       # AuthContext
-│   │   └── i18n/           # en.js and no.js translations
+│   │   ├── pages/              # Route-level components (Landing.jsx and Passage.jsx are lazy-loaded — Leaflet is heavy)
+│   │   ├── components/
+│   │   │   ├── passage/        # Planner, map, results, departure strip, crew, place search, share, saved passages, alert bell
+│   │   │   └── brand/          # Wordmark, ChartTile, Isobaths, ThemePicker, InstallApp
+│   │   ├── theme.css / theme.js   # Dag/Natt colour variables and the theme choice
+│   │   ├── push.js             # Browser side of push alerts
+│   │   ├── api/client.js       # Axios instance (baseURL /api, withCredentials)
+│   │   ├── contexts/           # AuthContext
+│   │   └── i18n/               # en.js and no.js translations, format.js (decimal comma)
 │
-├── backend/                # Node.js + Express
-│   ├── server.js           # App entry point
+├── backend/                    # Node.js + Express
+│   ├── server.js               # App entry point
 │   ├── src/
-│   │   ├── routes/         # auth, boats, maintenance, wiki, chat, passage (per boat), publicPassage (no auth)
-│   │   ├── services/       # waves (OPeNDAP), met (api.met.no), tides (Kartverket), seasickness (the model)
-│   │   ├── middleware/      # JWT auth
-│   │   └── config/         # DB pool, Passport
-│   └── db/schema.sql       # Full DB schema, idempotent
+│   │   ├── routes/             # auth, boats, maintenance, wiki, chat, passage, publicPassage, trips, places, push, watches
+│   │   ├── services/           # waves (OPeNDAP), met (api.met.no), tides (Kartverket), seasickness (the model), push, watches
+│   │   ├── middleware/         # JWT auth
+│   │   └── config/             # DB pool, Passport
+│   ├── test/                   # node --test, offline
+│   └── db/schema.sql           # Full DB schema, idempotent
 │
-├── design/                 # Design system proposal: tokens.json, bundle.css, component guidelines + previews
-│
-└── vercel.json             # Vercel services config (frontend + backend)
+├── design/                     # Sea-chart design system: tokens.json, rules, component guidelines + previews
+├── .github/workflows/          # calm-passage-alerts.yml — runs the alert check every 3 h
+└── vercel.json                 # Vercel services config (frontend + backend)
 ```
 
 ---
@@ -427,7 +477,7 @@ poor-sophie/
 - Documents are truncated per-item at 20,000 chars and total at 80,000 chars to stay well within Claude's context window
 
 **Frontend routing:**
-- `/` — public landing page with the seasickness index (no auth)
+- `/` — public landing page with the seasickness index (no auth); reads a shared trip from the query string (`?r=…`), opens a scored example on a first visit
 - `/login` — Google sign-in for Poor Sophie; `/dashboard`, `/boats/…`, `/settings`, `/admin` are behind `ProtectedRoute` as before
 - Unknown paths go to `/`
 
@@ -440,6 +490,29 @@ poor-sophie/
 - Both wave models use a rotated-pole grid (pole at 140°E / 22°N); `services/waves.js` does the transform
 - The model lives in `services/seasickness.js` as pure functions with every coefficient in one `C` object, so it can be tuned (or unit-tested) without touching I/O
 - Warm requests take ~1–2 s; a cold start can take 10–20 s, so the backend service runs with `maxDuration: 60`
+
+**Passage API at a glance:**
+
+| Endpoint | Who | What |
+|---|---|---|
+| `POST /api/passage/score`, `/window` | public (30 / IP / 10 min) | Score one departure; score every departure 3 h apart over 48 h |
+| `POST /api/boats/:id/passage/score`, `/window` | owner | The same, with the boat profile's hull data |
+| `GET /api/places?q=` | public (40 / IP / min) | Place-name search, cached 24 h |
+| `GET/POST/PUT/DELETE /api/boats/:id/trips[/:tripId]` | owner | Saved passages (max 50 per boat) |
+| `PUT /api/boats/:id/trips/:tripId/watch` | owner | Alert on (`threshold` 2, 4 or 6) or off (`null`); max 10 per user |
+| `GET /api/push/public-key`, `POST/DELETE /api/push/subscriptions` | public / signed in | Web Push key (503 until configured) and this device's subscription |
+| `POST /api/watches/run` | scheduler (Bearer `WATCH_CRON_SECRET`) | Check all watched passages and send alerts |
+
+**Share links:** `/?r=lat,lon;lat,lon&t=<ISO>&s=<knots>&b=<presetId>` — or `b=custom&loa=&disp=&hull=&keel=&n=` for any other boat, plus `c=seasoned|novice` for the crew. Coordinates are rounded to ~10 m. The landing page reads it once, cleans the address bar and scores it.
+
+**Calm-passage alerts:**
+- The GitHub Action calls `/api/watches/run` every 3 h. `services/watches.js` takes watched passages oldest-checked first within a 45 s budget, rescores each with the departure-window model, and `decide()` picks the calmest departure at or under the threshold that's at least an hour away — never one it already announced (±3 h)
+- `services/push.js` sends to every device the owner subscribed; subscriptions the push service reports gone (404/410) are deleted. The alert opens `/boats/:id/passage?trip=<id>`
+- Vercel Cron could replace the Action (the endpoint also accepts `GET` and `CRON_SECRET`), but the Hobby plan only allows daily runs
+
+**Offline and caching:**
+- `sw.js` serves pages network-first with the cached app shell as fallback, hashed `/assets/*` cache-first, and icons and fonts stale-while-revalidate. `/api` and map tiles are never cached — forecasts must be fresh. Bump `VERSION` in `sw.js` when the caching rules change
+- The planner keeps the last scored result per page in `localStorage` (`<storageKey>:last`, up to 7 days, same route only) and shows it marked *Last scored …* on return or offline
 
 ---
 

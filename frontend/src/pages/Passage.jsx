@@ -35,7 +35,12 @@ export default function Passage() {
         </div>
       )}
 
-      <PassagePlanner storageKey={`passage:${boatId}`} score={score} scoreWindow={scoreWindow} />
+      <PassagePlanner
+        storageKey={`passage:${boatId}`}
+        score={score}
+        scoreWindow={scoreWindow}
+        shareBoat={boat && { name: boat.name, loa_m: boat.loa_m, displacement_kg: boat.displacement_kg, hull_type: boat.hull_type, keel_type: boat.keel_type }}
+      />
     </div>
   );
 }

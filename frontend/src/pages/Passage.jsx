@@ -21,14 +21,14 @@ export default function Passage() {
   return (
     <div className="max-w-3xl mx-auto space-y-5">
       <div>
-        <Link to={`/boats/${boatId}`} className="text-sm text-ocean-600 hover:underline">← {boat?.name}</Link>
-        <h1 className="text-2xl font-bold text-slate-800 mt-1">🤢 {t('passage.title')}</h1>
+        <Link to={`/boats/${boatId}`} className="text-sm text-magenta hover:underline">← {boat?.name}</Link>
+        <h1 className="text-3xl font-bold text-ink mt-1">{t('passage.title')}</h1>
         <p className="text-sm text-slate-500 mt-1">{t('passage.subtitle')}</p>
         <div className="mt-2"><HowItWorks /></div>
       </div>
 
       {boat && !(boat.loa_m && boat.displacement_kg && boat.hull_type && boat.keel_type) && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl px-4 py-3 flex flex-wrap gap-x-2">
+        <div className="bg-band-uncomfortable/15 border border-band-uncomfortable/50 text-ink text-sm rounded-md px-4 py-3 flex flex-wrap gap-x-2">
           <span>{t('passage.boatIncomplete')}</span>
           <Link to={`/boats/${boatId}/edit`} className="underline font-medium">{t('passage.boatIncompleteLink')}</Link>
         </div>

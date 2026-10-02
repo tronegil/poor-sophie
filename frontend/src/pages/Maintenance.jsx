@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next';
 import api from '../api/client';
 import LogModal from '../components/maintenance/LogModal';
 import CostSummary from '../components/maintenance/CostSummary';
+import { Sprout, Sun, Leaf, Snowflake, Camera, X } from 'lucide-react';
 
 const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
-const SEASON_ICONS = { spring: '🌸', summer: '☀️', autumn: '🍂', winter: '❄️' };
+const SEASON_ICONS = { spring: Sprout, summer: Sun, autumn: Leaf, winter: Snowflake };
 
 function currentSeason() {
   const m = new Date().getMonth() + 1;
@@ -26,9 +27,9 @@ function TaskCard({ task, lang, logsThisYear, expanded, onExpand, onLog, onEditL
   const doneThisYear = logsThisYear.length > 0;
 
   return (
-    <div className={`bg-white rounded-xl border transition-all ${task.is_active ? 'border-slate-100 shadow-sm' : 'border-slate-100 opacity-60'}`}>
+    <div className={`bg-white rounded-md border transition-all ${task.is_active ? 'border-line' : 'border-line opacity-60'}`}>
       <div className="flex items-center gap-3 p-3.5">
-        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${doneThisYear ? 'bg-green-400' : task.is_active ? 'bg-slate-200' : 'bg-slate-100'}`} />
+        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${doneThisYear ? 'bg-deep' : task.is_active ? 'bg-slate-200' : 'bg-slate-100'}`} />
         <div className="flex-1 min-w-0">
           <p className={`text-sm font-medium truncate ${task.is_active ? 'text-slate-800' : 'text-slate-400'}`}>{name}</p>
           {task.last_completed ? (
@@ -42,7 +43,7 @@ function TaskCard({ task, lang, logsThisYear, expanded, onExpand, onLog, onEditL
           {task.is_active && (
             <button
               onClick={() => onLog(task)}
-              className="bg-ocean-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-ocean-700 transition-colors"
+              className="bg-deep text-deep-on text-xs px-3 py-1.5 rounded-lg hover:bg-ink transition-colors"
             >
               + {t('maintenance.doneThisYear')}
             </button>
@@ -60,26 +61,26 @@ function TaskCard({ task, lang, logsThisYear, expanded, onExpand, onLog, onEditL
       </div>
 
       {expanded && logsThisYear.length > 0 && (
-        <div className="border-t border-slate-100 divide-y divide-slate-50">
+        <div className="border-t border-line divide-y divide-slate-50">
           {logsThisYear.map(log => (
             <div key={log.id} className="px-4 py-2.5 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm text-slate-700 font-medium">{fmtDate(log.completed_date)}</span>
                   {log.cost_nok && (
-                    <span className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                    <span className="text-xs bg-band-uncomfortable/15 text-ink px-2 py-0.5 rounded-full font-medium">
                       {Number(log.cost_nok).toLocaleString()} kr
                     </span>
                   )}
                   {log.photos?.length > 0 && (
-                    <span className="text-xs text-slate-400">📷 {log.photos.length}</span>
+                    <span className="data text-xs text-ink-muted inline-flex items-center gap-1"><Camera size={12} strokeWidth={1.75} aria-hidden="true" />{log.photos.length}</span>
                   )}
                 </div>
                 {log.notes && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{log.notes}</p>}
               </div>
               <button
                 onClick={() => onEditLog(log)}
-                className="text-xs text-ocean-600 hover:text-ocean-700 shrink-0 mt-0.5"
+                className="text-xs text-magenta hover:text-magenta-dark shrink-0 mt-0.5"
               >
                 {t('maintenance.log.editTitle')}
               </button>
@@ -105,7 +106,7 @@ function TaskMenu({ task, onToggle, onDelete, t }) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-8 z-20 bg-white rounded-xl shadow-lg border border-slate-100 py-1 min-w-[130px]">
+          <div className="absolute right-0 top-8 z-20 bg-white rounded-md shadow-lg border border-line py-1 min-w-[130px]">
             <button
               onClick={() => { onToggle(); setOpen(false); }}
               className="w-full text-left text-sm px-4 py-2 hover:bg-slate-50 text-slate-700"
@@ -114,7 +115,7 @@ function TaskMenu({ task, onToggle, onDelete, t }) {
             </button>
             <button
               onClick={() => { onDelete(); setOpen(false); }}
-              className="w-full text-left text-sm px-4 py-2 hover:bg-red-50 text-red-500"
+              className="w-full text-left text-sm px-4 py-2 hover:bg-band-ashore/10 text-band-ashore"
             >
               {task.is_custom ? t('maintenance.task.remove') : t('maintenance.task.disable')}
             </button>
@@ -235,17 +236,17 @@ export default function Maintenance() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <Link to={`/boats/${boatId}`} className="text-sm text-ocean-600 hover:underline">
+          <Link to={`/boats/${boatId}`} className="text-sm text-magenta hover:underline">
             ← {boat?.name}
           </Link>
-          <h1 className="text-2xl font-bold text-slate-800 mt-1">
-            🔧 {t('maintenance.title')}
+          <h1 className="text-3xl font-bold text-ink mt-1">
+            {t('maintenance.title')}
           </h1>
         </div>
         <select
           value={selectedYear}
           onChange={e => setSelectedYear(Number(e.target.value))}
-          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-ocean-500 mt-1"
+          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-magenta mt-1"
         >
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
@@ -259,11 +260,11 @@ export default function Maintenance() {
             onClick={() => { setSeason(s); setExpandedTaskId(null); setAddingTask(false); }}
             className={`flex-1 py-3 text-sm font-medium transition-colors flex flex-col items-center gap-0.5 ${
               season === s
-                ? 'text-ocean-700 border-b-2 border-ocean-600 bg-ocean-50'
+                ? 'text-ink border-b-2 border-magenta bg-shallow'
                 : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
             }`}
           >
-            <span className="text-lg">{SEASON_ICONS[s]}</span>
+            {(() => { const Icon = SEASON_ICONS[s]; return <Icon size={18} strokeWidth={1.75} aria-hidden="true" />; })()}
             <span className="text-xs hidden sm:block">{t(`maintenance.season.${s}`)}</span>
           </button>
         ))}
@@ -328,26 +329,27 @@ export default function Maintenance() {
               value={newTaskName}
               onChange={e => setNewTaskName(e.target.value)}
               placeholder={t('maintenance.task.addPlaceholder')}
-              className="flex-1 text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-ocean-500"
+              className="flex-1 text-sm border border-slate-200 rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-magenta"
             />
             <button
               type="submit"
-              className="bg-ocean-600 text-white text-sm px-4 py-2.5 rounded-xl hover:bg-ocean-700 font-medium"
+              className="bg-deep text-deep-on text-sm px-4 py-2.5 rounded-md hover:bg-ink font-medium"
             >
               {t('maintenance.task.add')}
             </button>
             <button
               type="button"
               onClick={() => { setAddingTask(false); setNewTaskName(''); }}
-              className="text-slate-500 text-sm px-3 py-2.5 rounded-xl hover:bg-slate-100"
+              className="text-slate-500 text-sm px-3 py-2.5 rounded-md hover:bg-slate-100"
+              aria-label="Cancel"
             >
-              ✕
+              <X size={16} strokeWidth={2} aria-hidden="true" />
             </button>
           </form>
         ) : (
           <button
             onClick={() => setAddingTask(true)}
-            className="w-full text-sm text-ocean-600 hover:text-ocean-800 py-2.5 border border-dashed border-ocean-300 rounded-xl hover:border-ocean-500 hover:bg-ocean-50 transition-colors mt-1"
+            className="w-full text-sm text-magenta hover:text-magenta-dark py-2.5 border border-dashed border-ocean-300 rounded-md hover:border-ocean-500 hover:bg-ocean-50 transition-colors mt-1"
           >
             + {t('maintenance.addTask')}
           </button>

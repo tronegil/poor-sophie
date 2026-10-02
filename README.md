@@ -164,7 +164,7 @@ It's an estimate, not a measurement. Forecasts are forecasts, no two hulls move 
 
 ## 🎨 Design System — the sea chart
 
-> **Status: proposal.** Lives in [`design/`](design/) and as a browsable [Poor Sophie design system](https://claude.ai/artifact/GSZFJftFCbBkGjb8DDmdr8) (palette, type specimens, live component previews). The frontend still runs on Inter, Tailwind `ocean`/`slate` and emoji until it's adopted.
+> **Status: live in the frontend** (light theme; the dark "Natt" theme is defined but not wired up yet). Source of truth in [`design/`](design/), browsable as the [Poor Sophie design system](https://claude.ai/artifact/GSZFJftFCbBkGjb8DDmdr8) (palette, type specimens, live component previews).
 
 Poor Sophie should look like a Norwegian sea chart: cool chart paper, deep navy water, sandy land, and a single **chart magenta** accent — the colour the chart uses for lights and marks. The seasickness index is the only place the app gets loud colour, and there the colour *means* something.
 
@@ -199,7 +199,7 @@ Poor Sophie should look like a Norwegian sea chart: cool chart paper, deep navy 
 
 **Components** (each with guidelines + preview in `design/components/`): `Button`, `Field`, `NavBar`, `ScoreBadge`, `PassageScore` (result panel with hour-by-hour strip), `BoatCard`, `BandScale`.
 
-**Adopting it** — map the tokens into `frontend/tailwind.config.js` as CSS variables, swap the Google Fonts link in `frontend/index.html`, and update `BAND_COLORS` in `frontend/src/components/passage/bands.js`. Full rules (in Norwegian): [`design/README.md`](design/README.md).
+**In the code** — tokens are mirrored in `frontend/tailwind.config.js` (`bg-paper`, `text-ink`, `bg-deep`, `text-magenta`, `bg-band-bucket`, `font-display`, `font-mono` …; the old `ocean`/`slate` scales are remapped onto the same palette). `index.css` adds `.label-mono` and `.data`. Band colours live in `components/passage/bands.js` (`bandColor`, `bandInk`). Brand pieces are in `components/brand/` (`Wordmark`, `ChartTile`, `Isobaths`); icons are [Lucide](https://lucide.dev). Change a value in `design/tokens.json` → update `tailwind.config.js` and `bands.js` too. Full rules (in Norwegian): [`design/README.md`](design/README.md).
 
 ---
 
@@ -207,7 +207,7 @@ Poor Sophie should look like a Norwegian sea chart: cool chart paper, deep navy 
 
 | Layer | Tech |
 |---|---|
-| **Frontend** | React 18, Vite, Tailwind CSS, React Router v6, i18next (EN/NO) |
+| **Frontend** | React 18, Vite, Tailwind CSS (sea-chart design tokens), Lucide icons, React Router v6, i18next (EN/NO) |
 | **Backend** | Node.js, Express, Passport.js (Google OAuth 2.0), JWT in httpOnly cookies |
 | **Database** | PostgreSQL — raw `pg` queries, no ORM (an ORM would hide the suffering) |
 | **AI** | Anthropic Claude API (`claude-sonnet-4-5`) |

@@ -6,7 +6,13 @@ import PassagePlanner, { inputClass } from '../components/passage/PassagePlanner
 import BoatPicker from '../components/passage/BoatPicker';
 import HowItWorks from '../components/passage/HowItWorks';
 import { BOAT_PRESETS, DEFAULT_PRESET_ID } from '../components/passage/boatPresets';
-import { bandColor } from '../components/passage/bands';
+import { Waves, Sailboat, Ear } from 'lucide-react';
+import { bandColor, bandInk } from '../components/passage/bands';
+import Wordmark from '../components/brand/Wordmark';
+import Isobaths from '../components/brand/Isobaths';
+
+// Icons for the three "how it works" cards, in order: sea, boat, inner ear.
+const HOW_ICONS = [Waves, Sailboat, Ear];
 
 const BOAT_KEY = 'passage:public:boat';
 
@@ -37,40 +43,39 @@ export default function Landing() {
   const pills = t('landing.pills', { returnObjects: true });
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
-      {/* Hero */}
-      <header className="relative bg-gradient-to-b from-ocean-900 via-ocean-800 to-ocean-700 text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.07] pointer-events-none" aria-hidden="true">
-          <Waves />
-        </div>
+    <div className="min-h-screen bg-paper text-ink">
+      {/* Hero: deep water with depth contours */}
+      <header className="relative bg-deep text-deep-on overflow-hidden">
+        <Isobaths className="absolute inset-0 w-full h-full pointer-events-none" />
         <nav className="relative max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <span className="font-semibold text-lg flex items-center gap-2"><span>🤢</span>{t('landing.brand')}</span>
-          <div className="flex items-center gap-1 text-xs">
+          <Wordmark className="text-xl">{t('landing.brand')}</Wordmark>
+          <div className="inline-flex border border-deep-on/25 rounded-full p-0.5 font-mono text-[11px]">
             {['no', 'en'].map(l => (
               <button
                 key={l}
                 onClick={() => setLang(l)}
-                className={`px-2 py-1 rounded-md transition-colors ${i18n.language === l ? 'bg-white/15 text-white' : 'text-ocean-200 hover:text-white'}`}
+                aria-pressed={i18n.language === l}
+                className={`px-2.5 py-1 rounded-full transition-colors ${i18n.language === l ? 'bg-deep-on text-deep' : 'text-deep-on/70 hover:text-deep-on'}`}
               >
                 {l.toUpperCase()}
               </button>
             ))}
           </div>
         </nav>
-        <div className="relative max-w-3xl mx-auto px-4 pt-10 pb-28 sm:pt-16 sm:pb-36 text-center">
-          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight leading-[1.05]">{t('landing.title')}</h1>
-          <p className="mt-5 text-base sm:text-lg text-ocean-100 leading-relaxed">{t('landing.lead')}</p>
+        <div className="relative max-w-5xl mx-auto px-4 pt-10 pb-28 sm:pt-16 sm:pb-36">
+          <h1 className="max-w-3xl text-4xl sm:text-[56px] font-bold leading-[1.02]">{t('landing.title')}</h1>
+          <p className="mt-5 max-w-2xl text-base sm:text-lg text-ocean-100 leading-relaxed">{t('landing.lead')}</p>
           {Array.isArray(pills) && (
-            <ul className="mt-6 flex flex-wrap justify-center gap-2">
+            <ul className="mt-6 flex flex-wrap gap-2">
               {pills.map((p, i) => (
-                <li key={i} className="text-xs sm:text-sm bg-white/10 border border-white/15 rounded-full px-3 py-1 text-ocean-50">{p}</li>
+                <li key={i} className="font-mono text-[11px] sm:text-xs uppercase tracking-wider border border-deep-on/25 rounded px-2 py-1 text-ocean-100">{p}</li>
               ))}
             </ul>
           )}
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 -mt-20 sm:-mt-28 pb-20 space-y-20">
+      <main className="max-w-5xl mx-auto px-4 -mt-20 sm:-mt-28 pb-20 space-y-16">
         {/* The tool */}
         <section>
           <PassagePlanner
@@ -80,74 +85,62 @@ export default function Landing() {
             mapScrollZoom={false}
             extraControls={<BoatPicker value={boat} onChange={changeBoat} inputClass={inputClass} />}
           />
-          <p className="text-center text-xs text-slate-400 mt-3">{t('landing.tryHint')}</p>
+          <p className="text-center text-xs text-ink-muted mt-3">{t('landing.tryHint')}</p>
         </section>
 
         {/* How it works */}
         <section>
-          <h2 className="text-2xl sm:text-3xl font-bold text-center">{t('landing.howTitle')}</h2>
-          <div className="mt-8 grid sm:grid-cols-3 gap-5">
-            {Array.isArray(how) && how.map((c, i) => (
-              <div key={i} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                <div className="text-3xl mb-3">{c.icon}</div>
-                <h3 className="font-semibold text-slate-800">{c.h}</h3>
-                <p className="text-sm text-slate-600 mt-2 leading-relaxed">{c.p}</p>
-              </div>
-            ))}
+          <h2 className="text-2xl sm:text-3xl font-bold">{t('landing.howTitle')}</h2>
+          <div className="mt-6 grid sm:grid-cols-3 gap-6">
+            {Array.isArray(how) && how.map((c, i) => {
+              const Icon = HOW_ICONS[i] ?? Waves;
+              return (
+                <div key={i} className="border-t-2 border-ink pt-4">
+                  <Icon size={22} strokeWidth={1.75} className="text-magenta mb-3" aria-hidden="true" />
+                  <h3 className="font-semibold text-ink">{c.h}</h3>
+                  <p className="text-sm text-ink-muted mt-2 leading-relaxed">{c.p}</p>
+                </div>
+              );
+            })}
           </div>
-          <div className="mt-6 text-center">
+          <div className="mt-8">
             <HowItWorks
               label={t('landing.fullMath')}
-              buttonClassName="inline-flex items-center gap-2 text-sm font-medium text-ocean-700 bg-ocean-50 hover:bg-ocean-100 border border-ocean-100 rounded-full px-4 py-2 transition-colors"
+              buttonClassName="inline-flex items-center gap-2 text-sm font-medium text-magenta hover:underline underline-offset-4"
             />
           </div>
         </section>
 
         {/* Bands */}
         <section>
-          <h2 className="text-2xl sm:text-3xl font-bold text-center">{t('landing.bandsTitle')}</h2>
-          <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 divide-y divide-slate-100">
+          <h2 className="text-2xl sm:text-3xl font-bold">{t('landing.bandsTitle')}</h2>
+          <ul className="mt-6 border-t border-line">
             {Array.isArray(bands) && bands.map(b => (
-              <div key={b.band} className="flex items-center gap-4 px-5 py-3.5">
-                <span className="w-12 shrink-0 text-center text-white text-xs font-bold rounded-full py-1" style={{ background: bandColor(b.band) }}>{b.range}</span>
-                <span className="w-32 sm:w-40 shrink-0 font-medium text-slate-800">{t(`passage.band.${b.band}`)}</span>
-                <span className="text-sm text-slate-600">{b.p}</span>
-              </div>
+              <li key={b.band} className="grid grid-cols-[3.5rem_1fr] sm:grid-cols-[3.5rem_10rem_1fr] gap-x-4 gap-y-1 items-center py-3 border-b border-line">
+                <span className="data text-center text-[13px] font-semibold rounded py-1.5" style={{ background: bandColor(b.band), color: bandInk(b.band) }}>{b.range}</span>
+                <span className="font-semibold text-ink">{t(`passage.band.${b.band}`)}</span>
+                <span className="col-start-2 sm:col-start-auto text-sm text-ink-muted">{b.p}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
 
         {/* Why */}
-        <section className="max-w-2xl mx-auto text-center">
+        <section className="max-w-2xl">
           <h2 className="text-2xl sm:text-3xl font-bold">{t('landing.whyTitle')}</h2>
-          <p className="mt-5 text-slate-600 leading-relaxed">{t('landing.why')}</p>
+          <p className="mt-5 text-ink-muted leading-relaxed">{t('landing.why')}</p>
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="max-w-5xl mx-auto px-4 py-8 text-xs text-slate-400 space-y-2">
+      <footer className="border-t border-line bg-surface">
+        <div className="max-w-5xl mx-auto px-4 py-8 text-xs text-ink-muted space-y-2">
           <p>{t('landing.footerData')}</p>
           <p className="flex flex-wrap items-center gap-x-2">
-            <span>⛵ {t('landing.footerOwners')}</span>
-            <Link to="/login" className="text-slate-500 hover:text-ocean-700 underline underline-offset-2">{t('landing.footerLogin')}</Link>
+            <span>{t('landing.footerOwners')}</span>
+            <Link to="/login" className="text-magenta hover:underline underline-offset-2">{t('landing.footerLogin')}</Link>
           </p>
         </div>
       </footer>
     </div>
-  );
-}
-
-// Decorative repeating wave lines for the hero background.
-function Waves() {
-  return (
-    <svg className="w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      {Array.from({ length: 12 }, (_, i) => (
-        <path
-          key={i}
-          d={`M0 ${60 + i * 48} C 150 ${30 + i * 48}, 300 ${90 + i * 48}, 450 ${60 + i * 48} S 750 ${30 + i * 48}, 900 ${60 + i * 48} S 1200 ${90 + i * 48}, 1350 ${60 + i * 48}`}
-          fill="none" stroke="white" strokeWidth="2"
-        />
-      ))}
-    </svg>
   );
 }

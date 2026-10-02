@@ -40,7 +40,7 @@ export default function CostSummary({ summary, t, lang, selectedYear }) {
           {years.map(year => (
             <tr
               key={year}
-              className={`border-t border-slate-100 ${year === selectedYear ? 'bg-ocean-50' : ''}`}
+              className={`border-t border-line ${year === selectedYear ? 'bg-ocean-50' : ''}`}
             >
               <td className={`py-2 pr-3 font-medium ${year === selectedYear ? 'text-ocean-700' : 'text-slate-700'}`}>
                 {year}

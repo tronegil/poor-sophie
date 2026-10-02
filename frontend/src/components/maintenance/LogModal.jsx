@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../../api/client';
+import { X } from 'lucide-react';
 
 async function compressImage(file) {
   return new Promise((resolve) => {
@@ -43,8 +44,9 @@ function PhotoSection({ category, label, existingPhotos, newPhotos, onAddPhotos,
               type="button"
               onClick={() => onRemoveExisting(p.id)}
               className="absolute inset-0 bg-black/50 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+              aria-label="Remove"
             >
-              ✕
+              <X size={16} strokeWidth={2} aria-hidden="true" />
             </button>
           </div>
         ))}
@@ -55,8 +57,9 @@ function PhotoSection({ category, label, existingPhotos, newPhotos, onAddPhotos,
               type="button"
               onClick={() => onRemoveNew(i)}
               className="absolute inset-0 bg-black/50 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+              aria-label="Remove"
             >
-              ✕
+              <X size={16} strokeWidth={2} aria-hidden="true" />
             </button>
           </div>
         ))}
@@ -171,15 +174,15 @@ export default function LogModal({ boatId, task, log, lang, onSave, onDelete, on
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between rounded-t-2xl">
+      <div className="relative bg-white w-full sm:max-w-md sm:rounded-lg rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-line px-5 py-4 flex items-center justify-between rounded-t-2xl">
           <div>
             <h2 className="font-semibold text-slate-800">
               {isEdit ? t('maintenance.log.editTitle') : t('maintenance.log.title')}
             </h2>
-            <p className="text-sm text-ocean-600 mt-0.5">{taskName}</p>
+            <p className="text-sm text-magenta mt-0.5">{taskName}</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none p-1">✕</button>
+          <button onClick={onClose} className="text-ink-muted hover:text-ink p-1" aria-label="Close"><X size={18} strokeWidth={2} aria-hidden="true" /></button>
         </div>
 
         {loading ? (
@@ -195,7 +198,7 @@ export default function LogModal({ boatId, task, log, lang, onSave, onDelete, on
                 value={date}
                 onChange={e => setDate(e.target.value)}
                 required
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ocean-500"
+                className="w-full border border-slate-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-magenta"
               />
             </div>
 
@@ -209,7 +212,7 @@ export default function LogModal({ boatId, task, log, lang, onSave, onDelete, on
                   value={cost}
                   onChange={e => setCost(e.target.value)}
                   placeholder="0"
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ocean-500 pr-10"
+                  className="w-full border border-slate-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-magenta pr-10"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">kr</span>
               </div>
@@ -221,7 +224,7 @@ export default function LogModal({ boatId, task, log, lang, onSave, onDelete, on
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 rows={3}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ocean-500 resize-none"
+                className="w-full border border-slate-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-magenta resize-none"
               />
             </div>
 
@@ -251,7 +254,7 @@ export default function LogModal({ boatId, task, log, lang, onSave, onDelete, on
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 bg-ocean-600 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-ocean-700 disabled:opacity-60 transition-colors"
+                className="flex-1 bg-deep text-deep-on py-2.5 rounded-md text-sm font-medium hover:bg-ink disabled:opacity-60 transition-colors"
               >
                 {saving ? t('maintenance.log.saving') : t('maintenance.log.save')}
               </button>
@@ -259,7 +262,7 @@ export default function LogModal({ boatId, task, log, lang, onSave, onDelete, on
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="px-4 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors"
+                  className="px-4 py-2.5 rounded-md text-sm text-band-ashore hover:bg-band-ashore/10 transition-colors"
                 >
                   {t('maintenance.log.delete')}
                 </button>

@@ -21,7 +21,7 @@ export default function HowItWorks({ label, buttonClassName }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={buttonClassName || 'inline-flex items-center gap-1 text-xs text-ocean-600 hover:text-ocean-800 hover:underline'}
+        className={buttonClassName || 'inline-flex items-center gap-1 text-xs text-magenta hover:text-magenta-dark hover:underline'}
         aria-haspopup="dialog"
       >
         <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-current text-[10px] font-bold">i</span>
@@ -35,10 +35,10 @@ export default function HowItWorks({ label, buttonClassName }) {
             aria-modal="true"
             aria-label={t('passage.how.title')}
             onClick={e => e.stopPropagation()}
-            className="bg-white w-full sm:max-w-xl max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl shadow-xl"
+            className="bg-white w-full sm:max-w-xl max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-lg shadow-xl"
           >
-            <div className="sticky top-0 bg-white/95 backdrop-blur px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-slate-800">🧮 {t('passage.how.title')}</h2>
+            <div className="sticky top-0 bg-white/95 backdrop-blur px-5 py-4 border-b border-line flex items-center justify-between">
+              <h2 className="text-xl font-bold text-ink">{t('passage.how.title')}</h2>
               <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none px-2" aria-label="Close">×</button>
             </div>
             <div className="px-5 py-4 space-y-4 text-sm text-slate-600 leading-relaxed">
@@ -51,19 +51,19 @@ export default function HowItWorks({ label, buttonClassName }) {
                   </li>
                 ))}
               </ol>
-              <p className="text-xs text-slate-400 border-t border-slate-100 pt-3">{t('passage.how.caveat')}</p>
-              <div className="border-t border-slate-100 pt-3">
+              <p className="text-xs text-slate-400 border-t border-line pt-3">{t('passage.how.caveat')}</p>
+              <div className="border-t border-line pt-3">
                 <p className="text-xs font-semibold text-slate-500 mb-1.5">{t('passage.how.sourcesTitle')}</p>
                 <ul className="space-y-2">
                   {Array.isArray(sources) && sources.map((src, i) => (
                     <li key={i} className="text-xs leading-snug">
-                      <a href={src.url} target="_blank" rel="noopener noreferrer" className="text-ocean-600 hover:underline font-medium">{src.name} ↗</a>
+                      <a href={src.url} target="_blank" rel="noopener noreferrer" className="text-magenta hover:underline font-medium">{src.name} ↗</a>
                       <span className="text-slate-400"> — {src.p}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="border-t border-slate-100 pt-3">
+              <div className="border-t border-line pt-3">
                 <p className="text-xs font-semibold text-slate-500 mb-1.5">{t('passage.how.refsTitle')}</p>
                 <ul className="space-y-1.5">
                   {Array.isArray(refs) && refs.map((r, i) => <li key={i} className="text-xs text-slate-400 leading-snug">{r}</li>)}

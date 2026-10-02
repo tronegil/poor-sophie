@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../../api/client';
+import { FileText, NotebookPen, Link2, PlayCircle, X, Check, Upload, TriangleAlert } from 'lucide-react';
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 const TYPES = ['pdf', 'text', 'url', 'youtube'];
-const TYPE_ICONS = { pdf: '📄', text: '📝', url: '🔗', youtube: '▶' };
+const TYPE_ICONS = { pdf: FileText, text: NotebookPen, url: Link2, youtube: PlayCircle };
 
 function extractYoutubeId(url) {
   const m = url.match(
@@ -203,14 +204,14 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
+      <div className="relative bg-white w-full sm:max-w-lg sm:rounded-lg rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
 
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between rounded-t-2xl">
+        <div className="sticky top-0 bg-white border-b border-line px-5 py-4 flex items-center justify-between rounded-t-2xl">
           <h2 className="font-semibold text-slate-800">
             {isEdit ? t('wiki.form.editTitle') : t('wiki.form.addTitle')}
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none p-1">✕</button>
+          <button onClick={onClose} className="text-ink-muted hover:text-ink p-1" aria-label="Close"><X size={18} strokeWidth={2} aria-hidden="true" /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
@@ -232,13 +233,13 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
                     setCloudinaryUrl(null);
                     setCloudinaryId(null);
                   }}
-                  className={`flex flex-col items-center gap-1 py-3 rounded-xl border text-xs font-medium transition-colors ${
+                  className={`flex flex-col items-center gap-1 py-3 rounded-md border text-xs font-medium transition-colors ${
                     type === tp
-                      ? 'bg-ocean-600 text-white border-ocean-600'
+                      ? 'bg-deep text-deep-on border-ocean-600'
                       : 'bg-white text-slate-600 border-slate-200 hover:border-ocean-300 hover:bg-ocean-50'
                   }`}
                 >
-                  <span className="text-lg">{TYPE_ICONS[tp]}</span>
+                  {(() => { const Icon = TYPE_ICONS[tp]; return <Icon size={18} strokeWidth={1.75} aria-hidden="true" />; })()}
                   <span>{t(`wiki.types.${tp}`)}</span>
                 </button>
               ))}
@@ -254,7 +255,7 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
               onChange={e => setTitle(e.target.value)}
               placeholder={t('wiki.form.titlePlaceholder')}
               required
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ocean-500"
+              className="w-full border border-slate-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-magenta"
             />
           </div>
 
@@ -266,7 +267,7 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
               onChange={e => setDescription(e.target.value)}
               placeholder={t('wiki.form.descriptionPlaceholder')}
               rows={2}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ocean-500 resize-none"
+              className="w-full border border-slate-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-magenta resize-none"
             />
           </div>
 
@@ -276,7 +277,7 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
               <label className="block text-xs font-medium text-slate-600 mb-1">{t('wiki.form.file')}</label>
               <div
                 onClick={() => !uploading && !cloudinaryUrl && fileRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl px-4 py-5 text-center transition-colors ${
+                className={`border-2 border-dashed rounded-md px-4 py-5 text-center transition-colors ${
                   cloudinaryUrl
                     ? 'border-ocean-400 bg-ocean-50 cursor-default'
                     : uploading
@@ -286,12 +287,12 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
               >
                 {cloudinaryUrl ? (
                   <div>
-                    <p className="text-sm font-medium text-ocean-700">✓ {pdfFile?.name}</p>
+                    <p className="text-sm font-medium text-ink"><Check size={16} strokeWidth={1.75} className="inline -mt-0.5 mr-1" aria-hidden="true" />{pdfFile?.name}</p>
                     <p className="text-xs text-slate-400 mt-0.5">{((pdfFile?.size || 0) / 1024).toFixed(0)} KB — uploaded</p>
                   </div>
                 ) : uploading ? (
                   <div>
-                    <p className="text-sm text-slate-600 mb-2">📤 {pdfFile?.name}</p>
+                    <p className="text-sm text-ink-muted mb-2"><Upload size={16} strokeWidth={1.75} className="inline -mt-0.5 mr-1" aria-hidden="true" />{pdfFile?.name}</p>
                     <div className="w-full bg-slate-200 rounded-full h-2">
                       <div
                         className="bg-ocean-500 h-2 rounded-full transition-all duration-200"
@@ -302,7 +303,7 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
                   </div>
                 ) : (
                   <div>
-                    <p className="text-2xl mb-1">📄</p>
+                    <FileText size={28} strokeWidth={1.5} className="mx-auto mb-1 text-ink-muted" aria-hidden="true" />
                     <p className="text-sm text-slate-500">{t('wiki.form.fileHint')}</p>
                   </div>
                 )}
@@ -327,7 +328,7 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
                     type="button"
                     onClick={() => setTextMode(mode)}
                     className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
-                      textMode === mode ? 'bg-ocean-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      textMode === mode ? 'bg-deep text-deep-on' : 'text-slate-600 hover:bg-slate-100'
                     }`}
                   >
                     {mode === 'upload' ? t('wiki.form.uploadFile') : t('wiki.form.typeText')}
@@ -338,18 +339,18 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
                 <div>
                   <div
                     onClick={() => fileRef.current?.click()}
-                    className={`border-2 border-dashed rounded-xl px-4 py-5 text-center cursor-pointer transition-colors ${
+                    className={`border-2 border-dashed rounded-md px-4 py-5 text-center cursor-pointer transition-colors ${
                       fileData ? 'border-ocean-400 bg-ocean-50' : 'border-slate-200 hover:border-ocean-300 hover:bg-slate-50'
                     }`}
                   >
                     {fileData ? (
                       <div>
-                        <p className="text-sm font-medium text-ocean-700">📝 {fileName}</p>
+                        <p className="text-sm font-medium text-ink"><NotebookPen size={16} strokeWidth={1.75} className="inline -mt-0.5 mr-1" aria-hidden="true" />{fileName}</p>
                         <p className="text-xs text-slate-400 mt-0.5">{(fileSize / 1024).toFixed(0)} KB</p>
                       </div>
                     ) : (
                       <div>
-                        <p className="text-2xl mb-1">📝</p>
+                        <NotebookPen size={28} strokeWidth={1.5} className="mx-auto mb-1 text-ink-muted" aria-hidden="true" />
                         <p className="text-sm text-slate-500">{t('wiki.form.textHint')}</p>
                       </div>
                     )}
@@ -368,7 +369,7 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
                   onChange={e => setTypedText(e.target.value)}
                   rows={8}
                   placeholder={type === 'text' ? '# Notes\n\nType your text or markdown here…' : ''}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ocean-500 resize-y"
+                  className="w-full border border-slate-200 rounded-md px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-magenta resize-y"
                 />
               )}
             </div>
@@ -383,7 +384,7 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
                 onChange={e => setUrl(e.target.value)}
                 placeholder={t('wiki.form.urlPlaceholder')}
                 required={!isEdit}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ocean-500"
+                className="w-full border border-slate-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-magenta"
               />
             </div>
           )}
@@ -397,29 +398,29 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
                 onChange={e => setUrl(e.target.value)}
                 placeholder={t('wiki.form.youtubePlaceholder')}
                 required={!isEdit}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ocean-500"
+                className="w-full border border-slate-200 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-magenta"
               />
               {youtubePreview && youtubeId && (
-                <div className="mt-2 rounded-xl overflow-hidden border border-slate-200">
+                <div className="mt-2 rounded-md overflow-hidden border border-slate-200">
                   <img
                     src={`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`}
                     alt="YouTube thumbnail"
                     className="w-full aspect-video object-cover"
                   />
-                  <p className="text-xs text-green-600 bg-green-50 px-3 py-1.5 font-medium">
-                    ✓ Video ID: {youtubeId}
+                  <p className="text-xs text-ink bg-shallow px-3 py-1.5 font-medium">
+                    <Check size={16} strokeWidth={1.75} className="inline -mt-0.5 mr-1" aria-hidden="true" />Video ID: {youtubeId}
                   </p>
                 </div>
               )}
               {url && !youtubeId && (
-                <p className="text-xs text-amber-600 mt-1">⚠ {t('wiki.form.invalidYoutube')}</p>
+                <p className="text-xs text-band-bucket mt-1"><TriangleAlert size={16} strokeWidth={1.75} className="inline -mt-0.5 mr-1" aria-hidden="true" />{t('wiki.form.invalidYoutube')}</p>
               )}
             </div>
           )}
 
           {/* Error */}
           {error && (
-            <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
+            <p className="text-sm text-band-ashore bg-band-ashore/10 px-3 py-2 rounded-lg">{error}</p>
           )}
 
           {/* Actions */}
@@ -427,14 +428,14 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
             <button
               type="submit"
               disabled={saving || uploading}
-              className="flex-1 bg-ocean-600 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-ocean-700 disabled:opacity-60 transition-colors"
+              className="flex-1 bg-deep text-deep-on py-2.5 rounded-md text-sm font-medium hover:bg-ink disabled:opacity-60 transition-colors"
             >
               {saving ? t('wiki.form.saving') : uploading ? t('wiki.form.uploading') : t('wiki.form.save')}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+              className="px-4 py-2.5 rounded-md text-sm text-slate-600 hover:bg-slate-100 transition-colors"
             >
               {t('boat.cancel')}
             </button>

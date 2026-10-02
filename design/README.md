@@ -1,6 +1,6 @@
 # Poor Sophie — designsystem
 
-> **Status: forslag.** Ikke tatt i bruk i `frontend/` ennå. Levende versjon med fargeprøver, typografi og komponent-forhåndsvisninger: [Poor Sophie designsystem](https://claude.ai/artifact/GSZFJftFCbBkGjb8DDmdr8).
+> **Status: i bruk.** Tatt i bruk i `frontend/` (lys tema; Natt-temaet er ikke koblet på ennå). Levende versjon med fargeprøver, typografi og komponent-forhåndsvisninger: [Poor Sophie designsystem](https://claude.ai/artifact/GSZFJftFCbBkGjb8DDmdr8).
 >
 > Filer her: `tokens.json` (farger for Dag/Natt, typografi, avstand, radius, skygge), `components/bundle.css` (komponentklasser `ps-*`), og én mappe per komponent med `README.md` og `preview.html`. Forhåndsvisningene forventer CSS-variablene fra `tokens.json` (`--paper`, `--ink`, `--magenta`, `--font-display` …).
 
@@ -60,6 +60,11 @@ Poor Sophie ser ut som et sjøkart: kjølig kartpapir, dypt navy vann, sandgult 
 - Ingen emoji. Bruk en enkel strekikon-familie (Lucide, 1,75px strek) i `ink-muted`, eller i `on-deep` på `deep`.
 - Ordmerket er navnet i `display` med en `magenta`-prikk: et fyr på kartet. Ingen tegnet logo finnes ennå.
 
-## Fra dagens kode
+## I koden
 
-Dette er et forslag. I dag bruker appen Inter, Tailwinds `ocean`-blå og `slate`-grå, emoji som ikoner og grønn→rød for båndene. For å ta i bruk systemet: legg fargetokenene inn i `tailwind.config.js` som CSS-variabler, bytt fontlenken i `index.html`, og oppdater `BAND_COLORS` i `components/passage/bands.js`.
+- Tokenene speiles i `frontend/tailwind.config.js`: `paper`, `surface`, `shallow`, `land`, `line`, `ink`/`ink-muted`, `deep`/`deep-on`, `magenta`, `band-*`, og fontene `font-display`, `font-sans`, `font-mono`. `ocean` og `slate` er lagt om til samme palett, så eldre klasser følger med.
+- `frontend/src/index.css` har `.label-mono` (etiketter) og `.data` (måleverdier), og setter `h1`/`h2` i display-fonten og magenta fokusring.
+- Båndfargene og tekstfarge på bånd ligger i `components/passage/bands.js` (`bandColor`, `bandInk`).
+- Merkevarebiter i `components/brand/`: `Wordmark` (navn + magenta prikk), `ChartTile` (kartutsnitt for båter uten bilde), `Isobaths` (dybdekurver på navy flater).
+- Ikoner: `lucide-react`, 1,75 strek.
+- Endrer du en verdi i `tokens.json`, oppdater `tailwind.config.js` og `bands.js` også.

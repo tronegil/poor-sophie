@@ -32,14 +32,14 @@ export default function PassageMap({ waypoints, result, onAddWaypoint, center = 
   const legs = result?.legs ?? [];
 
   return (
-    <MapContainer center={center} zoom={zoom} className={`${heightClass} w-full rounded-2xl z-0`} scrollWheelZoom={scrollWheelZoom}>
+    <MapContainer center={center} zoom={zoom} className={`${heightClass} w-full rounded-lg z-0`} scrollWheelZoom={scrollWheelZoom}>
       <TileLayer url={OSM} attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
       <TileLayer url={SJOKART} attribution='© <a href="https://www.kartverket.no">Kartverket</a>' opacity={0.9} />
       <ClickHandler onClick={onAddWaypoint} />
       <FitOnce points={path} />
 
       {/* Route: one grey line while planning, one coloured line per leg once scored */}
-      {!result && path.length > 1 && <Polyline positions={path} pathOptions={{ color: '#0369a1', weight: 3, dashArray: '6 6' }} />}
+      {!result && path.length > 1 && <Polyline positions={path} pathOptions={{ color: '#b0186f', weight: 3, dashArray: '6 6' }} />}
       {result && legs.map(leg => (
         <Polyline
           key={leg.index}
@@ -58,7 +58,7 @@ export default function PassageMap({ waypoints, result, onAddWaypoint, center = 
       ))}
 
       {waypoints.map((w, i) => (
-        <CircleMarker key={`wp-${i}`} center={[w.lat, w.lon]} radius={9} pathOptions={{ color: '#fff', weight: 2, fillColor: '#0c4a6e', fillOpacity: 1 }}>
+        <CircleMarker key={`wp-${i}`} center={[w.lat, w.lon]} radius={9} pathOptions={{ color: '#fff', weight: 2, fillColor: '#b0186f', fillOpacity: 1 }}>
           <Tooltip permanent direction="center" className="wp-label">{i + 1}</Tooltip>
         </CircleMarker>
       ))}

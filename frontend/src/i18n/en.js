@@ -244,9 +244,9 @@ export default {
     tryHint: 'Click two or more points on the chart to draw the route. Then hit Calculate.',
     howTitle: 'How it works',
     how: [
-      { icon: '🌊', h: 'The sea along your route', p: 'Not one forecast for one spot: the route is split into segments and the waves are read for the exact time your boat will be at each one — height, period, direction, swell, wind and current.' },
-      { icon: '⛵', h: 'Your boat, your course', p: 'Head sea at six knots turns a lazy 6-second swell into a 4-second pounding. Hull length, displacement and keel type decide how much of that reaches the cockpit.' },
-      { icon: '🤢', h: 'Your inner ear', p: 'The motion is weighted by the frequencies people actually get sick from (~0.17 Hz) and accumulated over the trip, per ISO 2631-1. Long and moderate can beat short and rough.' },
+      { h: 'The sea along your route', p: 'Not one forecast for one spot: the route is split into segments and the waves are read for the exact time your boat will be at each one — height, period, direction, swell, wind and current.' },
+      { h: 'Your boat, your course', p: 'Head sea at six knots turns a lazy 6-second swell into a 4-second pounding. Hull length, displacement and keel type decide how much of that reaches the cockpit.' },
+      { h: 'Your inner ear', p: 'The motion is weighted by the frequencies people actually get sick from (~0.17 Hz) and accumulated over the trip, per ISO 2631-1. Long and moderate can beat short and rough.' },
     ],
     fullMath: 'The full calculation, sources and references',
     bandsTitle: 'What the numbers mean',

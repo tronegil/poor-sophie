@@ -162,6 +162,47 @@ It's an estimate, not a measurement. Forecasts are forecasts, no two hulls move 
 
 ---
 
+## 🎨 Design System — the sea chart
+
+> **Status: proposal.** Lives in [`design/`](design/) and as a browsable [Poor Sophie design system](https://claude.ai/artifact/GSZFJftFCbBkGjb8DDmdr8) (palette, type specimens, live component previews). The frontend still runs on Inter, Tailwind `ocean`/`slate` and emoji until it's adopted.
+
+Poor Sophie should look like a Norwegian sea chart: cool chart paper, deep navy water, sandy land, and a single **chart magenta** accent — the colour the chart uses for lights and marks. The seasickness index is the only place the app gets loud colour, and there the colour *means* something.
+
+**Palette** (light "Dag" / dark "Natt")
+
+| Token | Dag | Natt | Used for |
+|---|---|---|---|
+| `paper` | `#f6f8f7` | `#0b1a24` | Page background |
+| `surface` | `#ffffff` | `#11242f` | Cards, panels, forms |
+| `ink` / `ink-muted` | `#0f2a3d` / `#4a6272` | `#e6eef2` / `#9db2bf` | Text / secondary text, units |
+| `deep` / `on-deep` | `#12354d` / `#eaf3f7` | `#07131b` / `#e6eef2` | Navbar, hero, primary button |
+| `shallow` | `#d6e9f2` | `#173847` | Calm highlights, hover |
+| `land` | `#efe2b3` | `#4a4128` | Illustrations and empty boat photos only |
+| `line` | `#cfdbe1` | `#24404f` | Hairlines — borders instead of shadows |
+| `magenta` | `#b0186f` | `#f06bb5` | The one accent: route on the map, links, focus ring, "Public" |
+
+**Seasickness bands** — darker as it gets worse, so they read in greyscale and for colour-blind crews. Always shown with the band name, never colour alone.
+
+| Band | Score | Colour | Text |
+|---|---|---|---|
+| Blikkstille / Flat calm | 0–2 | `#9fd8c8` | ink |
+| Behagelig / Comfortable | 2–4 | `#c9d96a` | ink |
+| Ubehagelig / Uncomfortable | 4–6 | `#f2b33d` | ink |
+| Bøtta klar / Bucket ready | 6–8 | `#c2410c` | white |
+| Bli på land / Stay ashore | 8–10 | `#8f1d2c` | white |
+
+**Type** — [Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque) for headings and the big score numeral, [Hanken Grotesk](https://fonts.google.com/specimen/Hanken+Grotesk) for text, [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono) for labels and measurements (`Hs 1,6 m · Tp 4,1 s · 5,5 kn`, tabular numerals, Norwegian decimal comma).
+
+**Shape** — 4px spacing scale (`space-1` … `space-16`), radii 4 / 8 / 16 / pill. Hairline borders, not shadows; the one shadow is reserved for the passage panel over the landing hero.
+
+**Voice** — a seasoned skipper talking to the crew: direct, dry, never dramatic ("Kaffen blir i koppen."). Sentence case, buttons are verbs, no emoji in the UI — the wordmark is the name in Bricolage with a small magenta "light" dot.
+
+**Components** (each with guidelines + preview in `design/components/`): `Button`, `Field`, `NavBar`, `ScoreBadge`, `PassageScore` (result panel with hour-by-hour strip), `BoatCard`, `BandScale`.
+
+**Adopting it** — map the tokens into `frontend/tailwind.config.js` as CSS variables, swap the Google Fonts link in `frontend/index.html`, and update `BAND_COLORS` in `frontend/src/components/passage/bands.js`. Full rules (in Norwegian): [`design/README.md`](design/README.md).
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Tech |
@@ -332,6 +373,8 @@ poor-sophie/
 │   │   ├── middleware/      # JWT auth
 │   │   └── config/         # DB pool, Passport
 │   └── db/schema.sql       # Full DB schema, idempotent
+│
+├── design/                 # Design system proposal: tokens.json, bundle.css, component guidelines + previews
 │
 └── vercel.json             # Vercel services config (frontend + backend)
 ```

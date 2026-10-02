@@ -1,0 +1,36 @@
+<!-- @dsCard height=288 -->
+<style>
+  html,body{margin:0;height:100%}
+  .cv{position:relative;width:960px;height:288px;background:var(--paper);overflow:hidden}
+  .cv svg{position:absolute;left:480px;top:0;width:480px;height:288px}
+  .deep{fill:var(--deep)} .shallow{fill:var(--shallow)} .land{fill:var(--land)} .mag{fill:var(--magenta)}
+  .iso{fill:none;stroke:var(--shallow);stroke-width:2;opacity:.55}
+  .cv-text{position:absolute;left:40px;bottom:32px;max-width:440px}
+  .cv-name{font:700 96px/.95 var(--font-display);letter-spacing:-.03em;color:var(--ink);margin:0}
+  .cv-tag{font:400 14px/1.4 var(--font-body);color:var(--ink-muted);margin:16px 0 0}
+</style>
+<div class="cv">
+  <!--
+    blocks: deep 240x288 (slab, bleeds top+bottom) · shallow 240x144 · land 144x144 · magenta disc r48 (radius-pill)
+    arrangement: one tall slab with satellites, read as a chart: deep water, shallows, land, a buoy
+    pattern: literal motif → depth contours (isobaths) as quarter-circle arcs in shallow over deep; a sea chart draws water this way
+    steps/radii: 48 = space-12, 64 = space-16 between contours; disc radius-pill; blocks square like the chart grid
+  -->
+  <svg viewBox="0 0 480 288" aria-hidden="true">
+    <rect class="deep" x="0" y="0" width="240" height="288"/>
+    <rect class="shallow" x="240" y="0" width="240" height="144"/>
+    <rect class="land" x="240" y="144" width="240" height="144"/>
+    <clipPath id="cvc"><rect x="0" y="0" width="240" height="288"/></clipPath>
+    <g clip-path="url(#cvc)">
+      <path class="iso" d="M0 224 A64 64 0 0 1 64 288"/>
+      <path class="iso" d="M0 160 A128 128 0 0 1 128 288"/>
+      <path class="iso" d="M0 96 A192 192 0 0 1 192 288"/>
+      <path class="iso" d="M0 32 A256 256 0 0 1 256 288"/>
+    </g>
+    <circle class="mag" cx="384" cy="144" r="48"/>
+  </svg>
+  <div class="cv-text">
+    <p class="cv-name">Poor<br>Sophie</p>
+    <p class="cv-tag">Kvalmeindeks og båtlogg for norskekysten.</p>
+  </div>
+</div>

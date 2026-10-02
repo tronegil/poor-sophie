@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../api/client';
 import i18n from '../i18n';
 import ThemePicker from '../components/brand/ThemePicker';
+import InstallApp from '../components/brand/InstallApp';
 
 export default function Settings() {
   const { t } = useTranslation();
@@ -61,6 +62,8 @@ export default function Settings() {
           <p className="text-xs text-slate-400 mb-3">{t('settings.themeHint')}</p>
           <ThemePicker labels />
         </div>
+
+        <InstallApp />
 
         {user?.is_admin && (
           <div className="pt-4 border-t border-line">

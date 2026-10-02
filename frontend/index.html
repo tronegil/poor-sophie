@@ -8,6 +8,13 @@
       try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Kvalmeindeks" />
     <title>Kvalmeindeks — hvor sjøsyk blir du på turen?</title>
     <meta name="description" content="Tegn overfarten i sjøkartet, velg båt, avgang og fart, og få en sjøsyke-indeks fra 0 til 10 time for time. Bygget på Meteorologisk institutts bølgemodeller og ISO 2631." />
     <meta property="og:title" content="Kvalmeindeks" />

@@ -95,3 +95,17 @@ ALTER TABLE boats ADD COLUMN IF NOT EXISTS loa_m NUMERIC(5,2);
 ALTER TABLE boats ADD COLUMN IF NOT EXISTS displacement_kg INTEGER;
 ALTER TABLE boats ADD COLUMN IF NOT EXISTS hull_type VARCHAR(20) CHECK (hull_type IN ('monohull','catamaran','trimaran'));
 ALTER TABLE boats ADD COLUMN IF NOT EXISTS keel_type VARCHAR(20) CHECK (keel_type IN ('fin','long','bilge','lifting','centerboard'));
+
+-- Saved passages: an owner's regular routes per boat, reopened and rescored in one tap
+CREATE TABLE IF NOT EXISTS trips (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  boat_id    UUID NOT NULL REFERENCES boats(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name       VARCHAR(80) NOT NULL,
+  waypoints  JSONB NOT NULL,
+  speed_kn   NUMERIC(4,1) NOT NULL,
+  crew       VARCHAR(20) NOT NULL DEFAULT 'mixed' CHECK (crew IN ('seasoned','mixed','novice')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS trips_boat_id_idx ON trips(boat_id, updated_at DESC);

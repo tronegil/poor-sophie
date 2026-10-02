@@ -12,7 +12,8 @@ const MAX_WATCHES_PER_USER = 10;
 
 /**
  * Validates a trip body. Returns { error } or the clean fields.
- * Coordinates are rounded to ~10 m; that is all a route needs.
+ * Coordinates are rounded to ~10 m; that is all a route needs. A place name
+ * picked in search is kept (≤ 60 chars) so the stop list can show it.
  */
 function parseTrip(body) {
   const name = typeof body?.name === 'string' ? body.name.trim().slice(0, 80) : '';
@@ -23,7 +24,9 @@ function parseTrip(body) {
   for (const w of wps) {
     const lat = Number(w?.lat), lon = Number(w?.lon);
     if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return { error: 'Invalid waypoint' };
-    waypoints.push({ lat: Math.round(lat * 1e4) / 1e4, lon: Math.round(lon * 1e4) / 1e4 });
+    const point = { lat: Math.round(lat * 1e4) / 1e4, lon: Math.round(lon * 1e4) / 1e4 };
+    if (typeof w.name === 'string' && w.name.trim()) point.name = w.name.trim().slice(0, 60); // place name from search
+    waypoints.push(point);
   }
   const speed = Number(body.speedKn);
   if (!(speed >= 1 && speed <= 30)) return { error: 'Speed must be 1–30 knots' };

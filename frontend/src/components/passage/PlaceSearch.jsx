@@ -5,7 +5,7 @@ import api from '../../api/client';
 
 // "Tau", "Skudeneshavn": find a place by name instead of hunting on the chart.
 // Picking one hands it to `onPick` (the planner flies there and drops a point).
-export default function PlaceSearch({ onPick, disabled = false }) {
+export default function PlaceSearch({ onPick, disabled = false, placeholder, label, autoFocus = false, onCancel }) {
   const { t } = useTranslation();
   const listId = useId();
   const [q, setQ] = useState('');
@@ -45,14 +45,14 @@ export default function PlaceSearch({ onPick, disabled = false }) {
     if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); setActive(a => Math.min(a + 1, places.length - 1)); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(a => Math.max(a - 1, 0)); }
     else if (e.key === 'Enter' && places[active]) { e.preventDefault(); pick(places[active]); }
-    else if (e.key === 'Escape') setOpen(false);
+    else if (e.key === 'Escape') { setOpen(false); onCancel?.(); }
   };
 
   const showList = open && q.trim().length >= 2;
 
   return (
     <div className="relative">
-      <label htmlFor={`${listId}-input`} className="sr-only">{t('passage.search.label')}</label>
+      <label htmlFor={`${listId}-input`} className="sr-only">{label ?? t('passage.search.label')}</label>
       <Search size={16} strokeWidth={1.75} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" aria-hidden="true" />
       <input
         id={`${listId}-input`}
@@ -64,13 +64,14 @@ export default function PlaceSearch({ onPick, disabled = false }) {
         aria-autocomplete="list"
         autoComplete="off"
         disabled={disabled}
+        autoFocus={autoFocus}
         value={q}
         onChange={e => { setQ(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         onKeyDown={onKeyDown}
-        placeholder={disabled ? t('passage.search.full') : t('passage.search.placeholder')}
-        className="w-full border border-line rounded-lg pl-9 pr-3 py-2.5 text-sm text-ink bg-surface hover:border-ink-muted focus:outline-none focus:ring-2 focus:ring-magenta focus:border-transparent disabled:opacity-60"
+        placeholder={disabled ? t('passage.search.full') : (placeholder ?? t('passage.search.placeholder'))}
+        className="w-full border border-line rounded-lg pl-9 pr-3 py-2 text-sm text-ink bg-surface hover:border-ink-muted focus:outline-none focus:ring-2 focus:ring-magenta focus:border-transparent disabled:opacity-60"
       />
       {showList && (
         <ul id={`${listId}-list`} role="listbox" className="absolute z-[1000] left-0 right-0 mt-1 bg-surface border border-line rounded-lg shadow-panel overflow-hidden">

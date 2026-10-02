@@ -5,7 +5,8 @@ import PassageResults from './PassageResults';
 import DepartureStrip from './DepartureStrip';
 import ShareTrip from './ShareTrip';
 import SaveTrip from './SaveTrip';
-import PlaceSearch from './PlaceSearch';
+import RouteStops from './RouteStops';
+import { addPoint, insertVia, setStart, setEnd, swapEnds, removeAt } from './routeEdit';
 import { DEFAULT_CREW, isCrew } from './crew';
 import { RefreshCw, TriangleAlert, WifiOff } from 'lucide-react';
 import useOnline from '../../hooks/useOnline';
@@ -94,16 +95,30 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
 
   // Editing keeps the last result on screen, dimmed, until the next Beregn.
   const reset = () => { if (result) setStale('edited'); setError(''); };
-  const addWaypoint = wp => { if (waypoints.length >= MAX_WAYPOINTS) return; setWaypoints(w => [...w, wp]); reset(); };
-  const moveWaypoint = (i, wp) => { setWaypoints(w => w.map((p, k) => (k === i ? wp : p))); reset(); };
-  const removeWaypoint = i => { setWaypoints(w => w.filter((_, k) => k !== i)); reset(); };
-  const insertWaypoint = (i, wp) => { if (waypoints.length >= MAX_WAYPOINTS) return; setWaypoints(w => [...w.slice(0, i), wp, ...w.slice(i)]); reset(); };
-  const pickPlace = place => {
-    setFocus({ lat: place.lat, lon: place.lon, seq: Date.now() });
-    addWaypoint({ lat: place.lat, lon: place.lon });
+  // Route edits. A tap on the chart fills Fra, then Til, then adds a via
+  // point where it bends the route least (routeEdit.js has the rules).
+  // Every edit is undoable, one step at a time.
+  const history = useRef([]);
+  const edit = fn => { history.current = [...history.current.slice(-30), waypoints]; setWaypoints(fn); reset(); };
+  const roomForOne = waypoints.length < MAX_WAYPOINTS;
+  const addWaypoint = wp => { if (roomForOne || waypoints.length < 2) edit(w => addPoint(w, wp)); };
+  // A dragged point keeps its spot but loses the place name it no longer matches.
+  const moveWaypoint = (i, wp) => edit(w => w.map((p, k) => (k === i ? wp : p)));
+  const removeWaypoint = i => edit(w => removeAt(w, i));
+  const fromPlace = place => ({ lat: place.lat, lon: place.lon, name: place.name });
+  // After a search, show the whole route once it has both ends, else fly to the place.
+  const searchEdit = (place, fn) => {
+    const next = fn(waypoints);
+    setFocus({ lat: place.lat, lon: place.lon, bounds: next.length >= 2 ? next.map(w => [w.lat, w.lon]) : null, seq: Date.now() });
+    edit(() => next);
   };
-  const undo = () => { setWaypoints(w => w.slice(0, -1)); reset(); };
-  const clear = () => { setWaypoints([]); setResult(null); setStale(null); setError(''); };
+  const pickStart = place => searchEdit(place, w => setStart(w, fromPlace(place)));
+  const pickEnd = place => searchEdit(place, w => setEnd(w, fromPlace(place)));
+  const pickVia = place => { if (roomForOne) searchEdit(place, w => insertVia(w, fromPlace(place))); };
+  const replaceAt = (i, place) => searchEdit(place, w => w.map((p, k) => (k === i ? fromPlace(place) : p)));
+  const swap = () => edit(swapEnds);
+  const undo = () => { const prev = history.current.pop(); if (prev) { setWaypoints(prev); reset(); } };
+  const clear = () => { history.current = [...history.current, waypoints]; setWaypoints([]); setResult(null); setStale(null); setError(''); };
 
   const nm = routeNm(waypoints);
   const minutes = Number(speed) > 0 ? Math.round(nm / Number(speed) * 60) : 0;
@@ -192,7 +207,16 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
   return (
     <div className="space-y-5">
       <div className="bg-surface rounded-2xl border border-line shadow-panel p-3 space-y-3">
-        <PlaceSearch onPick={pickPlace} disabled={waypoints.length >= MAX_WAYPOINTS} />
+        <RouteStops
+          waypoints={waypoints}
+          maxWaypoints={MAX_WAYPOINTS}
+          onSetStart={pickStart}
+          onSetEnd={pickEnd}
+          onAddVia={pickVia}
+          onReplace={replaceAt}
+          onRemove={removeWaypoint}
+          onSwap={swap}
+        />
         <PassageMap
           waypoints={waypoints}
           focus={focus}
@@ -200,7 +224,6 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
           onAddWaypoint={addWaypoint}
           onMoveWaypoint={moveWaypoint}
           onRemoveWaypoint={removeWaypoint}
-          onInsertWaypoint={insertWaypoint}
           maxWaypoints={MAX_WAYPOINTS}
           heightClass={mapHeight} scrollWheelZoom={mapScrollZoom} />
 
@@ -219,7 +242,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
 
         <div className="flex flex-wrap items-center gap-2">
           <p className="data text-xs text-ink-muted mr-auto">{routeSummary}</p>
-          <button onClick={undo} disabled={!waypoints.length} className="border border-line text-ink px-3 py-2 rounded-lg text-sm hover:bg-shallow hover:border-shallow transition-colors disabled:opacity-45 disabled:cursor-not-allowed">{t('passage.undo')}</button>
+          <button onClick={undo} disabled={!history.current.length} className="border border-line text-ink px-3 py-2 rounded-lg text-sm hover:bg-shallow hover:border-shallow transition-colors disabled:opacity-45 disabled:cursor-not-allowed">{t('passage.undo')}</button>
           {shareBoat && waypoints.length >= 2 && (
             <ShareTrip trip={{ waypoints, departure, speed, boat: shareBoat, crew }} />
           )}

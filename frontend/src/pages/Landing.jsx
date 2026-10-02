@@ -124,7 +124,7 @@ export default function Landing() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 -mt-20 sm:-mt-28 pb-20 space-y-16">
+      <main className="relative max-w-5xl mx-auto px-4 -mt-20 sm:-mt-28 pb-20 space-y-16">
         {/* The tool */}
         <section>
           {shared && (

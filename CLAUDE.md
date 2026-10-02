@@ -44,7 +44,7 @@ psql $DATABASE_URL -f backend/db/schema.sql
 - Boat photos are URL-based in Phase 1 (no file upload)
 - Passage planner UI lives in `components/passage/` (`PassagePlanner` owns route/time/speed state, `PassageResults` renders the score); both the boat page and the landing page compose these. Boat presets for the public picker are in `components/passage/boatPresets.js`
 - Default language is Norwegian for `nb/nn/no` browsers, else English (`i18n/index.js`)
-- Design system (proposal, not yet adopted in `frontend/`) lives in `design/`: `tokens.json` is the source of truth for colours, type, spacing and radii; `design/README.md` has the usage rules. New UI work should follow it — chart-magenta single accent, the five band colours only for the seasickness score, no emoji
+- Design system lives in `design/` (`tokens.json` = source of truth, `design/README.md` = rules) and is mirrored in `frontend/tailwind.config.js`. Use the named tokens (`bg-paper`, `bg-surface`, `border-line`, `text-ink`/`text-ink-muted`, `bg-deep text-deep-on` for primary buttons, `text-magenta` for links/accent, `band-*` only for the seasickness score via `bandColor`/`bandInk` in `components/passage/bands.js`), `.label-mono` for field labels, `.data` for measurements, Lucide icons — no emoji. Brand pieces: `components/brand/` (`Wordmark`, `ChartTile`, `Isobaths`)
 - Public vs private boats: `GET /api/boats/:id` checks `is_public`; private boats require a valid JWT cookie belonging to the owner
 
 ### Database

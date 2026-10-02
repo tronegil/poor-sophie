@@ -4,8 +4,31 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-800 antialiased;
+    @apply bg-paper text-ink antialiased font-sans;
   }
+  h1, h2 {
+    @apply font-display tracking-tight;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 2px solid theme('colors.magenta.DEFAULT');
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Mono uppercase label above fields and as eyebrows (design: `label`). */
+  .label-mono {
+    @apply font-mono text-[11px] leading-snug font-medium uppercase tracking-[0.08em] text-ink-muted;
+  }
+  /* Measurements: wave height, period, speed, times (design: `data`). */
+  .data {
+    @apply font-mono tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 
 /* Leaflet: numbered waypoint labels without the tooltip chrome */
@@ -14,7 +37,8 @@
   border: none;
   box-shadow: none;
   color: #fff;
-  font-weight: 700;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-weight: 500;
   font-size: 11px;
   padding: 0;
 }

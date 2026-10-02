@@ -3,12 +3,13 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../api/client';
 import AddItemModal from '../components/wiki/AddItemModal';
+import { FileText, NotebookPen, Link2, PlayCircle, Play, X, Search, LayoutGrid, List, BookOpen } from 'lucide-react';
 
 const TYPE_META = {
-  pdf:     { icon: '📄', bg: 'bg-red-50',    text: 'text-red-600',    border: 'border-red-100' },
-  text:    { icon: '📝', bg: 'bg-blue-50',   text: 'text-blue-600',   border: 'border-blue-100' },
-  url:     { icon: '🔗', bg: 'bg-slate-50',  text: 'text-slate-600',  border: 'border-slate-200' },
-  youtube: { icon: '▶',  bg: 'bg-red-50',    text: 'text-red-600',    border: 'border-red-100' },
+  pdf:     { icon: FileText,   bg: 'bg-shallow', text: 'text-ink', border: 'border-line' },
+  text:    { icon: NotebookPen, bg: 'bg-shallow', text: 'text-ink', border: 'border-line' },
+  url:     { icon: Link2,      bg: 'bg-shallow', text: 'text-ink', border: 'border-line' },
+  youtube: { icon: PlayCircle, bg: 'bg-shallow', text: 'text-ink', border: 'border-line' },
 };
 
 function fmtDate(ts) {
@@ -40,7 +41,7 @@ function YouTubeCard({ item, meta, onEdit, onDelete, t }) {
   const thumb = `https://img.youtube.com/vi/${item.youtube_id}/hqdefault.jpg`;
 
   return (
-    <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-md border border-line overflow-hidden hover:border-ink-muted transition-colors">
       <div className="relative cursor-pointer group" onClick={() => setPlaying(v => !v)}>
         {playing ? (
           <div className="aspect-video w-full">
@@ -56,8 +57,8 @@ function YouTubeCard({ item, meta, onEdit, onDelete, t }) {
           <>
             <img src={thumb} alt={item.title} className="w-full aspect-video object-cover" />
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
-              <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white text-xl shadow-lg">
-                ▶
+              <div className="w-12 h-12 bg-deep rounded-full flex items-center justify-center text-deep-on shadow-lg">
+                <Play size={20} strokeWidth={2} fill="currentColor" aria-hidden="true" />
               </div>
             </div>
           </>
@@ -88,9 +89,9 @@ function WikiItemCard({ item, onEdit, onDelete, onOpen, t }) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-md border border-line overflow-hidden hover:border-ink-muted transition-colors">
       <div className={`px-4 py-2.5 flex items-center gap-2 ${meta.bg} border-b ${meta.border}`}>
-        <span className="text-base">{meta.icon}</span>
+        <meta.icon size={16} strokeWidth={1.75} aria-hidden="true" />
         <span className={`text-xs font-semibold ${meta.text}`}>{t(`wiki.types.${item.type}`)}</span>
         <div className="ml-auto flex items-center gap-2 min-w-0">
           {item.type === 'url' && (
@@ -112,7 +113,7 @@ function WikiItemCard({ item, onEdit, onDelete, onOpen, t }) {
           <div className="flex items-center gap-1">
             <button
               onClick={handlePrimary}
-              className="text-xs text-ocean-600 hover:text-ocean-800 px-2.5 py-1 rounded-lg hover:bg-ocean-50 font-medium transition-colors"
+              className="text-xs text-magenta hover:text-magenta-dark px-2.5 py-1 rounded-lg hover:bg-ocean-50 font-medium transition-colors"
             >
               {item.type === 'text' ? t('wiki.view') : t('wiki.open')}
             </button>
@@ -137,7 +138,7 @@ function ItemMenu({ item, onEdit, onDelete, t }) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 bottom-8 z-20 bg-white rounded-xl shadow-lg border border-slate-100 py-1 min-w-[110px]">
+          <div className="absolute right-0 bottom-8 z-20 bg-white rounded-md shadow-lg border border-line py-1 min-w-[110px]">
             <button
               onClick={() => { onEdit(item); setOpen(false); }}
               className="w-full text-left text-sm px-4 py-2 hover:bg-slate-50 text-slate-700"
@@ -146,7 +147,7 @@ function ItemMenu({ item, onEdit, onDelete, t }) {
             </button>
             <button
               onClick={() => { onDelete(item); setOpen(false); }}
-              className="w-full text-left text-sm px-4 py-2 hover:bg-red-50 text-red-500"
+              className="w-full text-left text-sm px-4 py-2 hover:bg-band-ashore/10 text-band-ashore"
             >
               {t('boat.delete')}
             </button>
@@ -161,13 +162,13 @@ function TextViewer({ item, onClose, t }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-xl max-h-[88vh] overflow-hidden flex flex-col">
-        <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between rounded-t-2xl shrink-0">
+      <div className="relative bg-white w-full sm:max-w-2xl sm:rounded-lg rounded-t-2xl shadow-xl max-h-[88vh] overflow-hidden flex flex-col">
+        <div className="sticky top-0 bg-white border-b border-line px-5 py-4 flex items-center justify-between rounded-t-2xl shrink-0">
           <div className="min-w-0">
             <h2 className="font-semibold text-slate-800 truncate">{item.title}</h2>
             {item.file_name && <p className="text-xs text-slate-400 mt-0.5">{item.file_name}</p>}
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none p-1 ml-3 shrink-0">✕</button>
+          <button onClick={onClose} className="text-ink-muted hover:text-ink p-1 ml-3 shrink-0" aria-label="Close"><X size={18} strokeWidth={2} aria-hidden="true" /></button>
         </div>
         <div className="overflow-y-auto p-5 flex-1">
           <pre className="text-sm text-slate-700 whitespace-pre-wrap font-mono leading-relaxed break-words">
@@ -260,14 +261,14 @@ export default function Wiki() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <Link to={`/boats/${boatId}`} className="text-sm text-ocean-600 hover:underline">
+          <Link to={`/boats/${boatId}`} className="text-sm text-magenta hover:underline">
             ← {boat?.name}
           </Link>
-          <h1 className="text-2xl font-bold text-slate-800 mt-1">📚 {t('wiki.title')}</h1>
+          <h1 className="text-3xl font-bold text-ink mt-1">{t('wiki.title')}</h1>
         </div>
         <button
           onClick={() => setModal({})}
-          className="mt-1 bg-ocean-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-ocean-700 transition-colors flex items-center gap-1.5 shrink-0"
+          className="mt-1 bg-deep text-deep-on px-4 py-2 rounded-lg text-sm font-medium hover:bg-ink transition-colors flex items-center gap-1.5 shrink-0"
         >
           <span>+</span>
           {t('wiki.addItem')}
@@ -277,29 +278,29 @@ export default function Wiki() {
       {/* Search + view toggle */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+          <Search size={16} strokeWidth={1.75} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
           <input
             type="search"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={t('wiki.searchPlaceholder')}
-            className="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ocean-500 bg-white"
+            className="w-full border border-slate-200 rounded-md pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-magenta bg-white"
           />
         </div>
-        <div className="flex border border-slate-200 rounded-xl overflow-hidden bg-white">
+        <div className="flex border border-slate-200 rounded-md overflow-hidden bg-white">
           <button
             onClick={() => setGridView(true)}
-            className={`px-3 py-2.5 text-sm transition-colors ${gridView ? 'bg-ocean-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+            className={`px-3 py-2.5 text-sm transition-colors ${gridView ? 'bg-deep text-deep-on' : 'text-slate-500 hover:bg-slate-50'}`}
             title={t('wiki.viewGrid')}
           >
-            ⊞
+            <LayoutGrid size={16} strokeWidth={1.75} aria-hidden="true" />
           </button>
           <button
             onClick={() => setGridView(false)}
-            className={`px-3 py-2.5 text-sm transition-colors ${!gridView ? 'bg-ocean-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+            className={`px-3 py-2.5 text-sm transition-colors ${!gridView ? 'bg-deep text-deep-on' : 'text-slate-500 hover:bg-slate-50'}`}
             title={t('wiki.viewList')}
           >
-            ☰
+            <List size={16} strokeWidth={1.75} aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -307,12 +308,12 @@ export default function Wiki() {
       {/* Items */}
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
-          <div className="text-5xl mb-3 select-none">📚</div>
+          <BookOpen size={40} strokeWidth={1.5} className="mx-auto mb-3 text-ocean-400" aria-hidden="true" />
           <p className="font-medium">{search ? t('wiki.emptySearch') : t('wiki.empty')}</p>
           {!search && (
             <button
               onClick={() => setModal({})}
-              className="mt-3 text-ocean-600 hover:underline text-sm"
+              className="mt-3 text-magenta hover:underline text-sm"
             >
               {t('wiki.emptyHint')}
             </button>
@@ -375,9 +376,9 @@ function ListItem({ item, onEdit, onDelete, onOpen, openingId, t }) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 flex items-center gap-4 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-md border border-line p-4 flex items-center gap-4 hover:border-ink-muted transition-colors">
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0 ${meta.bg}`}>
-        {meta.icon}
+        <meta.icon size={18} strokeWidth={1.75} aria-hidden="true" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
@@ -395,7 +396,7 @@ function ListItem({ item, onEdit, onDelete, onOpen, openingId, t }) {
         <button
           onClick={handlePrimary}
           disabled={loading}
-          className="text-xs text-ocean-600 hover:text-ocean-800 px-3 py-1.5 rounded-lg hover:bg-ocean-50 font-medium transition-colors disabled:opacity-50"
+          className="text-xs text-magenta hover:text-magenta-dark px-3 py-1.5 rounded-lg hover:bg-ocean-50 font-medium transition-colors disabled:opacity-50"
         >
           {loading ? '…' : item.type === 'text' ? t('wiki.view') : t('wiki.open')}
         </button>

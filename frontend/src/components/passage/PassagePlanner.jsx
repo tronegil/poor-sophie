@@ -11,7 +11,7 @@ function nextFullHour() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export const inputClass = 'border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ocean-500 focus:border-transparent bg-white';
+export const inputClass = 'border border-line rounded px-3 py-2 text-sm text-ink bg-surface hover:border-ink-muted focus:outline-none focus:ring-2 focus:ring-magenta focus:border-transparent';
 
 /**
  * Map + controls + results. Owns the route/departure/speed state and persists
@@ -59,34 +59,34 @@ export default function PassagePlanner({ storageKey, score, extraControls = null
 
   return (
     <div className="space-y-5">
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 space-y-3">
+      <div className="bg-surface rounded-2xl border border-line shadow-panel p-3 space-y-3">
         <PassageMap waypoints={waypoints} result={result} onAddWaypoint={addWaypoint} heightClass={mapHeight} scrollWheelZoom={mapScrollZoom} />
 
         <div className="grid sm:grid-cols-[1fr_auto_auto] gap-3 items-end">
           {extraControls ? <div>{extraControls}</div> : <div />}
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">{t('passage.departure')}</label>
+            <label className="block label-mono mb-1.5">{t('passage.departure')}</label>
             <input type="datetime-local" value={departure} onChange={e => { setDeparture(e.target.value); setResult(null); }} className={inputClass} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">{t('passage.speed')}</label>
+            <label className="block label-mono mb-1.5">{t('passage.speed')}</label>
             <input type="number" step="0.5" min="1" max="30" value={speed} onChange={e => { setSpeed(e.target.value); setResult(null); }} className={`${inputClass} w-24`} />
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-xs text-slate-400 mr-auto">{waypoints.length} {t('passage.waypoints')}</p>
-          <button onClick={undo} disabled={!waypoints.length} className="border border-slate-200 text-slate-600 px-3 py-2 rounded-lg text-sm hover:bg-slate-50 disabled:opacity-40">{t('passage.undo')}</button>
-          <button onClick={clear} disabled={!waypoints.length} className="border border-slate-200 text-slate-600 px-3 py-2 rounded-lg text-sm hover:bg-slate-50 disabled:opacity-40">{t('passage.clear')}</button>
+          <p className="data text-xs text-ink-muted mr-auto">{waypoints.length} {t('passage.waypoints')}</p>
+          <button onClick={undo} disabled={!waypoints.length} className="border border-line text-ink px-3 py-2 rounded-lg text-sm hover:bg-shallow hover:border-shallow transition-colors disabled:opacity-45 disabled:cursor-not-allowed">{t('passage.undo')}</button>
+          <button onClick={clear} disabled={!waypoints.length} className="border border-line text-ink px-3 py-2 rounded-lg text-sm hover:bg-shallow hover:border-shallow transition-colors disabled:opacity-45 disabled:cursor-not-allowed">{t('passage.clear')}</button>
           <button
             onClick={calculate}
             disabled={loading || waypoints.length < 2}
-            className="w-full sm:w-auto bg-ocean-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-ocean-700 disabled:opacity-50 transition-colors"
+            className="w-full sm:w-auto bg-deep text-deep-on px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-ink disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? t('passage.calculating') : t('passage.calculate')}
           </button>
         </div>
-        {error && <p className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-2">{error}</p>}
+        {error && <p className="text-sm text-band-ashore bg-band-ashore/10 rounded px-4 py-2">{error}</p>}
       </div>
 
       {result && <PassageResults result={result} />}

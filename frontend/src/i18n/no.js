@@ -244,9 +244,9 @@ export default {
     tryHint: 'Klikk to eller flere punkter i kartet for å tegne ruten. Trykk så Beregn.',
     howTitle: 'Slik virker det',
     how: [
-      { icon: '🌊', h: 'Sjøen langs ruten din', p: 'Ikke ett varsel for ett punkt: ruten deles opp, og bølgene leses for det nøyaktige tidspunktet båten er på hver bit — høyde, periode, retning, dønning, vind og strøm.' },
-      { icon: '⛵', h: 'Din båt, din kurs', p: 'Motsjø i seks knop gjør en lat 6-sekunders dønning om til 4-sekunders stamping. Skroglengde, deplasement og kjøltype avgjør hvor mye av det som når cockpiten.' },
-      { icon: '🤢', h: 'Balanseorganet ditt', p: 'Bevegelsen vektes etter frekvensene folk faktisk blir syke av (~0,17 Hz) og summeres over turen, etter ISO 2631-1. Langt og moderat kan slå kort og grovt.' },
+      { h: 'Sjøen langs ruten din', p: 'Ikke ett varsel for ett punkt: ruten deles opp, og bølgene leses for det nøyaktige tidspunktet båten er på hver bit — høyde, periode, retning, dønning, vind og strøm.' },
+      { h: 'Din båt, din kurs', p: 'Motsjø i seks knop gjør en lat 6-sekunders dønning om til 4-sekunders stamping. Skroglengde, deplasement og kjøltype avgjør hvor mye av det som når cockpiten.' },
+      { h: 'Balanseorganet ditt', p: 'Bevegelsen vektes etter frekvensene folk faktisk blir syke av (~0,17 Hz) og summeres over turen, etter ISO 2631-1. Langt og moderat kan slå kort og grovt.' },
     ],
     fullMath: 'Hele regnestykket, kilder og referanser',
     bandsTitle: 'Hva tallene betyr',

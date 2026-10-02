@@ -2,17 +2,18 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../api/client';
+import { Users, Sailboat, BookOpen, Wrench, MessageSquare } from 'lucide-react';
 
 function fmt(ts) {
   return new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function StatCard({ label, value, emoji }) {
+function StatCard({ label, value, icon: Icon }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-100 shadow-sm px-5 py-4 flex items-center gap-4">
-      <span className="text-3xl">{emoji}</span>
+    <div className="bg-surface rounded-lg border border-line px-5 py-4 flex items-center gap-4">
+      <Icon size={22} strokeWidth={1.75} className="text-ink-muted shrink-0" aria-hidden="true" />
       <div>
-        <p className="text-2xl font-bold text-slate-800">{value ?? '—'}</p>
+        <p className="font-display text-2xl font-bold text-ink tabular-nums">{value ?? '—'}</p>
         <p className="text-xs text-slate-500 mt-0.5">{label}</p>
       </div>
     </div>
@@ -59,43 +60,43 @@ export default function Admin() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">🛠️ Admin</h1>
+        <h1 className="text-3xl font-bold text-ink">Admin</h1>
         <p className="text-sm text-slate-400 mt-0.5">Everything. All of it.</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <StatCard emoji="👤" label="Users"            value={stats?.users} />
-        <StatCard emoji="⛵" label="Boats"            value={stats?.boats} />
-        <StatCard emoji="📚" label="Wiki items"       value={stats?.wiki} />
-        <StatCard emoji="🔧" label="Maintenance logs" value={stats?.logs} />
-        <StatCard emoji="🧭" label="Chat messages"    value={stats?.messages} />
+        <StatCard icon={Users} label="Users"            value={stats?.users} />
+        <StatCard icon={Sailboat} label="Boats"            value={stats?.boats} />
+        <StatCard icon={BookOpen} label="Wiki items"       value={stats?.wiki} />
+        <StatCard icon={Wrench} label="Maintenance logs" value={stats?.logs} />
+        <StatCard icon={MessageSquare} label="Chat messages"    value={stats?.messages} />
       </div>
 
       {/* Tab toggle */}
-      <div className="flex gap-1 border-b border-slate-100">
+      <div className="flex gap-1 border-b border-line">
         {['users', 'boats'].map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
               tab === t
-                ? 'border-ocean-600 text-ocean-700'
+                ? 'border-magenta text-ink'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
-            {t === 'users' ? `👤 Users (${users.length})` : `⛵ Boats (${boats.length})`}
+            {t === 'users' ? `Users (${users.length})` : `Boats (${boats.length})`}
           </button>
         ))}
       </div>
 
       {/* Users table */}
       {tab === 'users' && (
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-md border border-line overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
+                <tr className="border-b border-line bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
                   <th className="text-left px-4 py-3">User</th>
                   <th className="text-left px-4 py-3">Email</th>
                   <th className="text-center px-4 py-3">Lang</th>
@@ -111,7 +112,7 @@ export default function Admin() {
                       <div className="flex items-center gap-2">
                         {u.avatar_url
                           ? <img src={u.avatar_url} alt="" className="w-7 h-7 rounded-full shrink-0" />
-                          : <div className="w-7 h-7 rounded-full bg-ocean-100 flex items-center justify-center text-xs text-ocean-600 shrink-0">{u.name?.[0]}</div>
+                          : <div className="w-7 h-7 rounded-full bg-ocean-100 flex items-center justify-center text-xs text-magenta shrink-0">{u.name?.[0]}</div>
                         }
                         <span className="font-medium text-slate-800 truncate max-w-[160px]">{u.name}</span>
                       </div>
@@ -133,11 +134,11 @@ export default function Admin() {
 
       {/* Boats table */}
       {tab === 'boats' && (
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-md border border-line overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
+                <tr className="border-b border-line bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
                   <th className="text-left px-4 py-3">Boat</th>
                   <th className="text-left px-4 py-3">Owner</th>
                   <th className="text-center px-4 py-3">Public</th>
@@ -165,7 +166,7 @@ export default function Admin() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       {b.is_public
-                        ? <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Yes</span>
+                        ? <span className="text-xs border border-magenta text-magenta px-2 py-0.5 rounded-full font-medium">Yes</span>
                         : <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">No</span>
                       }
                     </td>

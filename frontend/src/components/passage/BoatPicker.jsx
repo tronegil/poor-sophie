@@ -18,7 +18,7 @@ export default function BoatPicker({ value, onChange, inputClass }) {
   return (
     <div className="space-y-2">
       <div>
-        <label className="block text-xs font-medium text-slate-500 mb-1">{t('landing.boat')}</label>
+        <label className="block label-mono mb-1.5">{t('landing.boat')}</label>
         <select value={value.presetId} onChange={pick} className={`${inputClass} w-full`}>
           {BOAT_PRESETS.map(b => <option key={b.id} value={b.id}>{b.name} · {b.loa_m} m</option>)}
           <option value={CUSTOM_ID}>{t('landing.customBoat')}…</option>

@@ -28,7 +28,7 @@ export default function Settings() {
     <div className="max-w-lg mx-auto">
       <h1 className="text-2xl font-bold text-slate-800 mb-6">{t('settings.title')}</h1>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-6">
+      <div className="bg-white rounded-lg border border-line p-6 space-y-6">
         <div>
           <p className="text-sm font-medium text-slate-700 mb-3">{t('settings.language')}</p>
           <div className="flex gap-3">
@@ -38,7 +38,7 @@ export default function Settings() {
                 onClick={() => setLanguage(lang.code)}
                 className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
                   language === lang.code
-                    ? 'bg-ocean-600 text-white border-ocean-600'
+                    ? 'bg-deep text-deep-on border-ocean-600'
                     : 'border-slate-200 text-slate-700 hover:bg-slate-50'
                 }`}
               >
@@ -50,13 +50,13 @@ export default function Settings() {
 
         <button
           onClick={handleSave}
-          className="bg-ocean-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-ocean-700 transition-colors"
+          className="bg-deep text-deep-on px-6 py-2 rounded-lg text-sm font-medium hover:bg-ink transition-colors"
         >
           {saved ? t('settings.saved') : t('settings.save')}
         </button>
 
         {user?.is_admin && (
-          <div className="pt-4 border-t border-slate-100">
+          <div className="pt-4 border-t border-line">
             <p className="text-sm font-medium text-slate-700 mb-1">{t('settings.adminView')}</p>
             <p className="text-xs text-slate-400 mb-3">{t('settings.adminViewHint')}</p>
             <button

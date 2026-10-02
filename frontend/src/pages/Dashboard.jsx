@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../api/client';
+import { Plus } from 'lucide-react';
 import BoatCard from '../components/BoatCard';
+import ChartTile from '../components/brand/ChartTile';
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -26,21 +28,21 @@ export default function Dashboard() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">{t('dashboard.myBoats')}</h1>
+        <h1 className="text-3xl font-bold text-ink">{t('dashboard.myBoats')}</h1>
         <Link
           to="/boats/new"
-          className="bg-ocean-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-ocean-700 transition-colors flex items-center gap-1.5"
+          className="bg-deep text-deep-on px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-ink transition-colors flex items-center gap-1.5"
         >
-          <span aria-hidden="true">+</span>
+          <Plus size={16} strokeWidth={2} aria-hidden="true" />
           {t('dashboard.addBoat')}
         </Link>
       </div>
 
       {boats.length === 0 ? (
-        <div className="text-center py-20 text-slate-500">
-          <div className="text-6xl mb-4 select-none">⛵</div>
+        <div className="text-center py-20 text-ink-muted">
+          <ChartTile seed="empty" className="w-48 h-28 mx-auto mb-6 rounded-lg" />
           <p className="mb-4">{t('dashboard.noBoats')}</p>
-          <Link to="/boats/new" className="text-ocean-600 font-medium hover:underline">
+          <Link to="/boats/new" className="text-magenta font-medium hover:underline">
             {t('dashboard.addFirst')}
           </Link>
         </div>

@@ -17,7 +17,7 @@ export default class ErrorBoundary extends Component {
     const { error } = this.state;
     if (!error) return this.props.children;
     return (
-      <div className="max-w-xl mx-auto bg-red-50 border border-red-200 rounded-2xl p-6 text-sm text-red-800 space-y-3">
+      <div className="max-w-xl mx-auto bg-band-ashore/10 border border-band-ashore/30 rounded-lg p-6 text-sm text-band-ashore space-y-3">
         <p className="font-semibold">Something broke on this page.</p>
         <pre className="whitespace-pre-wrap break-words text-xs bg-white/60 rounded-lg p-3">{String(error?.message || error)}</pre>
         <button onClick={() => window.location.reload()} className="underline">Reload</button>

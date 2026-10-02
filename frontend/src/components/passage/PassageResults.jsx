@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { bandColor, bandFor } from './bands';
+import { bandColor, bandFor, bandInk } from './bands';
 
 const fmtTime = iso => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -31,27 +31,26 @@ export default function PassageResults({ result }) {
 
   return (
     <>
-      {/* Headline score */}
+      {/* Headline score: the number in ink, the colour lives in the badge */}
       <div className="grid sm:grid-cols-3 gap-4">
-        <div className="sm:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center gap-5">
-          <div
-            className="w-24 h-24 rounded-full flex items-center justify-center text-white text-4xl font-bold shrink-0 shadow-inner"
-            style={{ background: bandColor(result.total.band) }}
-          >
-            {result.total.score.toFixed(1)}
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-wide text-slate-400">{t('passage.total')}</p>
-            <p className="text-2xl font-bold text-slate-800">{t(`passage.band.${result.total.band}`)}</p>
-            <p className="text-sm text-slate-500 mt-1">{t('passage.duration', { hours: result.totalHours, nm: result.totalNm })}</p>
-            <p className="text-xs text-slate-400 mt-1">{t('passage.msi', { pct: result.total.msiPercent })}</p>
+        <div className="sm:col-span-2 bg-surface rounded-lg border border-line p-5 flex items-center gap-6">
+          <p className="font-display font-extrabold text-ink text-6xl sm:text-7xl leading-[0.9] tracking-tight tabular-nums shrink-0">
+            {result.total.score.toFixed(1)}<span className="font-mono font-medium text-lg text-ink-muted tracking-normal ml-0.5">/10</span>
+          </p>
+          <div className="min-w-0 space-y-2">
+            <p className="label-mono">{t('passage.total')}</p>
+            <BandBadge band={result.total.band} score={result.total.score} label={t(`passage.band.${result.total.band}`)} />
+            <p className="data text-sm text-ink-muted">{t('passage.duration', { hours: result.totalHours, nm: result.totalNm })}</p>
+            <p className="data text-xs text-ink-muted">{t('passage.msi', { pct: result.total.msiPercent })}</p>
           </div>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-          <p className="text-xs uppercase tracking-wide text-slate-400">{t('passage.peak')}</p>
-          <p className="text-3xl font-bold mt-1" style={{ color: bandColor(bandFor(result.total.peak)) }}>{result.total.peak.toFixed(1)}</p>
+        <div className="bg-surface rounded-lg border border-line p-5">
+          <p className="label-mono">{t('passage.peak')}</p>
+          <div className="mt-2">
+            <BandBadge band={bandFor(result.total.peak)} score={result.total.peak} label={t(`passage.band.${bandFor(result.total.peak)}`)} />
+          </div>
           {result.tideStation && samples[0]?.tide && (
-            <p className="text-xs text-slate-400 mt-3">
+            <p className="data text-xs text-ink-muted mt-3">
               {t('passage.tide', { station: result.tideStation })}: {t(`passage.tideTrend.${samples[0].tide.trend}`)}, ±{Math.round(samples[0].tide.rangeCm / 2)} cm
             </p>
           )}
@@ -60,12 +59,12 @@ export default function PassageResults({ result }) {
 
       {/* Factors */}
       {result.factors?.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-          <h2 className="text-sm font-semibold text-slate-700 mb-3">{t('passage.factors')}</h2>
+        <div className="bg-white rounded-lg border border-line p-5">
+          <h2 className="label-mono mb-3">{t('passage.factors')}</h2>
           <ol className="space-y-2">
             {result.factors.map((f, i) => (
               <li key={f.key} className="flex gap-3 text-sm text-slate-700">
-                <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 text-xs flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                <span className="data w-5 h-5 rounded-full bg-shallow text-ink text-xs flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
                 {factorText(f)}
               </li>
             ))}
@@ -74,24 +73,27 @@ export default function PassageResults({ result }) {
       )}
 
       {/* Timeline + table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-        <h2 className="text-sm font-semibold text-slate-700 mb-3">{t('passage.timeline')}</h2>
-        <div className="flex h-8 rounded-lg overflow-hidden">
+      <div className="bg-white rounded-lg border border-line p-5">
+        <h2 className="label-mono mb-3">{t('passage.timeline')}</h2>
+        <div className="flex items-end gap-[3px] h-16 border-b border-line">
           {samples.map((s, i) => (
-            <div key={i} className="relative" style={{ flex: s.durationH, background: bandColor(s.band) }} title={`${fmtTime(s.time)} · ${s.score}`}>
-              <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-white/90">{s.score.toFixed(0)}</span>
-            </div>
+            <div
+              key={i}
+              className="rounded-t-[3px] min-h-[4px]"
+              style={{ flex: s.durationH, height: `${Math.max(6, s.score * 10)}%`, background: bandColor(s.band) }}
+              title={`${fmtTime(s.time)} · ${s.score.toFixed(1)}`}
+            />
           ))}
         </div>
-        <div className="flex justify-between text-xs text-slate-400 mt-1">
+        <div className="data flex justify-between text-xs text-ink-muted mt-1">
           <span>{fmtTime(result.departure)}</span>
           <span>{fmtTime(new Date(new Date(result.departure).getTime() + result.totalHours * 3600e3).toISOString())}</span>
         </div>
 
         <div className="overflow-x-auto mt-4 -mx-2">
-          <table className="min-w-full text-sm">
+          <table className="min-w-full text-sm data">
             <thead>
-              <tr className="text-xs text-slate-400 text-left">
+              <tr className="label-mono text-left">
                 <th className="px-2 py-1 font-medium">{t('passage.cols.time')}</th>
                 <th className="px-2 py-1 font-medium">{t('passage.legs')}</th>
                 <th className="px-2 py-1 font-medium">{t('passage.cols.wave')}</th>
@@ -102,7 +104,7 @@ export default function PassageResults({ result }) {
             </thead>
             <tbody>
               {samples.map((s, i) => (
-                <tr key={i} className="border-t border-slate-50">
+                <tr key={i} className="border-t border-line">
                   <td className="px-2 py-1.5 text-slate-600 whitespace-nowrap">{fmtTime(s.time)}</td>
                   <td className="px-2 py-1.5 text-slate-500">{s.leg + 1}</td>
                   <td className="px-2 py-1.5 text-slate-700 whitespace-nowrap">
@@ -118,16 +120,26 @@ export default function PassageResults({ result }) {
                     {s.wave.currentSpeed != null ? `${(s.wave.currentSpeed / 0.5144).toFixed(1)} kn` : '—'}
                   </td>
                   <td className="px-2 py-1.5 text-right">
-                    <span className="inline-block min-w-[2.5rem] text-center text-white text-xs font-semibold rounded-full px-2 py-0.5" style={{ background: bandColor(s.band) }}>{s.score.toFixed(1)}</span>
+                    <span className="inline-block min-w-[2.75rem] text-center text-xs font-semibold rounded px-2 py-0.5" style={{ background: bandColor(s.band), color: bandInk(s.band) }}>{s.score.toFixed(1)}</span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {estimated && <p className="text-xs text-amber-600 mt-3">{t('passage.estimatedPeriod')}</p>}
+        {estimated && <p className="text-xs text-band-bucket mt-3">{t('passage.estimatedPeriod')}</p>}
         <p className="text-xs text-slate-400 mt-2">{t('passage.sources')}</p>
       </div>
     </>
+  );
+}
+
+// Score pill: number and band name together, never colour alone.
+function BandBadge({ band, score, label }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full pl-1 pr-3 py-1 text-sm font-semibold" style={{ background: bandColor(band), color: bandInk(band) }}>
+      <b className="data text-[13px] rounded-full px-2 py-1 bg-white/35">{score.toFixed(1)}</b>
+      {label}
+    </span>
   );
 }

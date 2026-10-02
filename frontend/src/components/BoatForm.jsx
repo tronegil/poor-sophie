@@ -46,11 +46,11 @@ export default function BoatForm({ initialData = {}, onSubmit, onCancel }) {
   };
 
   const inputClass =
-    'w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ocean-500 focus:border-transparent';
+    'w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-magenta focus:border-transparent';
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4">
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+    <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-line p-6 space-y-4">
+      {error && <p className="text-band-ashore text-sm">{error}</p>}
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -111,7 +111,7 @@ export default function BoatForm({ initialData = {}, onSubmit, onCancel }) {
         />
       </div>
 
-      <fieldset className="border-t border-slate-100 pt-4">
+      <fieldset className="border-t border-line pt-4">
         <legend className="text-sm font-medium text-slate-700 pr-2">{t('boat.hullSection')}</legend>
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
@@ -144,7 +144,7 @@ export default function BoatForm({ initialData = {}, onSubmit, onCancel }) {
           type="checkbox"
           checked={form.is_public}
           onChange={set('is_public')}
-          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-ocean-600 focus:ring-ocean-500"
+          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-magenta focus:ring-magenta"
         />
         <span className="text-sm text-slate-700">
           {form.is_public ? t('boat.public') : t('boat.private')}
@@ -155,7 +155,7 @@ export default function BoatForm({ initialData = {}, onSubmit, onCancel }) {
         <button
           type="submit"
           disabled={saving}
-          className="flex-1 bg-ocean-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-ocean-700 disabled:opacity-50 transition-colors"
+          className="flex-1 bg-deep text-deep-on py-2 rounded-lg text-sm font-medium hover:bg-ink disabled:opacity-50 transition-colors"
         >
           {saving ? t('boat.saving') : t('boat.save')}
         </button>

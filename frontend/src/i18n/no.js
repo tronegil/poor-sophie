@@ -247,6 +247,23 @@ export default {
     lastResult: 'Sist beregnet {{when}}. Varselet kan ha endret seg siden.',
     offlineShowing: 'Du er uten nett. Du ser sist beregnede tur; trykk Beregn på nytt når du har dekning.',
     offlineNoResult: 'Du er uten nett. Kvalmescoren trenger ferskt varsel, så trykk Beregn når du har dekning.',
+    watch: {
+      off: 'Varsel for {{name}}: av',
+      on: 'Varsel for {{name}}: når en avgang er {{band}} eller roligere',
+      prompt: 'Varsle meg når de neste 48 timene har en avgang som er:',
+      under: '{{band}} (under {{n}})',
+      turnOff: 'Slå av varsel',
+      how: 'Vi sjekker turen hver tredje time og sender et varsel til denne enheten når en avgang er rolig nok. Du får ikke samme avgang to ganger.',
+      errors: {
+        IOS_INSTALL: 'På iPhone må appen ligge på Hjem-skjermen for å kunne gi varsler. Trykk Del og «Legg til på Hjem-skjerm», og slå på varselet derfra.',
+        UNSUPPORTED: 'Denne nettleseren kan ikke gi varsler.',
+        NOT_CONFIGURED: 'Varsler er ikke satt opp på serveren ennå.',
+        DENIED: 'Varsler er blokkert for denne siden. Tillat varsler i nettleserens innstillinger og prøv igjen.',
+        NO_WORKER: 'Varsler virker bare i den publiserte appen, ikke i utviklingsmodus.',
+        TOO_MANY_WATCHES: 'Du kan ha varsel på opptil 10 turer. Slå av et annet først.',
+        GENERIC: 'Kunne ikke slå på varselet. Prøv igjen.',
+      },
+    },
     draw: {
       start: 'Trykk i kartet der turen starter',
       next: 'Trykk der du skal. Legg til flere punkter for å runde nes og skjær.',

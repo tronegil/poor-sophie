@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../api/client';
 import PassagePlanner from '../components/passage/PassagePlanner';
@@ -21,6 +21,21 @@ export default function Passage() {
   useEffect(() => { loadTrips(); }, [loadTrips]);
 
   const openTrip = trip => setOpened(o => ({ key: o.key + 1, trip }));
+
+  // Alerts link to ?trip=<id>: open that passage once the list has loaded.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const wanted = searchParams.get('trip');
+  useEffect(() => {
+    if (!wanted || !trips.length) return;
+    const trip = trips.find(t => t.id === wanted);
+    if (trip) openTrip(trip);
+    setSearchParams({}, { replace: true });
+  }, [wanted, trips]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const watchTrip = async (trip, threshold) => {
+    await api.put(`/boats/${boatId}/trips/${trip.id}/watch`, { threshold });
+    loadTrips();
+  };
   const saveTrip = async ({ name, id, waypoints, speedKn, crew }) => {
     const body = { name, waypoints, speedKn, crew };
     const { data } = id ? await api.put(`/boats/${boatId}/trips/${id}`, body) : await api.post(`/boats/${boatId}/trips`, body);
@@ -56,7 +71,7 @@ export default function Passage() {
         </div>
       )}
 
-      <SavedTrips trips={trips} activeId={opened.trip?.id} onOpen={openTrip} onDelete={deleteTrip} />
+      <SavedTrips trips={trips} activeId={opened.trip?.id} onOpen={openTrip} onDelete={deleteTrip} onWatch={watchTrip} />
 
       <PassagePlanner
         key={opened.key}

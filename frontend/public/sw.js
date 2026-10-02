@@ -4,7 +4,7 @@
 //  - Icons, manifest, Google Fonts: stale-while-revalidate.
 //  - /api and map tiles are never cached here: forecasts must be fresh, and
 //    the planner keeps its own copy of the last result for offline viewing.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL = `shell-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 const PRECACHE = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon.svg'];
@@ -64,4 +64,28 @@ self.addEventListener('fetch', event => {
       })),
     );
   }
+});
+
+// Calm-passage alerts from the scheduled watch job (backend services/watches.js).
+self.addEventListener('push', event => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = { body: event.data?.text() }; }
+  event.waitUntil(self.registration.showNotification(data.title || 'Kvalmeindeks', {
+    body: data.body || '',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    tag: data.tag,
+    data: { url: data.url || '/' },
+  }));
+});
+
+// Tapping the alert opens the passage: reuse an open window if there is one.
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || '/', self.location.origin).href;
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(wins => {
+    const win = wins.find(w => w.url.startsWith(self.location.origin));
+    if (win) return win.navigate(url).then(w => (w || win).focus());
+    return self.clients.openWindow(url);
+  }));
 });

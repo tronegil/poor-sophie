@@ -13,11 +13,16 @@ let trips = [];
 const fakePool = {
   async query(sql, p = []) {
     if (sql.startsWith('SELECT id, user_id FROM boats')) return { rows: boats.filter(b => b.id === p[0]) };
-    if (sql.startsWith('SELECT COUNT(*)')) return { rows: [{ n: trips.filter(t => t.boat_id === p[0]).length }] };
+    if (sql.startsWith('SELECT COUNT(*)::int AS n FROM trips WHERE boat_id')) return { rows: [{ n: trips.filter(t => t.boat_id === p[0]).length }] };
     if (sql.includes('FROM trips WHERE boat_id')) return { rows: trips.filter(t => t.boat_id === p[0]).sort((a, b) => b.updated_at - a.updated_at) };
     if (sql.startsWith('INSERT INTO trips')) {
       const row = { id: crypto.randomUUID(), boat_id: p[0], user_id: p[1], name: p[2], waypoints: JSON.parse(p[3]), speed_kn: String(p[4]), crew: p[5], created_at: new Date(), updated_at: new Date() };
       trips.push(row); return { rows: [row] };
+    }
+    if (sql.startsWith('UPDATE trips SET watch_threshold')) {
+      const row = trips.find(t => t.id === p[1] && t.boat_id === p[2]);
+      if (!row) return { rows: [] };
+      row.watch_threshold = p[0]; return { rows: [row] };
     }
     if (sql.startsWith('UPDATE trips')) {
       const row = trips.find(t => t.id === p[4] && t.boat_id === p[5]);
@@ -25,6 +30,7 @@ const fakePool = {
       Object.assign(row, { name: p[0], waypoints: JSON.parse(p[1]), speed_kn: String(p[2]), crew: p[3], updated_at: new Date() });
       return { rows: [row] };
     }
+    if (sql.startsWith('SELECT COUNT(*)::int AS n FROM trips WHERE user_id')) return { rows: [{ n: trips.filter(t => t.user_id === p[0] && t.watch_threshold != null && t.id !== p[1]).length }] };
     if (sql.startsWith('DELETE FROM trips')) {
       const before = trips.length; trips = trips.filter(t => !(t.id === p[0] && t.boat_id === p[1]));
       return { rowCount: before - trips.length };
@@ -99,4 +105,16 @@ test('a boat holds at most 50 trips', async () => {
   const res = await call('POST', '/boats/b1/trips', { body: TRIP });
   assert.equal(res.status, 409);
   assert.equal((await res.json()).code, 'TOO_MANY');
+});
+
+test('owner can turn a calm-passage alert on and off', async () => {
+  trips = [];
+  const created = await (await call('POST', '/boats/b1/trips', { body: TRIP })).json();
+  let res = await call('PUT', `/boats/b1/trips/${created.id}/watch`, { body: { threshold: 4 } });
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).watch_threshold, 4);
+  assert.equal((await call('PUT', `/boats/b1/trips/${created.id}/watch`, { body: { threshold: 3 } })).status, 400);
+  assert.equal((await call('PUT', `/boats/b1/trips/${created.id}/watch`, { user: 'u2', body: { threshold: 4 } })).status, 403);
+  res = await call('PUT', `/boats/b1/trips/${created.id}/watch`, { body: { threshold: null } });
+  assert.equal((await res.json()).watch_threshold, null);
 });

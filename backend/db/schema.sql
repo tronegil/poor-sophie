@@ -109,3 +109,20 @@ CREATE TABLE IF NOT EXISTS trips (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS trips_boat_id_idx ON trips(boat_id, updated_at DESC);
+
+-- Calm-passage alerts: push subscriptions per device, and a watch on a saved passage
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  endpoint   TEXT NOT NULL UNIQUE,
+  p256dh     TEXT NOT NULL,
+  auth       TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS push_subscriptions_user_idx ON push_subscriptions(user_id);
+
+ALTER TABLE trips ADD COLUMN IF NOT EXISTS watch_threshold NUMERIC(3,1);           -- null = not watched
+ALTER TABLE trips ADD COLUMN IF NOT EXISTS watch_checked_at TIMESTAMPTZ;
+ALTER TABLE trips ADD COLUMN IF NOT EXISTS watch_notified_at TIMESTAMPTZ;
+ALTER TABLE trips ADD COLUMN IF NOT EXISTS watch_notified_departure TIMESTAMPTZ;   -- the departure we last told them about
+CREATE INDEX IF NOT EXISTS trips_watch_idx ON trips(watch_checked_at NULLS FIRST) WHERE watch_threshold IS NOT NULL;

@@ -150,6 +150,7 @@ Plot a passage on a real nautical chart, pick a departure time and speed, and ge
 **What you see:**
 
 - Kartverket's official **sea chart tiles** (over OpenStreetMap for the bits Norway doesn't chart) — click to drop waypoints, **drag** them to move, tap one to remove it, tap the ring on a leg to insert a point there. Distance and time at your speed update as you draw
+- **Alert me when it's calm** — the bell on a saved passage: pick *Flat calm*, *Comfortable* or *Uncomfortable* and you get a push alert on this device when the next 48 hours hold a departure that calm ("Calm departure: Home → Tau · Sat 14:00 · 2.1 Comfortable"). Tapping it opens the passage. A GitHub Action calls `POST /api/watches/run` every 3 h; each watched passage is rescored with the same window model as the best-departure strip; the same departure is never announced twice. Up to 10 alerts per user. On iPhone the app must be on the Home Screen
 - **Saved passages** (owners) — name a route on the boat's passage page and it's one tap away next time: open it and it's scored straight away with its speed and crew; edit it and *Update*, or *Save as new*. Stored per boat in the `trips` table via `/api/boats/:id/trips`
 - **Install it as an app** — the site is a PWA: add it to the home screen (an *Install the app* button where the browser offers one, a how-to on iPhone). The app shell opens without a network, and the last passage you scored is kept on the device and shown, marked with when it was scored, so you can check it at sea
 - **Who's going to be sick** — pick the crew (*Seasoned · Mixed · Children and first-timers*) and the result says roughly what share of them will be sick, with one concrete thing to do about it (tablets the evening before, keep people out of the cabin, or pick another day). ISO 2631-1's *Km = ⅓* is the mixed crew; the other two are rough multipliers (×0.5 and ×1.5). Changing crew needs no new forecast
@@ -293,6 +294,10 @@ The Vite dev server proxies all `/api/*` requests to the backend automatically �
 | `CLOUDINARY_CLOUD_NAME` | `dzqvjzhmu` | Your Cloudinary cloud name |
 | `CLOUDINARY_API_KEY` | `123456789012345` | Cloudinary API key (for deleting PDFs) |
 | `CLOUDINARY_API_SECRET` | `abc123...` | Cloudinary API secret |
+| `VAPID_PUBLIC_KEY` | `BEl62i...` | Calm-passage alerts (Web Push). Generate the pair with `npx web-push generate-vapid-keys` |
+| `VAPID_PRIVATE_KEY` | `UUxI4O...` | The private half — never commit it |
+| `VAPID_SUBJECT` | `mailto:you@example.com` | Contact for push services (optional; defaults to the repo URL) |
+| `WATCH_CRON_SECRET` | `some-long-random-string` | Guards `POST /api/watches/run`; the scheduled GitHub Action sends it as a Bearer token |
 
 ### Frontend (Vercel Project Settings or `frontend/.env` locally)
 
@@ -302,6 +307,15 @@ The Vite dev server proxies all `/api/*` requests to the backend automatically �
 | `VITE_CLOUDINARY_UPLOAD_PRESET` | `PoorSophie` | An **unsigned** upload preset from Cloudinary |
 
 > ⚠️ `VITE_` prefixed variables are baked into the frontend bundle at **build time** by Vite. Adding them to Vercel Project Settings only takes effect after the next deployment.
+
+### Calm-passage alerts setup
+
+1. Generate keys once: `npx web-push generate-vapid-keys`, then set `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` (and optionally `VAPID_SUBJECT`) on the backend.
+2. Set `WATCH_CRON_SECRET` on the backend to a long random string (`openssl rand -hex 32`).
+3. In GitHub → Settings → Secrets and variables → Actions: add the **secret** `WATCH_CRON_SECRET` (same value) and the **variable** `APP_URL` (your deployed URL, no trailing slash).
+4. Re-run `backend/db/schema.sql` (adds `push_subscriptions` and the watch columns on `trips`).
+
+The workflow `.github/workflows/calm-passage-alerts.yml` then runs every three hours; trigger it by hand from the Actions tab to test. Without the keys the bell explains that alerts aren't set up yet; without the secret the run endpoint answers 503.
 
 ### Google OAuth setup
 

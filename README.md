@@ -167,8 +167,8 @@ It's an estimate, not a measurement. Forecasts are forecasts, no two hulls move 
 *The question isn't "how bad is it at 08:00?". It's "when do we go, who's going to suffer, and does the crew know?"*
 
 **Drawing the passage**
-- **Tap to drop waypoints, drag to move them**, tap one to remove it, tap the ring in the middle of a leg to insert a point there. On-map hints walk you through it; distance and time at your speed update as you draw (*3 punkter · 9,8 nm · ≈ 1 t 47 min*)
-- **Search for a place** — type *Tau* or *Skudeneshavn* above the map; it flies there and drops a waypoint. Kartverket's place-name register, through a cached proxy
+- **Fra · Via · Til, like a navigation app** — the route is a list of stops above the map. Search for the start and the destination (*Tau*, *Skudeneshavn* — Kartverket's place-name register, through a cached proxy) or tap the chart: the first tap is *Fra*, the second *Til*, and every tap after that adds a **via point where it bends the route least**, not a new end. *Add via point* searches for one; tap a stop to replace it, × to remove it, *Reverse route* to swap ends, *Undo* steps back one edit at a time
+- **The chart says what each point is** — labelled *FRA* and *TIL* pins and small numbered via dots, all draggable. On-map hints walk you through it; distance and time at your speed update as you draw (*3 punkter · 9,8 nm · ≈ 1 t 47 min*)
 - **A first visit isn't an empty chart** — new visitors get the Boknafjorden crossing from Tananger to Skudeneshavn, already scored, with *Draw your own passage* to start fresh
 
 **When to go**

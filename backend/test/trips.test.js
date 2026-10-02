@@ -69,6 +69,7 @@ test('parseTrip validates and normalises', () => {
   assert.ok(parseTrip({ ...TRIP, waypoints: [{ lat: 95, lon: 5 }, { lat: 59, lon: 5 }] }).error);
   assert.ok(parseTrip({ ...TRIP, speedKn: 40 }).error);
   assert.equal(parseTrip({ ...TRIP, crew: 'pirates' }).crew, 'mixed');
+  assert.deepEqual(parseTrip({ ...TRIP, waypoints: [{ lat: 59, lon: 5, name: ' Tau ' }, { lat: 59.1, lon: 5.1, name: 7 }] }).waypoints, [{ lat: 59, lon: 5, name: 'Tau' }, { lat: 59.1, lon: 5.1 }]);
 });
 
 test('owner can create, list, rename and delete a trip', async () => {

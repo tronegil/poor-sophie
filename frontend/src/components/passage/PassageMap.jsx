@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import 'leaflet/dist/leaflet.css';
 import { bandColor } from './bands';
 import { useFormat } from '../../i18n/format';
+import { roleOf } from './routeEdit';
 
 // Kartverket's open nautical chart tiles cover Norwegian waters; OSM underneath
 // fills in everything else (Skagen, Sweden, open sea).
@@ -25,10 +26,10 @@ function FitOnce({ points }) {
   return null;
 }
 
-// Numbered waypoint you can drag; a hollow handle on each leg's midpoint that
-// inserts a new waypoint there when tapped or dragged.
-const waypointIcon = n => L.divIcon({ className: 'wp-icon', html: `<span>${n}</span>`, iconSize: [26, 26], iconAnchor: [13, 13], popupAnchor: [0, -14] });
-const midIcon = L.divIcon({ className: 'wp-mid', html: '<span></span>', iconSize: [18, 18], iconAnchor: [9, 9] });
+// Markers say what each point is: Fra (start), Til (destination) as labelled
+// pins, via points as small numbered dots. All can be dragged.
+const endIcon = (label, role) => L.divIcon({ className: `wp-pin wp-pin-${role}`, html: `<span>${label}</span>`, iconSize: [44, 24], iconAnchor: [22, 12], popupAnchor: [0, -14] });
+const viaIcon = n => L.divIcon({ className: 'wp-icon', html: `<span>${n}</span>`, iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -12] });
 
 const toWp = latlng => ({ lat: latlng.lat, lon: latlng.lng });
 
@@ -37,7 +38,9 @@ const toWp = latlng => ({ lat: latlng.lat, lon: latlng.lng });
 function FlyTo({ focus }) {
   const map = useMap();
   useEffect(() => {
-    if (focus) map.flyTo([focus.lat, focus.lon], Math.max(map.getZoom(), 12), { duration: 0.8 });
+    if (!focus) return;
+    if (focus.bounds) map.flyToBounds(focus.bounds, { padding: [50, 50], maxZoom: 12, duration: 0.8 });
+    else map.flyTo([focus.lat, focus.lon], Math.max(map.getZoom(), 12), { duration: 0.8 });
   }, [focus?.seq]); // eslint-disable-line react-hooks/exhaustive-deps
   return null;
 }
@@ -47,16 +50,24 @@ function ClickHandler({ onClick }) {
   return null;
 }
 
-export default function PassageMap({ waypoints, result, onAddWaypoint, onMoveWaypoint, onRemoveWaypoint, onInsertWaypoint, maxWaypoints = 12, focus = null, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, heightClass = 'h-80 sm:h-96', scrollWheelZoom = true }) {
+export default function PassageMap({ waypoints, result, onAddWaypoint, onMoveWaypoint, onRemoveWaypoint, maxWaypoints = 12, focus = null, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, heightClass = 'h-80 sm:h-96', scrollWheelZoom = true }) {
   const { t } = useTranslation();
   const { num, time } = useFormat();
   const mapRef = useRef(null);
   const editable = !!onMoveWaypoint;
   const full = waypoints.length >= maxWaypoints;
-  const hint = full ? t('passage.draw.full', { n: maxWaypoints })
-    : waypoints.length === 0 ? t('passage.draw.start')
+  const hint = waypoints.length === 0 ? t('passage.draw.start')
     : waypoints.length === 1 ? t('passage.draw.next')
+    : full ? t('passage.draw.full', { n: maxWaypoints })
     : !result && editable ? t('passage.draw.edit') : null;
+  const stopName = i => {
+    const role = roleOf(i, waypoints.length);
+    return role === 'via' ? t('passage.stops.viaN', { n: i }) : t(`passage.stops.${role}`);
+  };
+  const iconFor = i => {
+    const role = roleOf(i, waypoints.length);
+    return role === 'via' ? viaIcon(i) : endIcon(t(`passage.stops.${role}`), role);
+  };
   const path = waypoints.map(w => [w.lat, w.lon]);
   const legs = result?.legs ?? [];
 
@@ -65,7 +76,7 @@ export default function PassageMap({ waypoints, result, onAddWaypoint, onMoveWay
     <MapContainer ref={mapRef} center={center} zoom={zoom} className={`ps-map ${heightClass} w-full rounded-lg z-0`} scrollWheelZoom={scrollWheelZoom}>
       <TileLayer url={OSM} attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
       <TileLayer url={SJOKART} attribution='© <a href="https://www.kartverket.no">Kartverket</a>' opacity={0.9} />
-      <ClickHandler onClick={onAddWaypoint} />
+      {editable && <ClickHandler onClick={p => { if (!full) onAddWaypoint(p); }} />}
       <FitOnce points={path} />
       <FlyTo focus={focus} />
 
@@ -88,38 +99,21 @@ export default function PassageMap({ waypoints, result, onAddWaypoint, onMoveWay
         </CircleMarker>
       ))}
 
-      {editable && !full && waypoints.slice(1).map((w, i) => {
-        const a = waypoints[i];
-        const mid = [(a.lat + w.lat) / 2, (a.lon + w.lon) / 2];
-        return (
-          <Marker
-            key={`mid-${i}-${a.lat}-${w.lat}`}
-            position={mid}
-            icon={midIcon}
-            draggable
-            title={t('passage.draw.insert')}
-            eventHandlers={{
-              click: () => onInsertWaypoint(i + 1, { lat: mid[0], lon: mid[1] }),
-              dragend: e => onInsertWaypoint(i + 1, toWp(e.target.getLatLng())),
-            }}
-          />
-        );
-      })}
-
       {waypoints.map((w, i) => (
         editable ? (
           <Marker
             key={`wp-${i}`}
             position={[w.lat, w.lon]}
-            icon={waypointIcon(i + 1)}
+            icon={iconFor(i)}
             draggable
             keyboard
-            title={t('passage.draw.pointTitle', { n: i + 1 })}
+            zIndexOffset={roleOf(i, waypoints.length) === 'via' ? 0 : 500}
+            title={t('passage.draw.pointTitle', { what: stopName(i) })}
             eventHandlers={{ dragend: e => onMoveWaypoint(i, toWp(e.target.getLatLng())) }}
           >
             <Popup closeButton={false} className="wp-popup">
               <button type="button" onClick={() => { mapRef.current?.closePopup(); onRemoveWaypoint(i); }} className="text-sm font-medium text-band-ashore hover:underline">
-                {t('passage.draw.remove', { n: i + 1 })}
+                {t('passage.stops.remove', { what: stopName(i) })}
               </button>
             </Popup>
           </Marker>

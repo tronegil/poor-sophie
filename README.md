@@ -150,6 +150,8 @@ Plot a passage on a real nautical chart, pick a departure time and speed, and ge
 **What you see:**
 
 - Kartverket's official **sea chart tiles** (over OpenStreetMap for the bits Norway doesn't chart) — click to drop waypoints, **drag** them to move, tap one to remove it, tap the ring on a leg to insert a point there. Distance and time at your speed update as you draw
+- **Share a passage** — *Share passage* puts the route, boat, departure and speed in a link (the phone's share sheet, or copied to the clipboard). Whoever opens it lands on the public page with the same trip, already scored, no account needed — handy for sending to the crew the night before
+- **Edits don't throw the answer away** — change the route, time, speed or boat and the last result stays on screen, dimmed, with *Recalculate*. Scoring shows a placeholder in the shape of the result; errors say what went wrong (no forecast, offline, rate limit) with *Try again*; a departure beyond the forecast horizon gets a hint before you press the button
 - **Best departure in the next 48 hours** — after scoring, the same route is scored for every departure three hours apart and shown as a strip of bars. The calmest is marked; tap any bar (or *Use calmest departure*) to score that trip
 - Legs coloured by score, sample points with hover details
 - The headline score and band — *Flat calm · Comfortable · Uncomfortable · Bucket ready · Stay ashore*

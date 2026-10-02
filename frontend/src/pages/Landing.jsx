@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Link2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../api/client';
@@ -10,6 +11,7 @@ import { Waves, Sailboat, Ear } from 'lucide-react';
 import { bandColor, bandInk } from '../components/passage/bands';
 import Wordmark from '../components/brand/Wordmark';
 import Isobaths from '../components/brand/Isobaths';
+import { parseShareParams } from '../components/passage/shareLink';
 import ThemePicker from '../components/brand/ThemePicker';
 
 // Icons for the three "how it works" cards, in order: sea, boat, inner ear.
@@ -27,9 +29,25 @@ function loadBoat() {
 }
 
 // Public front page: the seasickness index for anyone, no account needed.
+// A shared trip in the URL, read once. The query is then removed so a reload
+// or further edits behave like normal use.
+// Cached at module level so React's double-invoked initialisers (StrictMode)
+// see the same trip after the URL has been cleaned.
+let sharedTrip;
+function takeSharedTrip() {
+  if (sharedTrip === undefined) {
+    sharedTrip = parseShareParams(window.location.search);
+    if (sharedTrip) window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+  }
+  return sharedTrip;
+}
+
 export default function Landing() {
   const { t, i18n } = useTranslation();
-  const [boat, setBoat] = useState(loadBoat);
+  const [shared] = useState(takeSharedTrip);
+  // Opened once: coming back to the page later starts from your own last route.
+  useEffect(() => { sharedTrip = null; }, []);
+  const [boat, setBoat] = useState(() => (shared?.boat ? { ...shared.boat, name: shared.boat.name || t('landing.customBoat') } : loadBoat()));
 
   const changeBoat = b => { setBoat(b); try { localStorage.setItem(BOAT_KEY, JSON.stringify(b)); } catch { /* ignore */ } };
   const setLang = lng => { i18n.changeLanguage(lng); localStorage.setItem('language', lng); };
@@ -81,11 +99,19 @@ export default function Landing() {
       <main className="max-w-5xl mx-auto px-4 -mt-20 sm:-mt-28 pb-20 space-y-16">
         {/* The tool */}
         <section>
+          {shared && (
+            <p className="relative z-10 mb-3 flex items-center gap-2 text-sm bg-surface border border-line rounded-lg px-4 py-2.5 text-ink shadow-panel">
+              <Link2 size={16} strokeWidth={1.75} className="text-magenta shrink-0" aria-hidden="true" />
+              {t('passage.shared')}
+            </p>
+          )}
           <PassagePlanner
             storageKey="passage:public"
             score={score}
             scoreWindow={scoreWindow}
             windowKey={JSON.stringify(boatPayload)}
+            shareBoat={boat}
+            initial={shared}
             mapHeight="h-[24rem] sm:h-[32rem]"
             mapScrollZoom={false}
             extraControls={<BoatPicker value={boat} onChange={changeBoat} inputClass={inputClass} />}

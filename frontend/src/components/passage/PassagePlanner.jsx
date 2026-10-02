@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import PassageMap from './PassageMap';
 import PassageResults from './PassageResults';
 import DepartureStrip from './DepartureStrip';
+import ShareTrip from './ShareTrip';
+import { RefreshCw, TriangleAlert } from 'lucide-react';
 import { useFormat } from '../../i18n/format';
 
 // Value for <input type="datetime-local">, in local time.
@@ -44,16 +46,20 @@ export const inputClass = 'border border-line rounded px-3 py-2 text-sm text-ink
  * @param {(payload:{waypoints,departure,speedKn}) => Promise<object>} [scoreWindow]
  *   optional: scores every departure in the next 48 h for the "best departure" strip
  * @param {string} [windowKey] changes when something outside the planner (the boat) changes the score
+ * @param {object} [shareBoat] hull data for the share link (omit to hide the share button)
+ * @param {{waypoints, departure?:Date, speed?:number}} [initial] a shared trip to open and score right away
  */
-export default function PassagePlanner({ storageKey, score, scoreWindow, windowKey = '', extraControls = null, onResult, mapHeight, mapScrollZoom = true }) {
+export default function PassagePlanner({ storageKey, score, scoreWindow, windowKey = '', shareBoat, initial, extraControls = null, onResult, mapHeight, mapScrollZoom = true }) {
   const { t } = useTranslation();
   const { num } = useFormat();
   const saved = useMemo(() => { try { return JSON.parse(localStorage.getItem(storageKey)) || {}; } catch { return {}; } }, [storageKey]);
 
-  const [waypoints, setWaypoints] = useState(saved.waypoints ?? []);
-  const [departure, setDeparture] = useState(nextFullHour);
-  const [speed, setSpeed] = useState(saved.speed ?? 5.5);
+  const [waypoints, setWaypoints] = useState(initial?.waypoints ?? saved.waypoints ?? []);
+  const [departure, setDeparture] = useState(() => (initial?.departure ? toLocalInput(initial.departure) : nextFullHour()));
+  const [speed, setSpeed] = useState(initial?.speed ?? saved.speed ?? 5.5);
   const [result, setResult] = useState(null);
+  const [stale, setStale] = useState(false);      // inputs changed since `result` was scored
+  const [lastPayload, setLastPayload] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [win, setWin] = useState(null);           // { key, data } for the departure strip
@@ -65,13 +71,14 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
     try { localStorage.setItem(storageKey, JSON.stringify({ waypoints, speed })); } catch { /* ignore */ }
   }, [waypoints, speed, storageKey]);
 
-  const reset = () => { setResult(null); setError(''); };
+  // Editing keeps the last result on screen, dimmed, until the next Beregn.
+  const reset = () => { if (result) setStale(true); setError(''); };
   const addWaypoint = wp => { if (waypoints.length >= MAX_WAYPOINTS) return; setWaypoints(w => [...w, wp]); reset(); };
   const moveWaypoint = (i, wp) => { setWaypoints(w => w.map((p, k) => (k === i ? wp : p))); reset(); };
   const removeWaypoint = i => { setWaypoints(w => w.filter((_, k) => k !== i)); reset(); };
   const insertWaypoint = (i, wp) => { if (waypoints.length >= MAX_WAYPOINTS) return; setWaypoints(w => [...w.slice(0, i), wp, ...w.slice(i)]); reset(); };
   const undo = () => { setWaypoints(w => w.slice(0, -1)); reset(); };
-  const clear = () => { setWaypoints([]); reset(); };
+  const clear = () => { setWaypoints([]); setResult(null); setStale(false); setError(''); };
 
   const nm = routeNm(waypoints);
   const minutes = Number(speed) > 0 ? Math.round(nm / Number(speed) * 60) : 0;
@@ -83,8 +90,14 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
   const routeKey = JSON.stringify([waypoints, Number(speed), windowKey]);
   const errorText = err => {
     const code = err.response?.data?.code;
-    return code === 'NO_DATA' ? t('passage.noData') : code === 'RATE_LIMITED' ? t('passage.rateLimited') : t('passage.error');
+    if (code === 'NO_DATA') return t('passage.noData');
+    if (code === 'RATE_LIMITED' || err.response?.status === 429) return t('passage.rateLimited');
+    if (!err.response) return t('passage.offline');
+    if (err.response.status === 400 && err.response.data?.error) return t('passage.invalid', { reason: err.response.data.error });
+    return t('passage.error');
   };
+  const hoursAhead = (new Date(departure).getTime() - Date.now()) / 3600e3;
+  const departureHint = hoursAhead > 66 ? t('passage.farAhead') : hoursAhead < -1 ? t('passage.inPast') : '';
 
   const loadWindow = async payload => {
     if (!scoreWindow || win?.key === routeKey) return;
@@ -105,9 +118,11 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
     setLoading(true);
     setError('');
     const payload = { waypoints, departure: new Date(dep).toISOString(), speedKn: Number(speed) };
+    setLastPayload(dep);
     try {
       const data = await score(payload);
       setResult(data);
+      setStale(false);
       onResult?.(data);
       // Bring the result into view on small screens, where it lands below the fold.
       requestAnimationFrame(() => {
@@ -116,7 +131,6 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
       });
       loadWindow(payload);
     } catch (err) {
-      setResult(null);
       setError(errorText(err));
     } finally {
       setLoading(false);
@@ -129,6 +143,14 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
     calculate(local);
   };
 
+  // A shared link opens straight to its result.
+  useEffect(() => {
+    if (initial?.waypoints?.length >= 2) calculate();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The boat changing (outside the planner) also makes the result stale.
+  useEffect(() => { if (result) setStale(true); }, [windowKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // A different route, speed or boat makes the old window wrong.
   useEffect(() => {
     if (win && win.key !== routeKey) { setWin(null); setWinError(''); }
@@ -139,7 +161,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
       <div className="bg-surface rounded-2xl border border-line shadow-panel p-3 space-y-3">
         <PassageMap
           waypoints={waypoints}
-          result={result}
+          result={stale ? null : result}
           onAddWaypoint={addWaypoint}
           onMoveWaypoint={moveWaypoint}
           onRemoveWaypoint={removeWaypoint}
@@ -151,35 +173,78 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
           {extraControls ? <div>{extraControls}</div> : <div />}
           <div>
             <label className="block label-mono mb-1.5">{t('passage.departure')}</label>
-            <input type="datetime-local" value={departure} onChange={e => { setDeparture(e.target.value); setResult(null); }} className={inputClass} />
+            <input type="datetime-local" value={departure} onChange={e => { setDeparture(e.target.value); reset(); }} className={inputClass} aria-describedby="departure-hint" />
+            {departureHint && <p id="departure-hint" className="text-xs text-ink-muted mt-1 max-w-[16rem]">{departureHint}</p>}
           </div>
           <div>
             <label className="block label-mono mb-1.5">{t('passage.speed')}</label>
-            <input type="number" step="0.5" min="1" max="30" value={speed} onChange={e => { setSpeed(e.target.value); setResult(null); }} className={`${inputClass} w-24`} />
+            <input type="number" step="0.5" min="1" max="30" value={speed} onChange={e => { setSpeed(e.target.value); reset(); }} className={`${inputClass} w-24`} />
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <p className="data text-xs text-ink-muted mr-auto">{routeSummary}</p>
           <button onClick={undo} disabled={!waypoints.length} className="border border-line text-ink px-3 py-2 rounded-lg text-sm hover:bg-shallow hover:border-shallow transition-colors disabled:opacity-45 disabled:cursor-not-allowed">{t('passage.undo')}</button>
+          {shareBoat && waypoints.length >= 2 && (
+            <ShareTrip trip={{ waypoints, departure, speed, boat: shareBoat }} />
+          )}
           <button onClick={clear} disabled={!waypoints.length} className="border border-line text-ink px-3 py-2 rounded-lg text-sm hover:bg-shallow hover:border-shallow transition-colors disabled:opacity-45 disabled:cursor-not-allowed">{t('passage.clear')}</button>
           <button
             onClick={() => calculate()}
             disabled={loading || waypoints.length < 2}
             className="w-full sm:w-auto bg-deep text-deep-on px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-deep-hover disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? t('passage.calculating') : t('passage.calculate')}
+            {loading ? t('passage.calculating') : stale ? t('passage.recalculate') : t('passage.calculate')}
           </button>
         </div>
-        {error && <p className="text-sm text-band-ashore bg-band-ashore/10 rounded px-4 py-2">{error}</p>}
+        {error && (
+          <div role="alert" className="flex flex-wrap items-start gap-3 text-sm text-ink bg-band-ashore/10 border border-band-ashore/30 rounded px-4 py-3">
+            <TriangleAlert size={18} strokeWidth={1.75} className="text-band-ashore shrink-0 mt-0.5" aria-hidden="true" />
+            <p className="flex-1 min-w-[12rem]">{error}</p>
+            {lastPayload && waypoints.length >= 2 && (
+              <button type="button" onClick={() => calculate()} disabled={loading} className="inline-flex items-center gap-1.5 font-medium text-magenta hover:underline disabled:opacity-45">
+                <RefreshCw size={14} strokeWidth={2} aria-hidden="true" />{t('passage.retry')}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div ref={resultsRef} className="space-y-5 scroll-mt-4">
         {(win || winLoading || winError) && (
           <DepartureStrip window={win?.data} loading={winLoading} error={winError} departure={departure} onPick={pickDeparture} />
         )}
-        {result && <PassageResults result={result} />}
+        {stale && result && !loading && (
+          <div className="flex flex-wrap items-center gap-3 text-sm bg-shallow text-ink rounded-lg px-4 py-3">
+            <p className="flex-1 min-w-[12rem]">{t('passage.staleNote')}</p>
+            <button type="button" onClick={() => calculate()} className="bg-deep text-deep-on px-3.5 py-2 rounded-lg text-sm font-semibold hover:bg-deep-hover transition-colors">
+              {t('passage.recalculate')}
+            </button>
+          </div>
+        )}
+        {loading && !result && <ResultSkeleton label={t('passage.reading', { n: waypoints.length })} />}
+        {result && (
+          <div className={`relative space-y-5 transition-opacity ${stale || loading ? 'opacity-45' : ''}`} aria-busy={loading || undefined}>
+            <PassageResults result={result} />
+            {loading && <p className="absolute top-4 left-1/2 -translate-x-1/2 bg-surface border border-line rounded-full px-4 py-1.5 text-sm text-ink shadow-panel" role="status">{t('passage.calculating')}</p>}
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+// Placeholder in the shape of the result while the sea is being read, so the
+// page doesn't jump and it's clear something is happening.
+function ResultSkeleton({ label }) {
+  return (
+    <div className="space-y-4" aria-busy="true">
+      <p className="text-sm text-ink-muted" role="status">{label}</p>
+      <div className="grid sm:grid-cols-3 gap-4" aria-hidden="true">
+        <div className="sm:col-span-2 h-32 rounded-lg bg-shallow animate-pulse" />
+        <div className="h-32 rounded-lg bg-shallow animate-pulse" />
+      </div>
+      <div className="h-48 rounded-lg bg-shallow animate-pulse" aria-hidden="true" />
     </div>
   );
 }

@@ -4,6 +4,8 @@ import PassageMap from './PassageMap';
 import PassageResults from './PassageResults';
 import DepartureStrip from './DepartureStrip';
 import ShareTrip from './ShareTrip';
+import PlaceSearch from './PlaceSearch';
+import { DEFAULT_CREW, isCrew } from './crew';
 import { RefreshCw, TriangleAlert } from 'lucide-react';
 import { useFormat } from '../../i18n/format';
 
@@ -58,7 +60,9 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
   const [departure, setDeparture] = useState(() => (initial?.departure ? toLocalInput(initial.departure) : nextFullHour()));
   const [speed, setSpeed] = useState(initial?.speed ?? saved.speed ?? 5.5);
   const [result, setResult] = useState(null);
-  const [stale, setStale] = useState(false);      // inputs changed since `result` was scored
+  const [crew, setCrew] = useState(initial?.crew ?? (isCrew(saved.crew) ? saved.crew : DEFAULT_CREW));
+  const [stale, setStale] = useState(false);
+  const [focus, setFocus] = useState(null);       // last searched place, for the map to fly to      // inputs changed since `result` was scored
   const [lastPayload, setLastPayload] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -68,8 +72,8 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
   const resultsRef = useRef(null);
 
   useEffect(() => {
-    try { localStorage.setItem(storageKey, JSON.stringify({ waypoints, speed })); } catch { /* ignore */ }
-  }, [waypoints, speed, storageKey]);
+    try { localStorage.setItem(storageKey, JSON.stringify({ waypoints, speed, crew })); } catch { /* ignore */ }
+  }, [waypoints, speed, crew, storageKey]);
 
   // Editing keeps the last result on screen, dimmed, until the next Beregn.
   const reset = () => { if (result) setStale(true); setError(''); };
@@ -77,6 +81,10 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
   const moveWaypoint = (i, wp) => { setWaypoints(w => w.map((p, k) => (k === i ? wp : p))); reset(); };
   const removeWaypoint = i => { setWaypoints(w => w.filter((_, k) => k !== i)); reset(); };
   const insertWaypoint = (i, wp) => { if (waypoints.length >= MAX_WAYPOINTS) return; setWaypoints(w => [...w.slice(0, i), wp, ...w.slice(i)]); reset(); };
+  const pickPlace = place => {
+    setFocus({ lat: place.lat, lon: place.lon, seq: Date.now() });
+    addWaypoint({ lat: place.lat, lon: place.lon });
+  };
   const undo = () => { setWaypoints(w => w.slice(0, -1)); reset(); };
   const clear = () => { setWaypoints([]); setResult(null); setStale(false); setError(''); };
 
@@ -159,8 +167,10 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
   return (
     <div className="space-y-5">
       <div className="bg-surface rounded-2xl border border-line shadow-panel p-3 space-y-3">
+        <PlaceSearch onPick={pickPlace} disabled={waypoints.length >= MAX_WAYPOINTS} />
         <PassageMap
           waypoints={waypoints}
+          focus={focus}
           result={stale ? null : result}
           onAddWaypoint={addWaypoint}
           onMoveWaypoint={moveWaypoint}
@@ -186,7 +196,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
           <p className="data text-xs text-ink-muted mr-auto">{routeSummary}</p>
           <button onClick={undo} disabled={!waypoints.length} className="border border-line text-ink px-3 py-2 rounded-lg text-sm hover:bg-shallow hover:border-shallow transition-colors disabled:opacity-45 disabled:cursor-not-allowed">{t('passage.undo')}</button>
           {shareBoat && waypoints.length >= 2 && (
-            <ShareTrip trip={{ waypoints, departure, speed, boat: shareBoat }} />
+            <ShareTrip trip={{ waypoints, departure, speed, boat: shareBoat, crew }} />
           )}
           <button onClick={clear} disabled={!waypoints.length} className="border border-line text-ink px-3 py-2 rounded-lg text-sm hover:bg-shallow hover:border-shallow transition-colors disabled:opacity-45 disabled:cursor-not-allowed">{t('passage.clear')}</button>
           <button
@@ -225,7 +235,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
         {loading && !result && <ResultSkeleton label={t('passage.reading', { n: waypoints.length })} />}
         {result && (
           <div className={`relative space-y-5 transition-opacity ${stale || loading ? 'opacity-45' : ''}`} aria-busy={loading || undefined}>
-            <PassageResults result={result} />
+            <PassageResults result={result} crew={crew} onCrewChange={setCrew} />
             {loading && <p className="absolute top-4 left-1/2 -translate-x-1/2 bg-surface border border-line rounded-full px-4 py-1.5 text-sm text-ink shadow-panel" role="status">{t('passage.calculating')}</p>}
           </div>
         )}

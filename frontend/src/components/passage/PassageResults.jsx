@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { bandColor, bandFor, bandInk } from './bands';
+import { CREWS, crewPercent, adviceTier } from './crew';
 import { useFormat, formatNumber } from '../../i18n/format';
 
 
@@ -11,7 +12,7 @@ function Dir({ from }) {
 
 // Everything below the map once a passage has been scored. Shared by the
 // per-boat page and the public landing page.
-export default function PassageResults({ result }) {
+export default function PassageResults({ result, crew, onCrewChange }) {
   const { t } = useTranslation();
   const { num, time: fmtTime } = useFormat();
   const samples = result.samples.filter(s => !s.noData);
@@ -42,7 +43,6 @@ export default function PassageResults({ result }) {
             <p className="label-mono">{t('passage.total')}</p>
             <BandBadge band={result.total.band} score={result.total.score} label={t(`passage.band.${result.total.band}`)} />
             <p className="data text-sm text-ink-muted">{t('passage.duration', { hours: num(result.totalHours), nm: num(result.totalNm) })}</p>
-            <p className="data text-xs text-ink-muted">{t('passage.msi', { pct: result.total.msiPercent })}</p>
           </div>
         </div>
         <div className="bg-surface rounded-lg border border-line p-5">
@@ -57,6 +57,8 @@ export default function PassageResults({ result }) {
           )}
         </div>
       </div>
+
+      {crew && <CrewAdvice total={result.total} crew={crew} onCrewChange={onCrewChange} />}
 
       {/* Factors */}
       {result.factors?.length > 0 && (
@@ -143,5 +145,41 @@ function BandBadge({ band, score, label }) {
       <b className="data text-[13px] rounded-full px-2 py-1 bg-white/35">{formatNumber(score, 1, i18n.language)}</b>
       {label}
     </span>
+  );
+}
+
+// "Who's going to be sick, and what do we do about it?" — the share of this
+// crew expected to be seasick, with one concrete piece of advice. Changing the
+// crew needs no new forecast, so it updates instantly.
+function CrewAdvice({ total, crew, onCrewChange }) {
+  const { t } = useTranslation();
+  const pct = crewPercent(total, crew);
+  const tier = adviceTier(pct);
+  return (
+    <section className="bg-surface rounded-lg border border-line p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <p className="label-mono">{t('passage.crew.title')}</p>
+        <div role="radiogroup" aria-label={t('passage.crew.title')} className="inline-flex flex-wrap border border-line rounded-lg p-0.5 text-sm">
+          {CREWS.map(c => (
+            <button
+              key={c.id}
+              type="button"
+              role="radio"
+              aria-checked={crew === c.id}
+              onClick={() => onCrewChange?.(c.id)}
+              className={`px-2.5 py-1.5 rounded-md transition-colors ${crew === c.id ? 'bg-deep text-deep-on' : 'text-ink-muted hover:text-ink hover:bg-shallow'}`}
+            >
+              {t(`passage.crew.${c.id}`)}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <p className="font-display font-bold text-4xl text-ink tabular-nums leading-none">≈ {pct} %</p>
+        <p className="text-ink">{t(`passage.crew.sick.${crew}`)}</p>
+      </div>
+      <p className="mt-3 text-ink max-w-prose">{t(`passage.crew.advice.${tier}`)}</p>
+      <p className="mt-2 text-xs text-ink-muted">{t('passage.crew.basis')}</p>
+    </section>
   );
 }

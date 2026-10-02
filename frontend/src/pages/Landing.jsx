@@ -34,10 +34,9 @@ export default function Landing() {
   const changeBoat = b => { setBoat(b); try { localStorage.setItem(BOAT_KEY, JSON.stringify(b)); } catch { /* ignore */ } };
   const setLang = lng => { i18n.changeLanguage(lng); localStorage.setItem('language', lng); };
 
-  const score = payload => api.post('/passage/score', {
-    ...payload,
-    boat: { name: boat.name, loa_m: Number(boat.loa_m), displacement_kg: Number(boat.displacement_kg), hull_type: boat.hull_type, keel_type: boat.keel_type },
-  }).then(res => res.data);
+  const boatPayload = { name: boat.name, loa_m: Number(boat.loa_m), displacement_kg: Number(boat.displacement_kg), hull_type: boat.hull_type, keel_type: boat.keel_type };
+  const score = payload => api.post('/passage/score', { ...payload, boat: boatPayload }).then(res => res.data);
+  const scoreWindow = payload => api.post('/passage/window', { ...payload, boat: boatPayload }).then(res => res.data);
 
   const how = t('landing.how', { returnObjects: true });
   const bands = t('landing.bands', { returnObjects: true });
@@ -85,11 +84,12 @@ export default function Landing() {
           <PassagePlanner
             storageKey="passage:public"
             score={score}
+            scoreWindow={scoreWindow}
+            windowKey={JSON.stringify(boatPayload)}
             mapHeight="h-[24rem] sm:h-[32rem]"
             mapScrollZoom={false}
             extraControls={<BoatPicker value={boat} onChange={changeBoat} inputClass={inputClass} />}
           />
-          <p className="text-center text-xs text-ink-muted mt-3">{t('landing.tryHint')}</p>
         </section>
 
         {/* How it works */}

@@ -1,14 +1,36 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import PassageMap from './PassageMap';
 import PassageResults from './PassageResults';
+import DepartureStrip from './DepartureStrip';
+import { useFormat } from '../../i18n/format';
+
+// Value for <input type="datetime-local">, in local time.
+function toLocalInput(date) {
+  const d = new Date(date);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 function nextFullHour() {
   const d = new Date();
   d.setMinutes(0, 0, 0);
   d.setHours(d.getHours() + 1);
-  const pad = n => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return toLocalInput(d);
+}
+
+const MAX_WAYPOINTS = 12;
+
+// Great-circle distance in nautical miles (same formula as the backend).
+function routeNm(wps) {
+  const rad = d => d * Math.PI / 180;
+  let nm = 0;
+  for (let i = 1; i < wps.length; i++) {
+    const a = wps[i - 1], b = wps[i];
+    const h = Math.sin(rad(b.lat - a.lat) / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(rad(b.lon - a.lon) / 2) ** 2;
+    nm += 2 * 3440.065 * Math.asin(Math.sqrt(h));
+  }
+  return nm;
 }
 
 export const inputClass = 'border border-line rounded px-3 py-2 text-sm text-ink bg-surface hover:border-ink-muted focus:outline-none focus:ring-2 focus:ring-magenta focus:border-transparent';
@@ -19,9 +41,13 @@ export const inputClass = 'border border-line rounded px-3 py-2 text-sm text-ink
  * can slot extra controls (e.g. a boat picker) via `extraControls`.
  *
  * @param {(payload:{waypoints,departure,speedKn}) => Promise<object>} score
+ * @param {(payload:{waypoints,departure,speedKn}) => Promise<object>} [scoreWindow]
+ *   optional: scores every departure in the next 48 h for the "best departure" strip
+ * @param {string} [windowKey] changes when something outside the planner (the boat) changes the score
  */
-export default function PassagePlanner({ storageKey, score, extraControls = null, onResult, mapHeight, mapScrollZoom = true }) {
+export default function PassagePlanner({ storageKey, score, scoreWindow, windowKey = '', extraControls = null, onResult, mapHeight, mapScrollZoom = true }) {
   const { t } = useTranslation();
+  const { num } = useFormat();
   const saved = useMemo(() => { try { return JSON.parse(localStorage.getItem(storageKey)) || {}; } catch { return {}; } }, [storageKey]);
 
   const [waypoints, setWaypoints] = useState(saved.waypoints ?? []);
@@ -30,37 +56,96 @@ export default function PassagePlanner({ storageKey, score, extraControls = null
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [win, setWin] = useState(null);           // { key, data } for the departure strip
+  const [winLoading, setWinLoading] = useState(false);
+  const [winError, setWinError] = useState('');
+  const resultsRef = useRef(null);
 
   useEffect(() => {
     try { localStorage.setItem(storageKey, JSON.stringify({ waypoints, speed })); } catch { /* ignore */ }
   }, [waypoints, speed, storageKey]);
 
   const reset = () => { setResult(null); setError(''); };
-  const addWaypoint = wp => { if (waypoints.length >= 12) return; setWaypoints(w => [...w, wp]); reset(); };
+  const addWaypoint = wp => { if (waypoints.length >= MAX_WAYPOINTS) return; setWaypoints(w => [...w, wp]); reset(); };
+  const moveWaypoint = (i, wp) => { setWaypoints(w => w.map((p, k) => (k === i ? wp : p))); reset(); };
+  const removeWaypoint = i => { setWaypoints(w => w.filter((_, k) => k !== i)); reset(); };
+  const insertWaypoint = (i, wp) => { if (waypoints.length >= MAX_WAYPOINTS) return; setWaypoints(w => [...w.slice(0, i), wp, ...w.slice(i)]); reset(); };
   const undo = () => { setWaypoints(w => w.slice(0, -1)); reset(); };
   const clear = () => { setWaypoints([]); reset(); };
 
-  const calculate = async () => {
+  const nm = routeNm(waypoints);
+  const minutes = Number(speed) > 0 ? Math.round(nm / Number(speed) * 60) : 0;
+  const routeSummary = waypoints.length < 2
+    ? `${waypoints.length} ${t('passage.waypoints')}`
+    : t('passage.draw.summary', { n: waypoints.length, nm: num(nm), h: Math.floor(minutes / 60), m: String(minutes % 60).padStart(2, '0') });
+
+  // Route, speed and boat decide the window; the chosen departure doesn't.
+  const routeKey = JSON.stringify([waypoints, Number(speed), windowKey]);
+  const errorText = err => {
+    const code = err.response?.data?.code;
+    return code === 'NO_DATA' ? t('passage.noData') : code === 'RATE_LIMITED' ? t('passage.rateLimited') : t('passage.error');
+  };
+
+  const loadWindow = async payload => {
+    if (!scoreWindow || win?.key === routeKey) return;
+    setWinLoading(true);
+    setWinError('');
+    try {
+      setWin({ key: routeKey, data: await scoreWindow(payload) });
+    } catch (err) {
+      setWin(null);
+      setWinError(err.response?.data?.code === 'NO_DATA' ? t('passage.window.none') : errorText(err));
+    } finally {
+      setWinLoading(false);
+    }
+  };
+
+  const calculate = async (dep = departure) => {
     if (waypoints.length < 2) { setError(t('passage.needTwo')); return; }
     setLoading(true);
     setError('');
+    const payload = { waypoints, departure: new Date(dep).toISOString(), speedKn: Number(speed) };
     try {
-      const data = await score({ waypoints, departure: new Date(departure).toISOString(), speedKn: Number(speed) });
+      const data = await score(payload);
       setResult(data);
       onResult?.(data);
+      // Bring the result into view on small screens, where it lands below the fold.
+      requestAnimationFrame(() => {
+        const el = resultsRef.current;
+        if (el && el.getBoundingClientRect().top > window.innerHeight * 0.8) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      loadWindow(payload);
     } catch (err) {
       setResult(null);
-      const code = err.response?.data?.code;
-      setError(code === 'NO_DATA' ? t('passage.noData') : code === 'RATE_LIMITED' ? t('passage.rateLimited') : t('passage.error'));
+      setError(errorText(err));
     } finally {
       setLoading(false);
     }
   };
 
+  const pickDeparture = iso => {
+    const local = toLocalInput(iso);
+    setDeparture(local);
+    calculate(local);
+  };
+
+  // A different route, speed or boat makes the old window wrong.
+  useEffect(() => {
+    if (win && win.key !== routeKey) { setWin(null); setWinError(''); }
+  }, [routeKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="space-y-5">
       <div className="bg-surface rounded-2xl border border-line shadow-panel p-3 space-y-3">
-        <PassageMap waypoints={waypoints} result={result} onAddWaypoint={addWaypoint} heightClass={mapHeight} scrollWheelZoom={mapScrollZoom} />
+        <PassageMap
+          waypoints={waypoints}
+          result={result}
+          onAddWaypoint={addWaypoint}
+          onMoveWaypoint={moveWaypoint}
+          onRemoveWaypoint={removeWaypoint}
+          onInsertWaypoint={insertWaypoint}
+          maxWaypoints={MAX_WAYPOINTS}
+          heightClass={mapHeight} scrollWheelZoom={mapScrollZoom} />
 
         <div className="grid sm:grid-cols-[1fr_auto_auto] gap-3 items-end">
           {extraControls ? <div>{extraControls}</div> : <div />}
@@ -75,11 +160,11 @@ export default function PassagePlanner({ storageKey, score, extraControls = null
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <p className="data text-xs text-ink-muted mr-auto">{waypoints.length} {t('passage.waypoints')}</p>
+          <p className="data text-xs text-ink-muted mr-auto">{routeSummary}</p>
           <button onClick={undo} disabled={!waypoints.length} className="border border-line text-ink px-3 py-2 rounded-lg text-sm hover:bg-shallow hover:border-shallow transition-colors disabled:opacity-45 disabled:cursor-not-allowed">{t('passage.undo')}</button>
           <button onClick={clear} disabled={!waypoints.length} className="border border-line text-ink px-3 py-2 rounded-lg text-sm hover:bg-shallow hover:border-shallow transition-colors disabled:opacity-45 disabled:cursor-not-allowed">{t('passage.clear')}</button>
           <button
-            onClick={calculate}
+            onClick={() => calculate()}
             disabled={loading || waypoints.length < 2}
             className="w-full sm:w-auto bg-deep text-deep-on px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-deep-hover disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
           >
@@ -89,7 +174,12 @@ export default function PassagePlanner({ storageKey, score, extraControls = null
         {error && <p className="text-sm text-band-ashore bg-band-ashore/10 rounded px-4 py-2">{error}</p>}
       </div>
 
-      {result && <PassageResults result={result} />}
+      <div ref={resultsRef} className="space-y-5 scroll-mt-4">
+        {(win || winLoading || winError) && (
+          <DepartureStrip window={win?.data} loading={winLoading} error={winError} departure={departure} onPick={pickDeparture} />
+        )}
+        {result && <PassageResults result={result} />}
+      </div>
     </div>
   );
 }

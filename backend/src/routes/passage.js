@@ -1,8 +1,8 @@
 const router = require('express').Router({ mergeParams: true });
 const pool = require('../config/db');
 const { authenticate } = require('../middleware/auth');
-const { getWavePoint, warmMeta } = require('../services/waves');
-const { getOceanFallback } = require('../services/met');
+const { getWavePoint, getWaveSeries, warmMeta } = require('../services/waves');
+const { getOceanFallback, getOceanSeries } = require('../services/met');
 const { getWaterLevels, phaseAt } = require('../services/tides');
 const { scoreSample, accumulate, topFactors, normalizeBoat, band } = require('../services/seasickness');
 
@@ -165,6 +165,95 @@ async function scorePassage(input, boatRow) {
   };
 }
 
+const WINDOW_HOURS = 48;
+const WINDOW_STEP_H = 3;
+
+function nextFullHour(now = new Date()) {
+  const d = new Date(now);
+  d.setUTCMinutes(0, 0, 0);
+  d.setUTCHours(d.getUTCHours() + 1);
+  return d;
+}
+
+// Nearest step of an hourly series to `t`, within the same 3 h tolerance the
+// point reads use.
+function stepAt(series, t) {
+  let best = null, bestD = Infinity;
+  for (const w of series) {
+    const d = Math.abs(new Date(w.validTime).getTime() - t);
+    if (d < bestD) { bestD = d; best = w; }
+  }
+  return bestD <= 3 * 3600e3 ? best : null;
+}
+
+/**
+ * Score the same route for every departure in a window ("when should we go?").
+ * Each sample position is read once as a time series covering the whole
+ * window, so this costs the same upstream round trips as one /score call.
+ * Pure scoring lives in `scoreDepartures` so it can be tested without MET.
+ */
+async function scoreWindow(input, boatRow, { start = nextFullHour(), hours = WINDOW_HOURS, stepH = WINDOW_STEP_H } = {}) {
+  const { waypoints, speed } = input;
+  const boat = normalizeBoat(boatRow);
+  const { samples, totalH } = buildSamples(waypoints, start, speed);
+  const end = new Date(start.getTime() + hours * 3600e3);
+
+  await warmMeta();
+
+  async function fetchSeries(s) {
+    const offset = s.time.getTime() - start.getTime();
+    const from = new Date(start.getTime() + offset), to = new Date(end.getTime() + offset);
+    let series = [];
+    try { series = await getWaveSeries(s.lat, s.lon, from, to); }
+    catch (err) { console.error('Wave series read failed:', err.message); }
+    if (!series.length) {
+      try { series = await getOceanSeries(s.lat, s.lon, from, to); }
+      catch (err) { console.error('Oceanforecast series fallback failed:', err.message); }
+    }
+    return series;
+  }
+
+  const series = new Array(samples.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: WAVE_CONCURRENCY }, async () => {
+    while (next < samples.length) {
+      const k = next++;
+      series[k] = await fetchSeries(samples[k]);
+    }
+  }));
+
+  const departures = scoreDepartures(samples, series, boat, speed, start, hours, stepH);
+  if (!departures.some(d => d.score != null)) return { status: 422, body: { error: 'No forecast data for this route/time', code: 'NO_DATA' } };
+
+  const scoredDeps = departures.filter(d => d.score != null);
+  const best = scoredDeps.reduce((a, d) => (d.score < a.score ? d : a), scoredDeps[0]);
+  return {
+    status: 200,
+    body: { start: start.toISOString(), hours, stepH, totalHours: Math.round(totalH * 10) / 10, best: best.departure, departures },
+  };
+}
+
+// For each departure, look up every sample's conditions at the time the boat
+// would be there and accumulate the dose. A departure counts only when at
+// least half the route has forecast data.
+function scoreDepartures(samples, series, boat, speed, start, hours, stepH) {
+  const out = [];
+  for (let h = 0; h <= hours; h += stepH) {
+    const shift = h * 3600e3;
+    const scored = [];
+    samples.forEach((s, k) => {
+      const wave = series[k]?.length ? stepAt(series[k], s.time.getTime() + shift) : null;
+      if (wave) scored.push({ ...s, ...scoreSample(wave, boat, s.heading, speed) });
+    });
+    const coverage = samples.length ? scored.length / samples.length : 0;
+    const departure = new Date(start.getTime() + shift).toISOString();
+    if (coverage < 0.5) { out.push({ departure, score: null, band: null, peak: null, coverage: Math.round(coverage * 100) / 100 }); continue; }
+    const total = accumulate(scored);
+    out.push({ departure, score: total.score, band: total.band, peak: total.peak, coverage: Math.round(coverage * 100) / 100 });
+  }
+  return out;
+}
+
 // Per-boat: hull data comes from the owner's boat profile.
 router.post('/score', authenticate, async (req, res) => {
   const boatRow = await requireBoatOwner(req, res);
@@ -175,7 +264,20 @@ router.post('/score', authenticate, async (req, res) => {
   res.status(status).json(body);
 });
 
+// Per-boat departure window.
+router.post('/window', authenticate, async (req, res) => {
+  const boatRow = await requireBoatOwner(req, res);
+  if (!boatRow) return;
+  const input = parseScoreRequest(req.body);
+  if (input.error) return res.status(400).json({ error: input.error });
+  const { status, body } = await scoreWindow(input, boatRow);
+  res.status(status).json(body);
+});
+
 module.exports = router;
 module.exports.buildSamples = buildSamples;
 module.exports.parseScoreRequest = parseScoreRequest;
 module.exports.scorePassage = scorePassage;
+module.exports.scoreWindow = scoreWindow;
+module.exports.scoreDepartures = scoreDepartures;
+module.exports.nextFullHour = nextFullHour;

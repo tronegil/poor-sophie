@@ -17,6 +17,9 @@ npm run dev --prefix frontend
 # Backend only
 npm run dev --prefix backend
 
+# Backend tests (offline, fake THREDDS server)
+npm test --prefix backend
+
 # Apply DB schema
 psql $DATABASE_URL -f backend/db/schema.sql
 ```
@@ -42,7 +45,7 @@ psql $DATABASE_URL -f backend/db/schema.sql
 - Vite proxies `/api/*` → `localhost:3001` in dev — no CORS issues locally
 - i18n translations are in `frontend/src/i18n/en.js` and `no.js`; language persisted in `localStorage` and synced to `users.language` in DB via `PUT /api/users/language`
 - Boat photos are URL-based in Phase 1 (no file upload)
-- Passage planner UI lives in `components/passage/` (`PassagePlanner` owns route/time/speed state, `PassageResults` renders the score); both the boat page and the landing page compose these. Boat presets for the public picker are in `components/passage/boatPresets.js`
+- Passage planner UI lives in `components/passage/` (`PassagePlanner` owns route/time/speed state and the departure window, `PassageMap` handles drawing — draggable waypoints, midpoint insert handles, on-map hints — `DepartureStrip` shows the 48 h best-departure bars, `PassageResults` renders the score); both the boat page and the landing page compose these. Boat presets for the public picker are in `components/passage/boatPresets.js`
 - Default language is Norwegian for `nb/nn/no` browsers, else English (`i18n/index.js`)
 - Design system lives in `design/` (`tokens.json` = source of truth, `design/README.md` = rules) and is mirrored in `frontend/src/theme.css` (per-theme CSS variables: Dag default, Natt via OS or `data-theme="dark"`, choice in `src/theme.js`) exposed through `frontend/tailwind.config.js` — never hard-code hex or `bg-white`, or Natt breaks. Use the named tokens (`bg-paper`, `bg-surface`, `border-line`, `text-ink`/`text-ink-muted`, `bg-deep text-deep-on` for primary buttons, `text-magenta` for links/accent, `band-*` only for the seasickness score via `bandColor`/`bandInk` in `components/passage/bands.js`), `.label-mono` for field labels, `.data` for measurements, Lucide icons — no emoji. Brand pieces: `components/brand/` (`Wordmark`, `ChartTile`, `Isobaths`)
 - Public vs private boats: `GET /api/boats/:id` checks `is_public`; private boats require a valid JWT cookie belonging to the owner

@@ -149,14 +149,15 @@ Plot a passage on a real nautical chart, pick a departure time and speed, and ge
 
 **What you see:**
 
-- Kartverket's official **sea chart tiles** (over OpenStreetMap for the bits Norway doesn't chart) — click to drop waypoints
+- Kartverket's official **sea chart tiles** (over OpenStreetMap for the bits Norway doesn't chart) — click to drop waypoints, **drag** them to move, tap one to remove it, tap the ring on a leg to insert a point there. Distance and time at your speed update as you draw
+- **Best departure in the next 48 hours** — after scoring, the same route is scored for every departure three hours apart and shown as a strip of bars. The calmest is marked; tap any bar (or *Use calmest departure*) to score that trip
 - Legs coloured by score, sample points with hover details
 - The headline score and band — *Flat calm · Comfortable · Uncomfortable · Bucket ready · Stay ashore*
 - **Top three factors** in plain language ("Head sea — pounding into it, encounter period 4.9 s")
 - An hour-by-hour timeline and table: waves, swell, wind, current, score
 - An ⓘ **"How is this calculated?"** dialog with the model explained in five steps, every data source linked, and the literature it leans on (ISO 2631-1; O'Hanlon & McCauley 1974; McCauley et al. 1976; Lawther & Griffin 1987)
 
-**Public front page (`/`):** the same tool, open to everyone. Pick a boat from a list of ~20 common types on the Norwegian coast (Folkebåt to Colin Archer, with hull data filled in) or type your own, and score away. Backed by `POST /api/passage/score` — unauthenticated, rate-limited to 30 calculations per IP per 10 minutes. Logged-in owners get the same thing per boat, with the hull data from the boat profile.
+**Public front page (`/`):** the same tool, open to everyone. Pick a boat from a list of ~20 common types on the Norwegian coast (Folkebåt to Colin Archer, with hull data filled in) or type your own, and score away. Backed by `POST /api/passage/score` and `POST /api/passage/window` — unauthenticated, rate-limited to 30 calculations per IP per 10 minutes (each call counts once). Logged-in owners get the same thing per boat, with the hull data from the boat profile.
 
 It's an estimate, not a measurement. Forecasts are forecasts, no two hulls move alike, and people vary enormously. Use it to compare departure times and routes — and to decide who gets the helm.
 
@@ -411,6 +412,7 @@ poor-sophie/
 
 **Seasickness score:**
 - `POST /api/boats/:id/passage/score` (owner) and `POST /api/passage/score` (public, hull data in the body, 30 req / IP / 10 min) share one scoring function; nothing is stored
+- `POST …/passage/window` (owner and public) scores the same route for departures every 3 h over the next 48 h. Each sample point is read once from OPeNDAP as a time series (`getWaveSeries`), so it costs the same number of upstream round trips as one `/score`. Offline tests with a fake THREDDS server: `npm test --prefix backend`
 - The route is sampled every ~5 nm (max 14 points). Each sample is one OPeNDAP request for a 5×5 cell neighbourhood (nearest wet cell wins, so positions just inside the coastline still resolve); fetched two at a time, as MET asks for gentle OPeNDAP use
 - Grid metadata is cached in memory and only the last ~10 days of each dataset's time axis is read — the aggregations carry years of hourly steps
 - Datasets are tried in order: the five MyWaveWAM 800 m `*_curr_be` domains, then WAVEWATCH III 4 km, then api.met.no. The older `mywavewam800{s,m,n}_be` datasets stopped updating in October 2025 but still answer requests — don't use them

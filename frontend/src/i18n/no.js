@@ -56,6 +56,9 @@ export default {
     adminViewHint: 'Vis adminverktøy i navigasjonslinjen.',
     adminViewOn: 'På',
     adminViewOff: 'Av',
+    theme: 'Tema',
+    themeHint: 'Natt er mørkt og skånsomt for øynene om kvelden og på nattseiling.',
+    themes: { system: 'Som enheten', light: 'Dag', dark: 'Natt' },
   },
   errors: {
     nameRequired: 'Båtnavn er påkrevd',

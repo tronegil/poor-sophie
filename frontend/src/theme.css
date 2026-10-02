@@ -1,0 +1,119 @@
+/* Colour tokens from design/tokens.json as RGB channels, so Tailwind's
+   opacity modifiers work. Dag is the default; Natt applies when the OS is dark
+   (unless the user picked Dag) or when the user picked Natt. See src/theme.js. */
+:root {
+  --c-paper: 246 248 247;
+  --c-surface: 255 255 255;
+  --c-shallow: 214 233 242;
+  --c-land: 239 226 179;
+  --c-line: 207 219 225;
+  --c-ink: 15 42 61;
+  --c-ink-muted: 74 98 114;
+  --c-deep: 18 53 77;
+  --c-deep-on: 234 243 247;
+  --c-deep-hover: 15 42 61;
+  --c-magenta: 176 24 111;
+  --c-magenta-dark: 142 18 89;
+  --c-magenta-light: 246 227 238;
+  --c-on-magenta: 255 255 255;
+  --c-ocean-50: 234 243 247;
+  --c-ocean-100: 214 233 242;
+  --c-ocean-200: 188 214 228;
+  --c-ocean-300: 147 182 201;
+  --c-ocean-400: 91 129 153;
+  --c-ocean-500: 42 86 115;
+  --c-ocean-600: 18 53 77;
+  --c-ocean-700: 15 42 61;
+  --c-ocean-800: 11 34 51;
+  --c-ocean-900: 7 19 27;
+  --c-slate-50: 246 248 247;
+  --c-slate-100: 234 240 242;
+  --c-slate-200: 207 219 225;
+  --c-slate-300: 179 195 204;
+  --c-slate-400: 95 119 135;
+  --c-slate-500: 82 107 123;
+  --c-slate-600: 74 98 114;
+  --c-slate-700: 43 69 87;
+  --c-slate-800: 15 42 61;
+  --c-slate-900: 11 31 45;
+  --shadow-panel: 0 1px 2px rgba(15,42,61,0.06), 0 8px 24px rgba(15,42,61,0.08);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --c-paper: 11 26 36;
+    --c-surface: 17 36 47;
+    --c-shallow: 23 56 71;
+    --c-land: 74 65 40;
+    --c-line: 36 64 79;
+    --c-ink: 230 238 242;
+    --c-ink-muted: 157 178 191;
+    --c-deep: 28 74 102;
+    --c-deep-on: 230 238 242;
+    --c-deep-hover: 35 90 124;
+    --c-magenta: 240 107 181;
+    --c-magenta-dark: 244 143 197;
+    --c-magenta-light: 58 18 41;
+    --c-on-magenta: 42 6 25;
+    --c-ocean-50: 18 48 63;
+    --c-ocean-100: 23 56 71;
+    --c-ocean-200: 31 74 94;
+    --c-ocean-300: 60 108 132;
+    --c-ocean-400: 111 152 174;
+    --c-ocean-500: 147 185 204;
+    --c-ocean-600: 181 211 226;
+    --c-ocean-700: 207 227 237;
+    --c-ocean-800: 224 238 245;
+    --c-ocean-900: 238 246 250;
+    --c-slate-50: 11 26 36;
+    --c-slate-100: 20 43 56;
+    --c-slate-200: 36 64 79;
+    --c-slate-300: 54 88 106;
+    --c-slate-400: 130 153 167;
+    --c-slate-500: 147 169 182;
+    --c-slate-600: 157 178 191;
+    --c-slate-700: 195 210 218;
+    --c-slate-800: 230 238 242;
+    --c-slate-900: 243 247 249;
+    --shadow-panel: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --c-paper: 11 26 36;
+  --c-surface: 17 36 47;
+  --c-shallow: 23 56 71;
+  --c-land: 74 65 40;
+  --c-line: 36 64 79;
+  --c-ink: 230 238 242;
+  --c-ink-muted: 157 178 191;
+  --c-deep: 28 74 102;
+  --c-deep-on: 230 238 242;
+  --c-deep-hover: 35 90 124;
+  --c-magenta: 240 107 181;
+  --c-magenta-dark: 244 143 197;
+  --c-magenta-light: 58 18 41;
+  --c-on-magenta: 42 6 25;
+  --c-ocean-50: 18 48 63;
+  --c-ocean-100: 23 56 71;
+  --c-ocean-200: 31 74 94;
+  --c-ocean-300: 60 108 132;
+  --c-ocean-400: 111 152 174;
+  --c-ocean-500: 147 185 204;
+  --c-ocean-600: 181 211 226;
+  --c-ocean-700: 207 227 237;
+  --c-ocean-800: 224 238 245;
+  --c-ocean-900: 238 246 250;
+  --c-slate-50: 11 26 36;
+  --c-slate-100: 20 43 56;
+  --c-slate-200: 36 64 79;
+  --c-slate-300: 54 88 106;
+  --c-slate-400: 130 153 167;
+  --c-slate-500: 147 169 182;
+  --c-slate-600: 157 178 191;
+  --c-slate-700: 195 210 218;
+  --c-slate-800: 230 238 242;
+  --c-slate-900: 243 247 249;
+  --shadow-panel: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+  color-scheme: dark;
+}

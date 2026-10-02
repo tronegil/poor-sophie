@@ -56,6 +56,9 @@ export default {
     adminViewHint: 'Show admin tools in the navigation bar.',
     adminViewOn: 'On',
     adminViewOff: 'Off',
+    theme: 'Theme',
+    themeHint: 'Natt (night) is dark and easy on the eyes in the evening and on night passages.',
+    themes: { system: 'Match device', light: 'Day', dark: 'Night' },
   },
   errors: {
     nameRequired: 'Boat name is required',

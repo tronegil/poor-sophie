@@ -47,7 +47,7 @@ export default function BoatProfile() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="bg-white rounded-lg border border-line overflow-hidden">
+      <div className="bg-surface rounded-lg border border-line overflow-hidden">
         <div className="h-56 bg-land">
           {boat.photo_url ? (
             <img src={boat.photo_url} alt={boat.name} className="w-full h-full object-cover" />

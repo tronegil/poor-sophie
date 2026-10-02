@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/client';
 import i18n from '../i18n';
+import ThemePicker from '../components/brand/ThemePicker';
 
 export default function Settings() {
   const { t } = useTranslation();
@@ -26,9 +27,9 @@ export default function Settings() {
 
   return (
     <div className="max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold text-slate-800 mb-6">{t('settings.title')}</h1>
+      <h1 className="text-3xl font-bold text-ink mb-6">{t('settings.title')}</h1>
 
-      <div className="bg-white rounded-lg border border-line p-6 space-y-6">
+      <div className="bg-surface rounded-lg border border-line p-6 space-y-6">
         <div>
           <p className="text-sm font-medium text-slate-700 mb-3">{t('settings.language')}</p>
           <div className="flex gap-3">
@@ -50,10 +51,16 @@ export default function Settings() {
 
         <button
           onClick={handleSave}
-          className="bg-deep text-deep-on px-6 py-2 rounded-lg text-sm font-medium hover:bg-ink transition-colors"
+          className="bg-deep text-deep-on px-6 py-2 rounded-lg text-sm font-medium hover:bg-deep-hover transition-colors"
         >
           {saved ? t('settings.saved') : t('settings.save')}
         </button>
+
+        <div className="pt-4 border-t border-line">
+          <p className="text-sm font-medium text-slate-700 mb-1">{t('settings.theme')}</p>
+          <p className="text-xs text-slate-400 mb-3">{t('settings.themeHint')}</p>
+          <ThemePicker labels />
+        </div>
 
         {user?.is_admin && (
           <div className="pt-4 border-t border-line">
@@ -62,11 +69,11 @@ export default function Settings() {
             <button
               onClick={() => setAdminView(!adminView)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                adminView ? 'bg-ocean-600' : 'bg-slate-200'
+                adminView ? 'bg-deep' : 'bg-slate-200'
               }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                className={`inline-block h-4 w-4 transform rounded-full bg-surface shadow transition-transform ${
                   adminView ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />

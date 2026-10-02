@@ -2,7 +2,11 @@
 <html lang="no">
   <head>
     <meta charset="UTF-8" />
-    <meta name="theme-color" content="#12354d" />
+    <meta name="theme-color" content="#12354d" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1c4a66" media="(prefers-color-scheme: dark)" />
+    <script>
+      try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kvalmeindeks — hvor sjøsyk blir du på turen?</title>
     <meta name="description" content="Tegn overfarten i sjøkartet, velg båt, avgang og fart, og få en sjøsyke-indeks fra 0 til 10 time for time. Bygget på Meteorologisk institutts bølgemodeller og ISO 2631." />

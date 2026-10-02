@@ -81,7 +81,7 @@ export default function PassagePlanner({ storageKey, score, extraControls = null
           <button
             onClick={calculate}
             disabled={loading || waypoints.length < 2}
-            className="w-full sm:w-auto bg-deep text-deep-on px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-ink disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            className="w-full sm:w-auto bg-deep text-deep-on px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-deep-hover disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? t('passage.calculating') : t('passage.calculate')}
           </button>

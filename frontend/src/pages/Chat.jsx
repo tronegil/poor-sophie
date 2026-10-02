@@ -130,7 +130,7 @@ export default function Chat() {
           <button
             onClick={send}
             disabled={!input.trim() || thinking}
-            className="bg-deep text-deep-on w-10 h-10 rounded-md hover:bg-ink disabled:opacity-40 transition-colors shrink-0 flex items-center justify-center text-lg font-bold"
+            className="bg-deep text-deep-on w-10 h-10 rounded-md hover:bg-deep-hover disabled:opacity-40 transition-colors shrink-0 flex items-center justify-center text-lg font-bold"
           >
             ↑
           </button>
@@ -154,7 +154,7 @@ function MessageBubble({ msg }) {
         className={`max-w-[80%] px-4 py-3 rounded-lg text-sm leading-relaxed whitespace-pre-wrap break-words ${
           isUser
             ? 'bg-deep text-deep-on rounded-br-none'
-            : 'bg-white border border-line text-ink rounded-bl-none'
+            : 'bg-surface border border-line text-ink rounded-bl-none'
         }`}
       >
         {msg.content}
@@ -169,7 +169,7 @@ function ThinkingBubble() {
       <div className="w-8 h-8 rounded-full bg-deep flex items-center justify-center text-deep-on shrink-0 mt-0.5">
         <Anchor size={16} strokeWidth={1.75} aria-hidden="true" />
       </div>
-      <div className="bg-white border border-line px-4 py-3.5 rounded-lg rounded-bl-none">
+      <div className="bg-surface border border-line px-4 py-3.5 rounded-lg rounded-bl-none">
         <div className="flex gap-1.5 items-center">
           <span className="w-2 h-2 bg-ocean-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
           <span className="w-2 h-2 bg-ocean-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />

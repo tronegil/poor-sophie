@@ -35,7 +35,7 @@ export default function HowItWorks({ label, buttonClassName }) {
             aria-modal="true"
             aria-label={t('passage.how.title')}
             onClick={e => e.stopPropagation()}
-            className="bg-white w-full sm:max-w-xl max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-lg shadow-xl"
+            className="bg-surface w-full sm:max-w-xl max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-lg shadow-xl"
           >
             <div className="sticky top-0 bg-white/95 backdrop-blur px-5 py-4 border-b border-line flex items-center justify-between">
               <h2 className="text-xl font-bold text-ink">{t('passage.how.title')}</h2>

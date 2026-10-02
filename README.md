@@ -164,7 +164,7 @@ It's an estimate, not a measurement. Forecasts are forecasts, no two hulls move 
 
 ## 🎨 Design System — the sea chart
 
-> **Status: live in the frontend** (light theme; the dark "Natt" theme is defined but not wired up yet). Source of truth in [`design/`](design/), browsable as the [Poor Sophie design system](https://claude.ai/artifact/GSZFJftFCbBkGjb8DDmdr8) (palette, type specimens, live component previews).
+> **Status: live in the frontend**, in both themes: Dag (light) and Natt (dark). Natt follows the device by default and can be pinned in Settings or from the landing page. Source of truth in [`design/`](design/), browsable as the [Poor Sophie design system](https://claude.ai/artifact/GSZFJftFCbBkGjb8DDmdr8) (palette, type specimens, live component previews).
 
 Poor Sophie should look like a Norwegian sea chart: cool chart paper, deep navy water, sandy land, and a single **chart magenta** accent — the colour the chart uses for lights and marks. The seasickness index is the only place the app gets loud colour, and there the colour *means* something.
 
@@ -175,7 +175,7 @@ Poor Sophie should look like a Norwegian sea chart: cool chart paper, deep navy 
 | `paper` | `#f6f8f7` | `#0b1a24` | Page background |
 | `surface` | `#ffffff` | `#11242f` | Cards, panels, forms |
 | `ink` / `ink-muted` | `#0f2a3d` / `#4a6272` | `#e6eef2` / `#9db2bf` | Text / secondary text, units |
-| `deep` / `on-deep` | `#12354d` / `#eaf3f7` | `#07131b` / `#e6eef2` | Navbar, hero, primary button |
+| `deep` / `on-deep` | `#12354d` / `#eaf3f7` | `#1c4a66` / `#e6eef2` | Navbar, hero, primary button |
 | `shallow` | `#d6e9f2` | `#173847` | Calm highlights, hover |
 | `land` | `#efe2b3` | `#4a4128` | Illustrations and empty boat photos only |
 | `line` | `#cfdbe1` | `#24404f` | Hairlines — borders instead of shadows |
@@ -199,7 +199,7 @@ Poor Sophie should look like a Norwegian sea chart: cool chart paper, deep navy 
 
 **Components** (each with guidelines + preview in `design/components/`): `Button`, `Field`, `NavBar`, `ScoreBadge`, `PassageScore` (result panel with hour-by-hour strip), `BoatCard`, `BandScale`.
 
-**In the code** — tokens are mirrored in `frontend/tailwind.config.js` (`bg-paper`, `text-ink`, `bg-deep`, `text-magenta`, `bg-band-bucket`, `font-display`, `font-mono` …; the old `ocean`/`slate` scales are remapped onto the same palette). `index.css` adds `.label-mono` and `.data`. Band colours live in `components/passage/bands.js` (`bandColor`, `bandInk`). Brand pieces are in `components/brand/` (`Wordmark`, `ChartTile`, `Isobaths`); icons are [Lucide](https://lucide.dev). Change a value in `design/tokens.json` → update `tailwind.config.js` and `bands.js` too. Full rules (in Norwegian): [`design/README.md`](design/README.md).
+**In the code** — colours are CSS variables per theme in `frontend/src/theme.css` (choice stored by `src/theme.js`, applied before first paint in `index.html`, picked with `components/brand/ThemePicker`), exposed through `frontend/tailwind.config.js` (`bg-paper`, `text-ink`, `bg-deep`, `text-magenta`, `bg-band-bucket`, `font-display`, `font-mono` …; the old `ocean`/`slate` scales are remapped onto the same palette). `index.css` adds `.label-mono` and `.data`. Band colours live in `components/passage/bands.js` (`bandColor`, `bandInk`). Brand pieces are in `components/brand/` (`Wordmark`, `ChartTile`, `Isobaths`); icons are [Lucide](https://lucide.dev). Change a colour in `design/tokens.json` → update `theme.css` (and `bands.js` for bands). Full rules (in Norwegian): [`design/README.md`](design/README.md).
 
 ---
 

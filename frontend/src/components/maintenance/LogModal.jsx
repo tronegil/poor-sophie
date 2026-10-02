@@ -174,8 +174,8 @@ export default function LogModal({ boatId, task, log, lang, onSave, onDelete, on
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white w-full sm:max-w-md sm:rounded-lg rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-line px-5 py-4 flex items-center justify-between rounded-t-2xl">
+      <div className="relative bg-surface w-full sm:max-w-md sm:rounded-lg rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
+        <div className="sticky top-0 bg-surface border-b border-line px-5 py-4 flex items-center justify-between rounded-t-2xl">
           <div>
             <h2 className="font-semibold text-slate-800">
               {isEdit ? t('maintenance.log.editTitle') : t('maintenance.log.title')}
@@ -254,7 +254,7 @@ export default function LogModal({ boatId, task, log, lang, onSave, onDelete, on
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 bg-deep text-deep-on py-2.5 rounded-md text-sm font-medium hover:bg-ink disabled:opacity-60 transition-colors"
+                className="flex-1 bg-deep text-deep-on py-2.5 rounded-md text-sm font-medium hover:bg-deep-hover disabled:opacity-60 transition-colors"
               >
                 {saving ? t('maintenance.log.saving') : t('maintenance.log.save')}
               </button>

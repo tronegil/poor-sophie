@@ -31,7 +31,7 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold text-ink">{t('dashboard.myBoats')}</h1>
         <Link
           to="/boats/new"
-          className="bg-deep text-deep-on px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-ink transition-colors flex items-center gap-1.5"
+          className="bg-deep text-deep-on px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-deep-hover transition-colors flex items-center gap-1.5"
         >
           <Plus size={16} strokeWidth={2} aria-hidden="true" />
           {t('dashboard.addBoat')}

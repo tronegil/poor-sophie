@@ -49,7 +49,7 @@ export default function BoatForm({ initialData = {}, onSubmit, onCancel }) {
     'w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-magenta focus:border-transparent';
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-line p-6 space-y-4">
+    <form onSubmit={handleSubmit} className="bg-surface rounded-lg border border-line p-6 space-y-4">
       {error && <p className="text-band-ashore text-sm">{error}</p>}
 
       <div>
@@ -155,7 +155,7 @@ export default function BoatForm({ initialData = {}, onSubmit, onCancel }) {
         <button
           type="submit"
           disabled={saving}
-          className="flex-1 bg-deep text-deep-on py-2 rounded-lg text-sm font-medium hover:bg-ink disabled:opacity-50 transition-colors"
+          className="flex-1 bg-deep text-deep-on py-2 rounded-lg text-sm font-medium hover:bg-deep-hover disabled:opacity-50 transition-colors"
         >
           {saving ? t('boat.saving') : t('boat.save')}
         </button>

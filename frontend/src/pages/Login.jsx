@@ -19,7 +19,7 @@ export default function Login() {
       <Isobaths className="absolute inset-0 w-full h-full pointer-events-none" />
       <div className="relative text-center mb-10">
         <h1 className="text-5xl mb-3"><Wordmark>{t('login.title')}</Wordmark></h1>
-        <p className="text-ocean-200">{t('login.subtitle')}</p>
+        <p className="text-deep-on/75">{t('login.subtitle')}</p>
       </div>
 
       <div className="relative bg-surface rounded-lg shadow-panel p-8 w-full max-w-sm">
@@ -32,7 +32,7 @@ export default function Login() {
         </a>
       </div>
 
-      <Link to="/" className="relative mt-8 text-sm text-ocean-200 hover:text-white transition-colors">← {t('login.backToIndex')}</Link>
+      <Link to="/" className="relative mt-8 text-sm text-deep-on/75 hover:text-deep-on transition-colors">← {t('login.backToIndex')}</Link>
     </div>
   );
 }

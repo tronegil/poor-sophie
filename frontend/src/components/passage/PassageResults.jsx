@@ -59,7 +59,7 @@ export default function PassageResults({ result }) {
 
       {/* Factors */}
       {result.factors?.length > 0 && (
-        <div className="bg-white rounded-lg border border-line p-5">
+        <div className="bg-surface rounded-lg border border-line p-5">
           <h2 className="label-mono mb-3">{t('passage.factors')}</h2>
           <ol className="space-y-2">
             {result.factors.map((f, i) => (
@@ -73,7 +73,7 @@ export default function PassageResults({ result }) {
       )}
 
       {/* Timeline + table */}
-      <div className="bg-white rounded-lg border border-line p-5">
+      <div className="bg-surface rounded-lg border border-line p-5">
         <h2 className="label-mono mb-3">{t('passage.timeline')}</h2>
         <div className="flex items-end gap-[3px] h-16 border-b border-line">
           {samples.map((s, i) => (

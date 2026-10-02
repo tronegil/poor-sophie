@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './i18n';
+import './theme.css';
 import './index.css';
 
 // Last line of defence: surface uncaught errors on the page itself, so a

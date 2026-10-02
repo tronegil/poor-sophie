@@ -10,6 +10,7 @@ import { Waves, Sailboat, Ear } from 'lucide-react';
 import { bandColor, bandInk } from '../components/passage/bands';
 import Wordmark from '../components/brand/Wordmark';
 import Isobaths from '../components/brand/Isobaths';
+import ThemePicker from '../components/brand/ThemePicker';
 
 // Icons for the three "how it works" cards, in order: sea, boat, inner ear.
 const HOW_ICONS = [Waves, Sailboat, Ear];
@@ -49,6 +50,8 @@ export default function Landing() {
         <Isobaths className="absolute inset-0 w-full h-full pointer-events-none" />
         <nav className="relative max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Wordmark className="text-xl">{t('landing.brand')}</Wordmark>
+          <div className="flex items-center gap-2">
+          <ThemePicker onDeep />
           <div className="inline-flex border border-deep-on/25 rounded-full p-0.5 font-mono text-[11px]">
             {['no', 'en'].map(l => (
               <button
@@ -61,14 +64,15 @@ export default function Landing() {
               </button>
             ))}
           </div>
+          </div>
         </nav>
         <div className="relative max-w-5xl mx-auto px-4 pt-10 pb-28 sm:pt-16 sm:pb-36">
           <h1 className="max-w-3xl text-4xl sm:text-[56px] font-bold leading-[1.02]">{t('landing.title')}</h1>
-          <p className="mt-5 max-w-2xl text-base sm:text-lg text-ocean-100 leading-relaxed">{t('landing.lead')}</p>
+          <p className="mt-5 max-w-2xl text-base sm:text-lg text-deep-on/80 leading-relaxed">{t('landing.lead')}</p>
           {Array.isArray(pills) && (
             <ul className="mt-6 flex flex-wrap gap-2">
               {pills.map((p, i) => (
-                <li key={i} className="font-mono text-[11px] sm:text-xs uppercase tracking-wider border border-deep-on/25 rounded px-2 py-1 text-ocean-100">{p}</li>
+                <li key={i} className="font-mono text-[11px] sm:text-xs uppercase tracking-wider border border-deep-on/25 rounded px-2 py-1 text-deep-on/80">{p}</li>
               ))}
             </ul>
           )}

@@ -41,7 +41,7 @@ function YouTubeCard({ item, meta, onEdit, onDelete, t }) {
   const thumb = `https://img.youtube.com/vi/${item.youtube_id}/hqdefault.jpg`;
 
   return (
-    <div className="bg-white rounded-md border border-line overflow-hidden hover:border-ink-muted transition-colors">
+    <div className="bg-surface rounded-md border border-line overflow-hidden hover:border-ink-muted transition-colors">
       <div className="relative cursor-pointer group" onClick={() => setPlaying(v => !v)}>
         {playing ? (
           <div className="aspect-video w-full">
@@ -89,7 +89,7 @@ function WikiItemCard({ item, onEdit, onDelete, onOpen, t }) {
   };
 
   return (
-    <div className="bg-white rounded-md border border-line overflow-hidden hover:border-ink-muted transition-colors">
+    <div className="bg-surface rounded-md border border-line overflow-hidden hover:border-ink-muted transition-colors">
       <div className={`px-4 py-2.5 flex items-center gap-2 ${meta.bg} border-b ${meta.border}`}>
         <meta.icon size={16} strokeWidth={1.75} aria-hidden="true" />
         <span className={`text-xs font-semibold ${meta.text}`}>{t(`wiki.types.${item.type}`)}</span>
@@ -138,7 +138,7 @@ function ItemMenu({ item, onEdit, onDelete, t }) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 bottom-8 z-20 bg-white rounded-md shadow-lg border border-line py-1 min-w-[110px]">
+          <div className="absolute right-0 bottom-8 z-20 bg-surface rounded-md shadow-lg border border-line py-1 min-w-[110px]">
             <button
               onClick={() => { onEdit(item); setOpen(false); }}
               className="w-full text-left text-sm px-4 py-2 hover:bg-slate-50 text-slate-700"
@@ -162,8 +162,8 @@ function TextViewer({ item, onClose, t }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white w-full sm:max-w-2xl sm:rounded-lg rounded-t-2xl shadow-xl max-h-[88vh] overflow-hidden flex flex-col">
-        <div className="sticky top-0 bg-white border-b border-line px-5 py-4 flex items-center justify-between rounded-t-2xl shrink-0">
+      <div className="relative bg-surface w-full sm:max-w-2xl sm:rounded-lg rounded-t-2xl shadow-xl max-h-[88vh] overflow-hidden flex flex-col">
+        <div className="sticky top-0 bg-surface border-b border-line px-5 py-4 flex items-center justify-between rounded-t-2xl shrink-0">
           <div className="min-w-0">
             <h2 className="font-semibold text-slate-800 truncate">{item.title}</h2>
             {item.file_name && <p className="text-xs text-slate-400 mt-0.5">{item.file_name}</p>}
@@ -268,7 +268,7 @@ export default function Wiki() {
         </div>
         <button
           onClick={() => setModal({})}
-          className="mt-1 bg-deep text-deep-on px-4 py-2 rounded-lg text-sm font-medium hover:bg-ink transition-colors flex items-center gap-1.5 shrink-0"
+          className="mt-1 bg-deep text-deep-on px-4 py-2 rounded-lg text-sm font-medium hover:bg-deep-hover transition-colors flex items-center gap-1.5 shrink-0"
         >
           <span>+</span>
           {t('wiki.addItem')}
@@ -284,10 +284,10 @@ export default function Wiki() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={t('wiki.searchPlaceholder')}
-            className="w-full border border-slate-200 rounded-md pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-magenta bg-white"
+            className="w-full border border-slate-200 rounded-md pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-magenta bg-surface"
           />
         </div>
-        <div className="flex border border-slate-200 rounded-md overflow-hidden bg-white">
+        <div className="flex border border-slate-200 rounded-md overflow-hidden bg-surface">
           <button
             onClick={() => setGridView(true)}
             className={`px-3 py-2.5 text-sm transition-colors ${gridView ? 'bg-deep text-deep-on' : 'text-slate-500 hover:bg-slate-50'}`}
@@ -376,7 +376,7 @@ function ListItem({ item, onEdit, onDelete, onOpen, openingId, t }) {
   };
 
   return (
-    <div className="bg-white rounded-md border border-line p-4 flex items-center gap-4 hover:border-ink-muted transition-colors">
+    <div className="bg-surface rounded-md border border-line p-4 flex items-center gap-4 hover:border-ink-muted transition-colors">
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0 ${meta.bg}`}>
         <meta.icon size={18} strokeWidth={1.75} aria-hidden="true" />
       </div>

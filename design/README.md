@@ -1,6 +1,6 @@
 # Poor Sophie — designsystem
 
-> **Status: i bruk.** Tatt i bruk i `frontend/` (lys tema; Natt-temaet er ikke koblet på ennå). Levende versjon med fargeprøver, typografi og komponent-forhåndsvisninger: [Poor Sophie designsystem](https://claude.ai/artifact/GSZFJftFCbBkGjb8DDmdr8).
+> **Status: i bruk.** Tatt i bruk i `frontend/`, med både Dag og Natt. Levende versjon med fargeprøver, typografi og komponent-forhåndsvisninger: [Poor Sophie designsystem](https://claude.ai/artifact/GSZFJftFCbBkGjb8DDmdr8).
 >
 > Filer her: `tokens.json` (farger for Dag/Natt, typografi, avstand, radius, skygge), `components/bundle.css` (komponentklasser `ps-*`), og én mappe per komponent med `README.md` og `preview.html`. Forhåndsvisningene forventer CSS-variablene fra `tokens.json` (`--paper`, `--ink`, `--magenta`, `--font-display` …).
 
@@ -62,9 +62,10 @@ Poor Sophie ser ut som et sjøkart: kjølig kartpapir, dypt navy vann, sandgult 
 
 ## I koden
 
-- Tokenene speiles i `frontend/tailwind.config.js`: `paper`, `surface`, `shallow`, `land`, `line`, `ink`/`ink-muted`, `deep`/`deep-on`, `magenta`, `band-*`, og fontene `font-display`, `font-sans`, `font-mono`. `ocean` og `slate` er lagt om til samme palett, så eldre klasser følger med.
+- Fargene ligger som CSS-variabler per tema i `frontend/src/theme.css` (Dag på `:root`, Natt via `prefers-color-scheme: dark` eller `data-theme="dark"`). Temavalget (Som enheten / Dag / Natt) lagres i `localStorage` (`theme`) via `src/theme.js`, settes før første tegning i `index.html`, og velges i Innstillinger og på forsiden (`components/brand/ThemePicker`).
+- Tokenene speiles i `frontend/tailwind.config.js`, som leser variablene: `paper`, `surface`, `shallow`, `land`, `line`, `ink`/`ink-muted`, `deep`/`deep-on`, `magenta`, `band-*`, og fontene `font-display`, `font-sans`, `font-mono`. `ocean` og `slate` er lagt om til samme palett, så eldre klasser følger med.
 - `frontend/src/index.css` har `.label-mono` (etiketter) og `.data` (måleverdier), og setter `h1`/`h2` i display-fonten og magenta fokusring.
 - Båndfargene og tekstfarge på bånd ligger i `components/passage/bands.js` (`bandColor`, `bandInk`).
 - Merkevarebiter i `components/brand/`: `Wordmark` (navn + magenta prikk), `ChartTile` (kartutsnitt for båter uten bilde), `Isobaths` (dybdekurver på navy flater).
 - Ikoner: `lucide-react`, 1,75 strek.
-- Endrer du en verdi i `tokens.json`, oppdater `tailwind.config.js` og `bands.js` også.
+- Endrer du en farge i `tokens.json`, oppdater `theme.css` (og `bands.js` for båndene).

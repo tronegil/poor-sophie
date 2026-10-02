@@ -204,10 +204,10 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white w-full sm:max-w-lg sm:rounded-lg rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
+      <div className="relative bg-surface w-full sm:max-w-lg sm:rounded-lg rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
 
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-line px-5 py-4 flex items-center justify-between rounded-t-2xl">
+        <div className="sticky top-0 bg-surface border-b border-line px-5 py-4 flex items-center justify-between rounded-t-2xl">
           <h2 className="font-semibold text-slate-800">
             {isEdit ? t('wiki.form.editTitle') : t('wiki.form.addTitle')}
           </h2>
@@ -236,7 +236,7 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
                   className={`flex flex-col items-center gap-1 py-3 rounded-md border text-xs font-medium transition-colors ${
                     type === tp
                       ? 'bg-deep text-deep-on border-ocean-600'
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-ocean-300 hover:bg-ocean-50'
+                      : 'bg-surface text-slate-600 border-slate-200 hover:border-ocean-300 hover:bg-ocean-50'
                   }`}
                 >
                   {(() => { const Icon = TYPE_ICONS[tp]; return <Icon size={18} strokeWidth={1.75} aria-hidden="true" />; })()}
@@ -428,7 +428,7 @@ export default function AddItemModal({ boatId, item, onSave, onClose, t }) {
             <button
               type="submit"
               disabled={saving || uploading}
-              className="flex-1 bg-deep text-deep-on py-2.5 rounded-md text-sm font-medium hover:bg-ink disabled:opacity-60 transition-colors"
+              className="flex-1 bg-deep text-deep-on py-2.5 rounded-md text-sm font-medium hover:bg-deep-hover disabled:opacity-60 transition-colors"
             >
               {saving ? t('wiki.form.saving') : uploading ? t('wiki.form.uploading') : t('wiki.form.save')}
             </button>

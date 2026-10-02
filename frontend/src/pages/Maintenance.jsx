@@ -27,7 +27,7 @@ function TaskCard({ task, lang, logsThisYear, expanded, onExpand, onLog, onEditL
   const doneThisYear = logsThisYear.length > 0;
 
   return (
-    <div className={`bg-white rounded-md border transition-all ${task.is_active ? 'border-line' : 'border-line opacity-60'}`}>
+    <div className={`bg-surface rounded-md border transition-all ${task.is_active ? 'border-line' : 'border-line opacity-60'}`}>
       <div className="flex items-center gap-3 p-3.5">
         <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${doneThisYear ? 'bg-deep' : task.is_active ? 'bg-slate-200' : 'bg-slate-100'}`} />
         <div className="flex-1 min-w-0">
@@ -43,7 +43,7 @@ function TaskCard({ task, lang, logsThisYear, expanded, onExpand, onLog, onEditL
           {task.is_active && (
             <button
               onClick={() => onLog(task)}
-              className="bg-deep text-deep-on text-xs px-3 py-1.5 rounded-lg hover:bg-ink transition-colors"
+              className="bg-deep text-deep-on text-xs px-3 py-1.5 rounded-lg hover:bg-deep-hover transition-colors"
             >
               + {t('maintenance.doneThisYear')}
             </button>
@@ -106,7 +106,7 @@ function TaskMenu({ task, onToggle, onDelete, t }) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-8 z-20 bg-white rounded-md shadow-lg border border-line py-1 min-w-[130px]">
+          <div className="absolute right-0 top-8 z-20 bg-surface rounded-md shadow-lg border border-line py-1 min-w-[130px]">
             <button
               onClick={() => { onToggle(); setOpen(false); }}
               className="w-full text-left text-sm px-4 py-2 hover:bg-slate-50 text-slate-700"
@@ -246,14 +246,14 @@ export default function Maintenance() {
         <select
           value={selectedYear}
           onChange={e => setSelectedYear(Number(e.target.value))}
-          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-magenta mt-1"
+          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-surface focus:outline-none focus:ring-2 focus:ring-magenta mt-1"
         >
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
       </div>
 
       {/* Season tabs */}
-      <div className="flex border-b border-slate-200 bg-white rounded-t-xl overflow-hidden">
+      <div className="flex border-b border-slate-200 bg-surface rounded-t-xl overflow-hidden">
         {SEASONS.map(s => (
           <button
             key={s}
@@ -333,7 +333,7 @@ export default function Maintenance() {
             />
             <button
               type="submit"
-              className="bg-deep text-deep-on text-sm px-4 py-2.5 rounded-md hover:bg-ink font-medium"
+              className="bg-deep text-deep-on text-sm px-4 py-2.5 rounded-md hover:bg-deep-hover font-medium"
             >
               {t('maintenance.task.add')}
             </button>

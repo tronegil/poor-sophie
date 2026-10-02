@@ -92,7 +92,7 @@ export default function Admin() {
 
       {/* Users table */}
       {tab === 'users' && (
-        <div className="bg-white rounded-md border border-line overflow-hidden">
+        <div className="bg-surface rounded-md border border-line overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -134,7 +134,7 @@ export default function Admin() {
 
       {/* Boats table */}
       {tab === 'boats' && (
-        <div className="bg-white rounded-md border border-line overflow-hidden">
+        <div className="bg-surface rounded-md border border-line overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>

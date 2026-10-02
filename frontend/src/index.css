@@ -43,3 +43,27 @@
   padding: 0;
 }
 .leaflet-tooltip.wp-label::before { display: none; }
+
+/* Leaflet map in both themes (.ps-map is set on the MapContainer). Only the
+   tiles are filtered; the route, markers and tooltips keep their real colours. */
+.ps-map { background: rgb(var(--c-shallow)); }
+.ps-map .leaflet-tile-pane { filter: var(--map-tiles-filter); }
+.ps-map .leaflet-bar { border-color: rgb(var(--c-line)); }
+.ps-map .leaflet-bar a,
+.ps-map .leaflet-bar a:hover {
+  background: rgb(var(--c-surface));
+  color: rgb(var(--c-ink));
+  border-bottom-color: rgb(var(--c-line));
+}
+.ps-map .leaflet-bar a:hover { background: rgb(var(--c-shallow)); }
+.ps-map.leaflet-container .leaflet-control-attribution {
+  background: rgb(var(--c-surface) / 0.8);
+  color: rgb(var(--c-ink-muted));
+}
+.ps-map.leaflet-container .leaflet-control-attribution a { color: rgb(var(--c-magenta)); }
+.ps-map .leaflet-tooltip:not(.wp-label) {
+  background: rgb(var(--c-surface));
+  color: rgb(var(--c-ink));
+  border-color: rgb(var(--c-line));
+}
+.ps-map .leaflet-tooltip-top:not(.wp-label)::before { border-top-color: rgb(var(--c-surface)); }

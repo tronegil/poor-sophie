@@ -34,7 +34,7 @@ export default function PassageMap({ waypoints, result, onAddWaypoint, center = 
   const legs = result?.legs ?? [];
 
   return (
-    <MapContainer center={center} zoom={zoom} className={`${heightClass} w-full rounded-lg z-0`} scrollWheelZoom={scrollWheelZoom}>
+    <MapContainer center={center} zoom={zoom} className={`ps-map ${heightClass} w-full rounded-lg z-0`} scrollWheelZoom={scrollWheelZoom}>
       <TileLayer url={OSM} attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
       <TileLayer url={SJOKART} attribution='© <a href="https://www.kartverket.no">Kartverket</a>' opacity={0.9} />
       <ClickHandler onClick={onAddWaypoint} />

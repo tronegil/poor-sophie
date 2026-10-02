@@ -47,6 +47,7 @@ Poor Sophie ser ut som et sjøkart: kjølig kartpapir, dypt navy vann, sandgult 
 - Ruten tegnes i `magenta`, 3px, med veipunkter som hvite sirkler med `magenta`-kant og mono-tall.
 - Kartrammen er `surface` med `line`-kant og `radius-md`.
 - Fargelegging av ruten etter score bruker båndfargene, aldri magenta.
+- I Natt blir kartflisene invertert til et nattkart (`--map-tiles-filter` i `theme.css`), og zoomknapper og kildehenvisning følger temaet. Ruten og markørene beholder fargene sine.
 
 ## Tilstander
 

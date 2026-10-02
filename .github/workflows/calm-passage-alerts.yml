@@ -1,0 +1,30 @@
+# Runs the calm-passage alert check every three hours: the backend rescores
+# every watched saved passage for the next 48 h and sends push alerts.
+#
+# Needs two repository settings (Settings → Secrets and variables → Actions):
+#   secret   WATCH_CRON_SECRET  same value as the backend env var
+#   variable APP_URL            e.g. https://your-app.vercel.app (no trailing slash)
+name: Calm-passage alerts
+
+on:
+  schedule:
+    - cron: '17 */3 * * *'   # every 3 h, off the top of the hour
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check watched passages
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          WATCH_CRON_SECRET: ${{ secrets.WATCH_CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$WATCH_CRON_SECRET" ]; then
+            echo "::notice::APP_URL or WATCH_CRON_SECRET is not set; skipping."
+            exit 0
+          fi
+          curl -fsS --max-time 90 -X POST \
+            -H "Authorization: Bearer $WATCH_CRON_SECRET" \
+            "$APP_URL/api/watches/run"

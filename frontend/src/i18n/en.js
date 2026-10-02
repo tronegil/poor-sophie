@@ -247,6 +247,23 @@ export default {
     lastResult: 'Last scored {{when}}. The forecast may have changed since.',
     offlineShowing: 'You’re offline. This is the last passage you scored; recalculate when you have signal.',
     offlineNoResult: 'You’re offline. The score needs a fresh forecast, so press Calculate when you have signal.',
+    watch: {
+      off: 'Alert for {{name}}: off',
+      on: 'Alert for {{name}}: when a departure is {{band}} or calmer',
+      prompt: 'Alert me when the next 48 hours hold a departure that is:',
+      under: '{{band}} (under {{n}})',
+      turnOff: 'Turn alert off',
+      how: 'We check the passage every three hours and alert this device when a departure is calm enough. You won’t get the same departure twice.',
+      errors: {
+        IOS_INSTALL: 'On iPhone the app must be on the Home Screen to send alerts. Tap Share, then “Add to Home Screen”, and turn the alert on from there.',
+        UNSUPPORTED: 'This browser can’t show alerts.',
+        NOT_CONFIGURED: 'Alerts aren’t set up on the server yet.',
+        DENIED: 'Notifications are blocked for this site. Allow them in your browser settings and try again.',
+        NO_WORKER: 'Alerts only work in the published app, not in development mode.',
+        TOO_MANY_WATCHES: 'You can have alerts on up to 10 passages. Turn another one off first.',
+        GENERIC: 'Couldn’t turn the alert on. Try again.',
+      },
+    },
     draw: {
       start: 'Tap the map where the passage starts',
       next: 'Tap where you’re going. Add more points to round headlands and skerries.',

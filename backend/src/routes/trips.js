@@ -6,7 +6,9 @@ const { authenticate } = require('../middleware/auth');
 const MAX_TRIPS_PER_BOAT = 50;
 const MAX_WAYPOINTS = 12;
 const CREWS = ['seasoned', 'mixed', 'novice'];
-const COLUMNS = 'id, name, waypoints, speed_kn, crew, created_at, updated_at';
+const COLUMNS = 'id, name, waypoints, speed_kn, crew, watch_threshold, watch_notified_at, created_at, updated_at';
+const WATCH_THRESHOLDS = [2, 4, 6]; // under Flat calm, Comfortable or Uncomfortable
+const MAX_WATCHES_PER_USER = 10;
 
 /**
  * Validates a trip body. Returns { error } or the clean fields.
@@ -29,7 +31,7 @@ function parseTrip(body) {
   return { name, waypoints, speedKn: Math.round(speed * 10) / 10, crew };
 }
 
-const toJson = row => ({ ...row, speed_kn: Number(row.speed_kn) });
+const toJson = row => ({ ...row, speed_kn: Number(row.speed_kn), watch_threshold: row.watch_threshold == null ? null : Number(row.watch_threshold) });
 
 async function requireBoatOwner(req, res) {
   const { rows } = await pool.query('SELECT id, user_id FROM boats WHERE id = $1', [req.params.boatId]);
@@ -65,6 +67,27 @@ router.put('/:tripId', authenticate, async (req, res) => {
     `UPDATE trips SET name = $1, waypoints = $2, speed_kn = $3, crew = $4, updated_at = NOW()
      WHERE id = $5 AND boat_id = $6 RETURNING ${COLUMNS}`,
     [t.name, JSON.stringify(t.waypoints), t.speedKn, t.crew, req.params.tripId, req.params.boatId]
+  );
+  if (!rows.length) return res.status(404).json({ error: 'Trip not found' });
+  res.json(toJson(rows[0]));
+});
+
+// Turn the calm-passage alert on (threshold 2, 4 or 6) or off (null).
+router.put('/:tripId/watch', authenticate, async (req, res) => {
+  if (!(await requireBoatOwner(req, res))) return;
+  const raw = req.body?.threshold;
+  const threshold = raw == null ? null : Number(raw);
+  if (threshold != null && !WATCH_THRESHOLDS.includes(threshold)) return res.status(400).json({ error: `threshold must be one of ${WATCH_THRESHOLDS.join(', ')} or null` });
+  if (threshold != null) {
+    const { rows: [{ n }] } = await pool.query(
+      'SELECT COUNT(*)::int AS n FROM trips WHERE user_id = $1 AND watch_threshold IS NOT NULL AND id <> $2', [req.user.id, req.params.tripId]
+    );
+    if (n >= MAX_WATCHES_PER_USER) return res.status(409).json({ error: `Max ${MAX_WATCHES_PER_USER} alerts`, code: 'TOO_MANY_WATCHES' });
+  }
+  const { rows } = await pool.query(
+    `UPDATE trips SET watch_threshold = $1, watch_checked_at = NULL, watch_notified_departure = NULL
+     WHERE id = $2 AND boat_id = $3 RETURNING ${COLUMNS}`,
+    [threshold, req.params.tripId, req.params.boatId]
   );
   if (!rows.length) return res.status(404).json({ error: 'Trip not found' });
   res.json(toJson(rows[0]));

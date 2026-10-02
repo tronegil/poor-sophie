@@ -36,6 +36,8 @@ const passageRoutes = require('./src/routes/passage');
 const publicPassageRoutes = require('./src/routes/publicPassage');
 const placeRoutes = require('./src/routes/places');
 const tripRoutes = require('./src/routes/trips');
+const pushRoutes = require('./src/routes/push');
+const watchRoutes = require('./src/routes/watches');
 
 const app = express();
 
@@ -67,6 +69,8 @@ app.use('/boats/:boatId/passage', passageRoutes);
 app.use('/boats/:boatId/trips', tripRoutes);
 app.use('/passage', publicPassageRoutes); // public, no auth — landing page
 app.use('/places', placeRoutes);          // public place-name search for the map
+app.use('/push', pushRoutes);               // web push subscriptions
+app.use('/watches', watchRoutes);           // scheduled calm-passage check (secret)
 app.use('/users', userRoutes);
 app.use('/admin', adminRoutes);
 app.get('/health', (_req, res) => res.json({ ok: true }));

@@ -34,6 +34,7 @@ const chatRoutes = require('./src/routes/chat');
 const adminRoutes = require('./src/routes/admin');
 const passageRoutes = require('./src/routes/passage');
 const publicPassageRoutes = require('./src/routes/publicPassage');
+const placeRoutes = require('./src/routes/places');
 
 const app = express();
 
@@ -63,6 +64,7 @@ app.use('/boats/:boatId/wiki', wikiRoutes);
 app.use('/boats/:boatId/chat', chatRoutes);
 app.use('/boats/:boatId/passage', passageRoutes);
 app.use('/passage', publicPassageRoutes); // public, no auth — landing page
+app.use('/places', placeRoutes);          // public place-name search for the map
 app.use('/users', userRoutes);
 app.use('/admin', adminRoutes);
 app.get('/health', (_req, res) => res.json({ ok: true }));

@@ -1,10 +1,12 @@
 import { BOAT_PRESETS, CUSTOM_ID } from './boatPresets';
+import { isCrew, DEFAULT_CREW } from './crew';
 
 // A shared trip lives in the landing page's query string, so anyone can open
 // it without an account:
 //   /?r=59.0123,5.6789;59.1,5.8&t=2026-10-03T06:00:00.000Z&s=5.5&b=bavaria32
 // A boat that isn't a preset carries its hull data instead of `b`:
 //   …&b=custom&loa=10.4&disp=5200&hull=monohull&keel=long&n=Poor%20Sophie
+// and a crew other than the default adds `c=seasoned` or `c=novice`.
 
 const HULLS = ['monohull', 'catamaran', 'trimaran'];
 const KEELS = ['fin', 'long', 'bilge', 'lifting', 'centerboard'];
@@ -24,7 +26,7 @@ function presetFor(boat) {
  * @param {{waypoints:{lat:number,lon:number}[], departure:string|Date, speed:number|string, boat:object}} trip
  * @param {string} [origin] defaults to the current site
  */
-export function buildShareUrl({ waypoints, departure, speed, boat }, origin = window.location.origin) {
+export function buildShareUrl({ waypoints, departure, speed, boat, crew }, origin = window.location.origin) {
   const q = new URLSearchParams();
   q.set('r', waypoints.map(w => `${r4(w.lat)},${r4(w.lon)}`).join(';'));
   q.set('t', new Date(departure).toISOString());
@@ -40,6 +42,7 @@ export function buildShareUrl({ waypoints, departure, speed, boat }, origin = wi
     if (boat.keel_type) q.set('keel', boat.keel_type);
     if (boat.name) q.set('n', String(boat.name).slice(0, 60));
   }
+  if (crew && crew !== DEFAULT_CREW && isCrew(crew)) q.set('c', crew);
   // Commas and semicolons are safe in a query and keep the route readable.
   return `${origin}/?${q.toString().replace(/%2C/g, ',').replace(/%3B/g, ';').replace(/%3A/g, ':')}`;
 }
@@ -80,5 +83,6 @@ export function parseShareParams(search) {
       keel_type: KEELS.includes(q.get('keel')) ? q.get('keel') : 'fin',
     };
   }
-  return { waypoints, departure, speed, boat };
+  const crew = isCrew(q.get('c')) ? q.get('c') : null;
+  return { waypoints, departure, speed, boat, crew };
 }

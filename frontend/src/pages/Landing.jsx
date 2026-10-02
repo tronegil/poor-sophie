@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link2 } from 'lucide-react';
+import { Link2, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../api/client';
@@ -29,6 +29,25 @@ function loadBoat() {
 }
 
 // Public front page: the seasickness index for anyone, no account needed.
+const ROUTE_KEY = 'passage:public';
+
+// What a first-time visitor sees instead of an empty chart: the open crossing
+// of Boknafjorden from Tananger to Skudeneshavn, south of Kvitsøy, already scored.
+const EXAMPLE_TRIP = {
+  waypoints: [
+    { lat: 58.937, lon: 5.570 },
+    { lat: 58.980, lon: 5.450 },
+    { lat: 59.020, lon: 5.330 },
+    { lat: 59.100, lon: 5.270 },
+    { lat: 59.142, lon: 5.262 },
+  ],
+  speed: 5.5,
+};
+
+function hasOwnRoute() {
+  try { return (JSON.parse(localStorage.getItem(ROUTE_KEY))?.waypoints?.length ?? 0) > 0; } catch { return false; }
+}
+
 // A shared trip in the URL, read once. The query is then removed so a reload
 // or further edits behave like normal use.
 // Cached at module level so React's double-invoked initialisers (StrictMode)
@@ -47,6 +66,14 @@ export default function Landing() {
   const [shared] = useState(takeSharedTrip);
   // Opened once: coming back to the page later starts from your own last route.
   useEffect(() => { sharedTrip = null; }, []);
+  const [example, setExample] = useState(() => !shared && !hasOwnRoute());
+  const [plannerKey, setPlannerKey] = useState(0);
+  // Remount the planner on an empty chart, dropping the example route.
+  const drawOwn = () => {
+    try { localStorage.setItem(ROUTE_KEY, JSON.stringify({ ...JSON.parse(localStorage.getItem(ROUTE_KEY) || '{}'), waypoints: [] })); } catch { /* ignore */ }
+    setExample(false);
+    setPlannerKey(k => k + 1);
+  };
   const [boat, setBoat] = useState(() => (shared?.boat ? { ...shared.boat, name: shared.boat.name || t('landing.customBoat') } : loadBoat()));
 
   const changeBoat = b => { setBoat(b); try { localStorage.setItem(BOAT_KEY, JSON.stringify(b)); } catch { /* ignore */ } };
@@ -105,13 +132,21 @@ export default function Landing() {
               {t('passage.shared')}
             </p>
           )}
+          {example && (
+            <div className="relative z-10 mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm bg-surface border border-line rounded-lg px-4 py-2.5 text-ink shadow-panel">
+              <Sparkles size={16} strokeWidth={1.75} className="text-magenta shrink-0" aria-hidden="true" />
+              <p className="flex-1 min-w-[14rem]">{t('landing.example')}</p>
+              <button type="button" onClick={drawOwn} className="font-medium text-magenta hover:underline underline-offset-4">{t('landing.drawOwn')}</button>
+            </div>
+          )}
           <PassagePlanner
-            storageKey="passage:public"
+            key={plannerKey}
+            storageKey={ROUTE_KEY}
             score={score}
             scoreWindow={scoreWindow}
             windowKey={JSON.stringify(boatPayload)}
             shareBoat={boat}
-            initial={shared}
+            initial={plannerKey === 0 ? (shared ?? (example ? EXAMPLE_TRIP : null)) : null}
             mapHeight="h-[24rem] sm:h-[32rem]"
             mapScrollZoom={false}
             extraControls={<BoatPicker value={boat} onChange={changeBoat} inputClass={inputClass} />}

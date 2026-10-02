@@ -32,12 +32,22 @@ const midIcon = L.divIcon({ className: 'wp-mid', html: '<span></span>', iconSize
 
 const toWp = latlng => ({ lat: latlng.lat, lon: latlng.lng });
 
+// Fly to a searched place; `focus.seq` changes on every pick so picking the
+// same place twice still moves the map.
+function FlyTo({ focus }) {
+  const map = useMap();
+  useEffect(() => {
+    if (focus) map.flyTo([focus.lat, focus.lon], Math.max(map.getZoom(), 12), { duration: 0.8 });
+  }, [focus?.seq]); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
+}
+
 function ClickHandler({ onClick }) {
   useMapEvents({ click: e => onClick({ lat: e.latlng.lat, lon: e.latlng.lng }) });
   return null;
 }
 
-export default function PassageMap({ waypoints, result, onAddWaypoint, onMoveWaypoint, onRemoveWaypoint, onInsertWaypoint, maxWaypoints = 12, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, heightClass = 'h-80 sm:h-96', scrollWheelZoom = true }) {
+export default function PassageMap({ waypoints, result, onAddWaypoint, onMoveWaypoint, onRemoveWaypoint, onInsertWaypoint, maxWaypoints = 12, focus = null, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, heightClass = 'h-80 sm:h-96', scrollWheelZoom = true }) {
   const { t } = useTranslation();
   const { num, time } = useFormat();
   const mapRef = useRef(null);
@@ -57,6 +67,7 @@ export default function PassageMap({ waypoints, result, onAddWaypoint, onMoveWay
       <TileLayer url={SJOKART} attribution='© <a href="https://www.kartverket.no">Kartverket</a>' opacity={0.9} />
       <ClickHandler onClick={onAddWaypoint} />
       <FitOnce points={path} />
+      <FlyTo focus={focus} />
 
       {/* Route: one grey line while planning, one coloured line per leg once scored */}
       {!result && path.length > 1 && <Polyline positions={path} pathOptions={{ color: '#b0186f', weight: 3, dashArray: '6 6' }} />}

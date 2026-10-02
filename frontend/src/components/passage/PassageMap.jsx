@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { bandColor } from './bands';
+import { useFormat } from '../../i18n/format';
 
 // Kartverket's open nautical chart tiles cover Norwegian waters; OSM underneath
 // fills in everything else (Skagen, Sweden, open sea).
@@ -28,6 +29,7 @@ function ClickHandler({ onClick }) {
 }
 
 export default function PassageMap({ waypoints, result, onAddWaypoint, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, heightClass = 'h-80 sm:h-96', scrollWheelZoom = true }) {
+  const { num, time } = useFormat();
   const path = waypoints.map(w => [w.lat, w.lon]);
   const legs = result?.legs ?? [];
 
@@ -51,8 +53,8 @@ export default function PassageMap({ waypoints, result, onAddWaypoint, center = 
       {result?.samples?.filter(s => !s.noData).map((s, i) => (
         <CircleMarker key={i} center={[s.lat, s.lon]} radius={5} pathOptions={{ color: '#fff', weight: 1.5, fillColor: bandColor(s.band), fillOpacity: 1 }}>
           <Tooltip direction="top" offset={[0, -6]}>
-            <span className="font-semibold">{s.score}</span> · {new Date(s.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            {s.wave && <> · {s.wave.hs?.toFixed(1)} m / {s.wave.tp?.toFixed(0)} s</>}
+            <span className="font-semibold">{num(s.score)}</span> · {time(s.time)}
+            {s.wave && <> · {num(s.wave.hs)} m / {num(s.wave.tp, 0)} s</>}
           </Tooltip>
         </CircleMarker>
       ))}

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { bandColor, bandFor, bandInk } from './bands';
+import { useFormat, formatNumber } from '../../i18n/format';
 
-const fmtTime = iso => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
 // Arrow pointing the way the wind/wave is travelling: "from" north → points down.
 function Dir({ from }) {
@@ -13,18 +13,19 @@ function Dir({ from }) {
 // per-boat page and the public landing page.
 export default function PassageResults({ result }) {
   const { t } = useTranslation();
+  const { num, time: fmtTime } = useFormat();
   const samples = result.samples.filter(s => !s.noData);
   const estimated = result.sources?.some(s => s.includes('estimated'));
 
   const factorText = f => {
     const p = f.params || {};
     return t(`passage.factor.${f.key}`, {
-      te: p.encounterPeriod != null ? p.encounterPeriod.toFixed(1) : '?',
-      hs: p.hs != null ? p.hs.toFixed(1) : '?',
-      steepness: p.steepness != null ? p.steepness.toFixed(3) : '?',
+      te: p.encounterPeriod != null ? num(p.encounterPeriod, 1) : '?',
+      hs: p.hs != null ? num(p.hs, 1) : '?',
+      steepness: p.steepness != null ? num(p.steepness, 3) : '?',
       keel: p.keel ? t(`boat.keel.${p.keel}`).toLowerCase() : '',
       angle: p.angle ?? '?',
-      currentKn: p.currentKn != null ? p.currentKn.toFixed(1) : '?',
+      currentKn: p.currentKn != null ? num(p.currentKn, 1) : '?',
       hours: p.hours ?? '?',
     });
   };
@@ -35,12 +36,12 @@ export default function PassageResults({ result }) {
       <div className="grid sm:grid-cols-3 gap-4">
         <div className="sm:col-span-2 bg-surface rounded-lg border border-line p-5 flex items-center gap-6">
           <p className="font-display font-extrabold text-ink text-6xl sm:text-7xl leading-[0.9] tracking-tight tabular-nums shrink-0">
-            {result.total.score.toFixed(1)}<span className="font-mono font-medium text-lg text-ink-muted tracking-normal ml-0.5">/10</span>
+            {num(result.total.score)}<span className="font-mono font-medium text-lg text-ink-muted tracking-normal ml-0.5">/10</span>
           </p>
           <div className="min-w-0 space-y-2">
             <p className="label-mono">{t('passage.total')}</p>
             <BandBadge band={result.total.band} score={result.total.score} label={t(`passage.band.${result.total.band}`)} />
-            <p className="data text-sm text-ink-muted">{t('passage.duration', { hours: result.totalHours, nm: result.totalNm })}</p>
+            <p className="data text-sm text-ink-muted">{t('passage.duration', { hours: num(result.totalHours), nm: num(result.totalNm) })}</p>
             <p className="data text-xs text-ink-muted">{t('passage.msi', { pct: result.total.msiPercent })}</p>
           </div>
         </div>
@@ -81,7 +82,7 @@ export default function PassageResults({ result }) {
               key={i}
               className="rounded-t-[3px] min-h-[4px]"
               style={{ flex: s.durationH, height: `${Math.max(6, s.score * 10)}%`, background: bandColor(s.band) }}
-              title={`${fmtTime(s.time)} · ${s.score.toFixed(1)}`}
+              title={`${fmtTime(s.time)} · ${num(s.score)}`}
             />
           ))}
         </div>
@@ -108,19 +109,19 @@ export default function PassageResults({ result }) {
                   <td className="px-2 py-1.5 text-slate-600 whitespace-nowrap">{fmtTime(s.time)}</td>
                   <td className="px-2 py-1.5 text-slate-500">{s.leg + 1}</td>
                   <td className="px-2 py-1.5 text-slate-700 whitespace-nowrap">
-                    <Dir from={s.wave.waveFrom} /> {s.wave.hs?.toFixed(1)} m · {s.wave.tp?.toFixed(0)} s
+                    <Dir from={s.wave.waveFrom} /> {num(s.wave.hs)} m · {num(s.wave.tp, 0)} s
                     {s.wave.sea?.hs > 0.2 && s.wave.swell?.hs > 0.2 && s.wave.swell.hs < 0.9 * s.wave.hs && (
-                      <span className="text-slate-400"> · {t('passage.swell')} {s.wave.swell.hs.toFixed(1)} m/{s.wave.swell.tp?.toFixed(0)} s</span>
+                      <span className="text-slate-400"> · {t('passage.swell')} {num(s.wave.swell.hs)} m/{num(s.wave.swell.tp, 0)} s</span>
                     )}
                   </td>
                   <td className="px-2 py-1.5 text-slate-700 whitespace-nowrap">
-                    {s.wave.windSpeed != null ? <><Dir from={s.wave.windFrom} /> {s.wave.windSpeed.toFixed(0)} m/s</> : '—'}
+                    {s.wave.windSpeed != null ? <><Dir from={s.wave.windFrom} /> {num(s.wave.windSpeed, 0)} m/s</> : '—'}
                   </td>
                   <td className="px-2 py-1.5 text-slate-700 whitespace-nowrap">
-                    {s.wave.currentSpeed != null ? `${(s.wave.currentSpeed / 0.5144).toFixed(1)} kn` : '—'}
+                    {s.wave.currentSpeed != null ? `${num(s.wave.currentSpeed / 0.5144)} kn` : '—'}
                   </td>
                   <td className="px-2 py-1.5 text-right">
-                    <span className="inline-block min-w-[2.75rem] text-center text-xs font-semibold rounded px-2 py-0.5" style={{ background: bandColor(s.band), color: bandInk(s.band) }}>{s.score.toFixed(1)}</span>
+                    <span className="inline-block min-w-[2.75rem] text-center text-xs font-semibold rounded px-2 py-0.5" style={{ background: bandColor(s.band), color: bandInk(s.band) }}>{num(s.score)}</span>
                   </td>
                 </tr>
               ))}
@@ -136,9 +137,10 @@ export default function PassageResults({ result }) {
 
 // Score pill: number and band name together, never colour alone.
 function BandBadge({ band, score, label }) {
+  const { i18n } = useTranslation();
   return (
     <span className="inline-flex items-center gap-2 rounded-full pl-1 pr-3 py-1 text-sm font-semibold" style={{ background: bandColor(band), color: bandInk(band) }}>
-      <b className="data text-[13px] rounded-full px-2 py-1 bg-white/35">{score.toFixed(1)}</b>
+      <b className="data text-[13px] rounded-full px-2 py-1 bg-white/35">{formatNumber(score, 1, i18n.language)}</b>
       {label}
     </span>
   );

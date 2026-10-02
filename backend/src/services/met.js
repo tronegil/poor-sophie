@@ -41,17 +41,19 @@ async function getWind(lat, lon, date) {
   };
 }
 
+function windFrom(ts) {
+  const d = ts?.data?.instant?.details;
+  if (!d) return null;
+  return { windSpeed: d.wind_speed ?? null, windGust: d.wind_speed_of_gust ?? null, windFrom: d.wind_from_direction ?? null };
+}
+
 // Oceanforecast has no wave period, so Tp is estimated from Hs using the
 // wind-sea rule of thumb Tp ≈ 4·√Hs. Marked in `source` so the UI can say so.
-async function getOceanFallback(lat, lon, date) {
-  const data = await cachedJson(`https://api.met.no/weatherapi/oceanforecast/2.0/complete?lat=${round(lat)}&lon=${round(lon)}`);
-  const ts = nearestSeries(data.properties.timeseries, date);
-  if (!ts) return null;
+function oceanStep(ts, wind) {
   const d = ts.data.instant.details;
   if (d.sea_surface_wave_height == null) return null;
   const hs = d.sea_surface_wave_height;
   const tp = Math.min(12, Math.max(3, 4 * Math.sqrt(hs)));
-  const wind = await getWind(lat, lon, date).catch(() => null);
   return {
     source: 'met-oceanforecast-estimated-period',
     validTime: ts.time,
@@ -70,4 +72,24 @@ async function getOceanFallback(lat, lon, date) {
   };
 }
 
-module.exports = { getWind, getOceanFallback };
+async function getOceanFallback(lat, lon, date) {
+  const data = await cachedJson(`https://api.met.no/weatherapi/oceanforecast/2.0/complete?lat=${round(lat)}&lon=${round(lon)}`);
+  const ts = nearestSeries(data.properties.timeseries, date);
+  if (!ts) return null;
+  const wind = await getWind(lat, lon, date).catch(() => null);
+  return oceanStep(ts, wind);
+}
+
+// Every oceanforecast step between `from` and `to` (±3 h), oldest first.
+async function getOceanSeries(lat, lon, from, to) {
+  const data = await cachedJson(`https://api.met.no/weatherapi/oceanforecast/2.0/complete?lat=${round(lat)}&lon=${round(lon)}`);
+  const lo = from.getTime() - 3 * 3600e3, hi = to.getTime() + 3 * 3600e3;
+  const steps = data.properties.timeseries.filter(ts => { const t = new Date(ts.time).getTime(); return t >= lo && t <= hi; });
+  if (!steps.length) return [];
+  const windData = await cachedJson(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${round(lat)}&lon=${round(lon)}`).catch(() => null);
+  return steps
+    .map(ts => oceanStep(ts, windData ? windFrom(nearestSeries(windData.properties.timeseries, new Date(ts.time))) : null))
+    .filter(Boolean);
+}
+
+module.exports = { getWind, getOceanFallback, getOceanSeries };

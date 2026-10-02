@@ -1,5 +1,7 @@
-import { useEffect } from 'react';
-import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMapEvents, useMap } from 'react-leaflet';
+import { useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Polyline, CircleMarker, Marker, Popup, Tooltip, useMapEvents, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import { useTranslation } from 'react-i18next';
 import 'leaflet/dist/leaflet.css';
 import { bandColor } from './bands';
 import { useFormat } from '../../i18n/format';
@@ -23,18 +25,34 @@ function FitOnce({ points }) {
   return null;
 }
 
+// Numbered waypoint you can drag; a hollow handle on each leg's midpoint that
+// inserts a new waypoint there when tapped or dragged.
+const waypointIcon = n => L.divIcon({ className: 'wp-icon', html: `<span>${n}</span>`, iconSize: [26, 26], iconAnchor: [13, 13], popupAnchor: [0, -14] });
+const midIcon = L.divIcon({ className: 'wp-mid', html: '<span></span>', iconSize: [18, 18], iconAnchor: [9, 9] });
+
+const toWp = latlng => ({ lat: latlng.lat, lon: latlng.lng });
+
 function ClickHandler({ onClick }) {
   useMapEvents({ click: e => onClick({ lat: e.latlng.lat, lon: e.latlng.lng }) });
   return null;
 }
 
-export default function PassageMap({ waypoints, result, onAddWaypoint, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, heightClass = 'h-80 sm:h-96', scrollWheelZoom = true }) {
+export default function PassageMap({ waypoints, result, onAddWaypoint, onMoveWaypoint, onRemoveWaypoint, onInsertWaypoint, maxWaypoints = 12, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, heightClass = 'h-80 sm:h-96', scrollWheelZoom = true }) {
+  const { t } = useTranslation();
   const { num, time } = useFormat();
+  const mapRef = useRef(null);
+  const editable = !!onMoveWaypoint;
+  const full = waypoints.length >= maxWaypoints;
+  const hint = full ? t('passage.draw.full', { n: maxWaypoints })
+    : waypoints.length === 0 ? t('passage.draw.start')
+    : waypoints.length === 1 ? t('passage.draw.next')
+    : !result && editable ? t('passage.draw.edit') : null;
   const path = waypoints.map(w => [w.lat, w.lon]);
   const legs = result?.legs ?? [];
 
   return (
-    <MapContainer center={center} zoom={zoom} className={`ps-map ${heightClass} w-full rounded-lg z-0`} scrollWheelZoom={scrollWheelZoom}>
+    <div className="relative">
+    <MapContainer ref={mapRef} center={center} zoom={zoom} className={`ps-map ${heightClass} w-full rounded-lg z-0`} scrollWheelZoom={scrollWheelZoom}>
       <TileLayer url={OSM} attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
       <TileLayer url={SJOKART} attribution='© <a href="https://www.kartverket.no">Kartverket</a>' opacity={0.9} />
       <ClickHandler onClick={onAddWaypoint} />
@@ -59,11 +77,53 @@ export default function PassageMap({ waypoints, result, onAddWaypoint, center = 
         </CircleMarker>
       ))}
 
+      {editable && !full && waypoints.slice(1).map((w, i) => {
+        const a = waypoints[i];
+        const mid = [(a.lat + w.lat) / 2, (a.lon + w.lon) / 2];
+        return (
+          <Marker
+            key={`mid-${i}-${a.lat}-${w.lat}`}
+            position={mid}
+            icon={midIcon}
+            draggable
+            title={t('passage.draw.insert')}
+            eventHandlers={{
+              click: () => onInsertWaypoint(i + 1, { lat: mid[0], lon: mid[1] }),
+              dragend: e => onInsertWaypoint(i + 1, toWp(e.target.getLatLng())),
+            }}
+          />
+        );
+      })}
+
       {waypoints.map((w, i) => (
-        <CircleMarker key={`wp-${i}`} center={[w.lat, w.lon]} radius={9} pathOptions={{ color: '#fff', weight: 2, fillColor: '#b0186f', fillOpacity: 1 }}>
-          <Tooltip permanent direction="center" className="wp-label">{i + 1}</Tooltip>
-        </CircleMarker>
+        editable ? (
+          <Marker
+            key={`wp-${i}`}
+            position={[w.lat, w.lon]}
+            icon={waypointIcon(i + 1)}
+            draggable
+            keyboard
+            title={t('passage.draw.pointTitle', { n: i + 1 })}
+            eventHandlers={{ dragend: e => onMoveWaypoint(i, toWp(e.target.getLatLng())) }}
+          >
+            <Popup closeButton={false} className="wp-popup">
+              <button type="button" onClick={() => { mapRef.current?.closePopup(); onRemoveWaypoint(i); }} className="text-sm font-medium text-band-ashore hover:underline">
+                {t('passage.draw.remove', { n: i + 1 })}
+              </button>
+            </Popup>
+          </Marker>
+        ) : (
+          <CircleMarker key={`wp-${i}`} center={[w.lat, w.lon]} radius={9} pathOptions={{ color: '#fff', weight: 2, fillColor: '#b0186f', fillOpacity: 1 }}>
+            <Tooltip permanent direction="center" className="wp-label">{i + 1}</Tooltip>
+          </CircleMarker>
+        )
       ))}
     </MapContainer>
+    {hint && (
+      <p className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 z-[400] max-w-[80%] text-center text-xs sm:text-sm font-medium bg-surface/95 text-ink border border-line rounded-full px-3.5 py-1.5 shadow-panel" role="status">
+        {hint}
+      </p>
+    )}
+    </div>
   );
 }

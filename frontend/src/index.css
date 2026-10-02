@@ -67,3 +67,24 @@
   border-color: rgb(var(--c-line));
 }
 .ps-map .leaflet-tooltip-top:not(.wp-label)::before { border-top-color: rgb(var(--c-surface)); }
+
+/* Draggable waypoints and the midpoint "insert here" handles. */
+.wp-icon span {
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 9999px;
+  background: #b0186f; color: #fff; border: 2px solid #fff;
+  font: 500 12px/1 "IBM Plex Mono", ui-monospace, monospace;
+  box-shadow: 0 1px 3px rgba(0,0,0,.35);
+  cursor: grab;
+}
+.wp-icon:active span { cursor: grabbing; }
+.wp-mid span {
+  display: block; width: 18px; height: 18px; border-radius: 9999px;
+  background: rgb(var(--c-surface)); border: 2px solid #b0186f;
+  cursor: copy; opacity: .85; transition: opacity .15s, transform .15s;
+}
+.wp-mid:hover span { opacity: 1; transform: scale(1.15); }
+.leaflet-marker-icon:focus-visible { outline: 2px solid rgb(var(--c-magenta)); outline-offset: 2px; border-radius: 9999px; }
+.ps-map .wp-popup .leaflet-popup-content-wrapper,
+.ps-map .wp-popup .leaflet-popup-tip { background: rgb(var(--c-surface)); color: rgb(var(--c-ink)); }
+.ps-map .wp-popup .leaflet-popup-content { margin: 8px 12px; }

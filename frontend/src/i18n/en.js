@@ -188,6 +188,25 @@ export default {
     error: 'Something went wrong. Please try again.',
     rateLimited: 'Too many calculations from your network right now — try again in a few minutes.',
     swell: 'swell',
+    draw: {
+      start: 'Tap the map where the passage starts',
+      next: 'Tap where you’re going. Add more points to round headlands and skerries.',
+      edit: 'Drag to move · tap a point to remove it · tap a ring to insert one',
+      full: 'Max {{n}} points. Remove one to add another.',
+      insert: 'Insert a point here',
+      pointTitle: 'Point {{n}}: drag to move',
+      remove: 'Remove point {{n}}',
+      summary: '{{n}} points · {{nm}} nm · ≈ {{h}} h {{m}} min',
+    },
+    window: {
+      title: 'Best departure in the next 48 hours',
+      calmest: 'Calmest',
+      useBest: 'Use calmest departure',
+      loading: 'Checking the passage for every departure over the next two days…',
+      hint: 'Each bar is the whole passage leaving at that time. Tap one to score it. The dot marks the calmest.',
+      noData: 'no forecast',
+      none: 'The forecast doesn’t reach far enough to compare departures for this route.',
+    },
     how: {
       title: 'How is this calculated?',
       intro: 'Seasickness is not caused by wave height alone but by how the boat moves — mainly slow up-and-down motion around 0.1–0.3 Hz, one bob every 3–10 seconds. That is the rhythm the inner ear tolerates worst. The score follows the international standard for motion sickness (ISO 2631-1) and works in five steps:',
@@ -244,7 +263,6 @@ export default {
     pills: ['MET Norway 800 m wave model', 'Your boat, your speed, your course', 'ISO 2631 motion-sickness dose'],
     boat: 'Boat',
     customBoat: 'Other boat',
-    tryHint: 'Click two or more points on the chart to draw the route. Then hit Calculate.',
     howTitle: 'How it works',
     how: [
       { h: 'The sea along your route', p: 'Not one forecast for one spot: the route is split into segments and the waves are read for the exact time your boat will be at each one — height, period, direction, swell, wind and current.' },

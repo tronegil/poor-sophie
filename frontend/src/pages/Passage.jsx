@@ -17,6 +17,7 @@ export default function Passage() {
   }, [boatId, navigate]);
 
   const score = payload => api.post(`/boats/${boatId}/passage/score`, payload).then(res => res.data);
+  const scoreWindow = payload => api.post(`/boats/${boatId}/passage/window`, payload).then(res => res.data);
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">
@@ -34,7 +35,7 @@ export default function Passage() {
         </div>
       )}
 
-      <PassagePlanner storageKey={`passage:${boatId}`} score={score} />
+      <PassagePlanner storageKey={`passage:${boatId}`} score={score} scoreWindow={scoreWindow} />
     </div>
   );
 }

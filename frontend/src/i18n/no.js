@@ -188,6 +188,25 @@ export default {
     error: 'Noe gikk galt. Prøv igjen.',
     rateLimited: 'For mange beregninger fra nettverket ditt akkurat nå — prøv igjen om noen minutter.',
     swell: 'dønning',
+    draw: {
+      start: 'Trykk i kartet der turen starter',
+      next: 'Trykk der du skal. Legg til flere punkter for å runde nes og skjær.',
+      edit: 'Dra for å flytte · trykk på et punkt for å fjerne · trykk på en ring for å sette inn',
+      full: 'Maks {{n}} punkter. Fjern et punkt for å legge til et nytt.',
+      insert: 'Sett inn punkt her',
+      pointTitle: 'Punkt {{n}}: dra for å flytte',
+      remove: 'Fjern punkt {{n}}',
+      summary: '{{n}} punkter · {{nm}} nm · ≈ {{h}} t {{m}} min',
+    },
+    window: {
+      title: 'Beste avgang de neste 48 timene',
+      calmest: 'Roligst',
+      useBest: 'Velg roligste avgang',
+      loading: 'Sjekker hvordan turen blir for hver avgang de neste to døgnene…',
+      hint: 'Hver søyle er hele turen med avgang på det tidspunktet. Trykk på en for å regne ut den. Prikken markerer den roligste.',
+      noData: 'ingen varsel',
+      none: 'Varselet rekker ikke langt nok til å sammenligne avganger for denne ruten.',
+    },
     how: {
       title: 'Hvordan regnes dette ut?',
       intro: 'Sjøsyke kommer ikke av bølgehøyden alene, men av hvordan båten beveger seg — først og fremst langsom opp-og-ned-bevegelse rundt 0,1–0,3 Hz, ett løft hvert 3.–10. sekund. Det er akkurat rytmen balanseorganet tåler dårligst. Scoren følger den internasjonale standarden for bevegelsessyke (ISO 2631-1) og går i fem steg:',
@@ -244,7 +263,6 @@ export default {
     pills: ['MET 800 m bølgemodell', 'Din båt, din fart, din kurs', 'ISO 2631 kvalmedose'],
     boat: 'Båt',
     customBoat: 'Annen båt',
-    tryHint: 'Klikk to eller flere punkter i kartet for å tegne ruten. Trykk så Beregn.',
     howTitle: 'Slik virker det',
     how: [
       { h: 'Sjøen langs ruten din', p: 'Ikke ett varsel for ett punkt: ruten deles opp, og bølgene leses for det nøyaktige tidspunktet båten er på hver bit — høyde, periode, retning, dønning, vind og strøm.' },

@@ -127,15 +127,36 @@ function parseSlab(text, name) {
 
 const valid = v => v != null && v !== FILL && Number.isFinite(v);
 
-async function readDataset(ds, lat, lon, date) {
+// Time indices to read: the single nearest step for a point in time, or every
+// step from `from` to `to` (padded by the 3 h tolerance) for a series.
+function timeIndices(meta, from, to) {
+  const t0 = from.getTime() / 1000, t1 = to.getTime() / 1000;
+  if (t0 === t1) {
+    const tk = nearestIndex(meta.time, t0);
+    return Math.abs(meta.time[tk] - t0) > 3 * 3600 ? null : [tk, tk]; // outside horizon
+  }
+  let a = -1, b = -1;
+  for (let k = 0; k < meta.time.length; k++) {
+    if (meta.time[k] < t0 - 3 * 3600 || meta.time[k] > t1 + 3 * 3600) continue;
+    if (a < 0) a = k;
+    b = k;
+  }
+  return a < 0 ? null : [a, b];
+}
+
+// Reads one dataset at a position for one time (from === to) or a time range.
+// Returns null when the dataset doesn't cover the point/time, else one wave
+// object per model time step (all from the same grid cell).
+async function readDataset(ds, lat, lon, from, to = from) {
   const meta = await getMeta(ds);
   const r = toRotated(lat, lon, meta.pole);
   if (!inside(meta.rlat, r.rlat) || !inside(meta.rlon, r.rlon)) return null;
 
-  const t = date.getTime() / 1000;
-  const tk = nearestIndex(meta.time, t);
-  if (Math.abs(meta.time[tk] - t) > 3 * 3600) return null; // outside horizon
-  const ti = meta.timeOffset + tk;
+  const tks = timeIndices(meta, from, to);
+  if (!tks) return null;
+  const [tk0, tk1] = tks;
+  const nt = tk1 - tk0 + 1;
+  const ta = meta.timeOffset + tk0, tb = meta.timeOffset + tk1;
 
   // 5×5 neighbourhood so positions a few hundred metres inshore still resolve.
   const i = nearestIndex(meta.rlat, r.rlat);
@@ -144,44 +165,52 @@ async function readDataset(ds, lat, lon, date) {
   const i0 = Math.max(0, i - R), i1 = Math.min(meta.rlat.length - 1, i + R);
   const j0 = Math.max(0, j - R), j1 = Math.min(meta.rlon.length - 1, j + R);
   const names = [...new Set(Object.values(ds.vars))];
-  const constraint = names.map(v => `${v}.${v}[${ti}:1:${ti}][${i0}:1:${i1}][${j0}:1:${j1}]`).join(',');
-  const text = await fetchText(`${THREDDS}/${ds.path}.ascii?${encodeConstraint(constraint)}`);
+  const constraint = names.map(v => `${v}.${v}[${ta}:1:${tb}][${i0}:1:${i1}][${j0}:1:${j1}]`).join(',');
+  const text = await fetchText(`${THREDDS}/${ds.path}.ascii?${encodeConstraint(constraint)}`, nt > 1 ? 30000 : 20000);
 
-  const nj = j1 - j0 + 1, ni = i1 - i0 + 1;
+  const nj = j1 - j0 + 1, ni = i1 - i0 + 1, cells = ni * nj;
   const slabs = {};
   for (const v of names) slabs[v] = parseSlab(text, v);
   const hsSlab = slabs[ds.vars.hs];
   if (!hsSlab) throw new Error(`Unexpected OPeNDAP response shape from ${ds.path}`);
 
+  // Nearest sea cell: the land mask is the same at every step, so any step
+  // with a valid Hs will do.
   let bestK = -1, bestD = Infinity;
-  for (let k = 0; k < ni * nj; k++) {
-    if (!valid(hsSlab[k])) continue;
+  for (let k = 0; k < cells; k++) {
+    let wet = false;
+    for (let n = 0; n < nt && !wet; n++) wet = valid(hsSlab[n * cells + k]);
+    if (!wet) continue;
     const di = Math.floor(k / nj) + i0 - i, dj = (k % nj) + j0 - j;
     const d = di * di + dj * dj;
     if (d < bestD) { bestD = d; bestK = k; }
   }
   if (bestK < 0) return null; // all land
 
-  const get = f => { const v = ds.vars[f]; const x = v && slabs[v] ? slabs[v][bestK] : null; return valid(x) ? x : null; };
-  const from = (f, conv) => { const d = get(f); return d == null ? null : conv === 'to' ? (d + 180) % 360 : d; };
-  const to = (f, conv) => { const d = get(f); return d == null ? null : conv === 'from' ? (d + 180) % 360 : d; };
-
-  return {
-    source: ds.id,
-    dataset: ds.path,
-    validTime: new Date(meta.time[tk] * 1000).toISOString(),
-    hs: get('hs'),
-    tp: get('tp'),
-    tm: get('tm'),
-    hmax: get('hmax'),
-    waveFrom: from('waveDir', ds.waveDir),
-    sea:   { hs: get('seaHs'),   tp: get('seaTp'),   from: from('seaDir', ds.waveDir) },
-    swell: { hs: get('swellHs'), tp: get('swellTp'), from: from('swellDir', ds.waveDir) },
-    windSpeed: get('windSpeed'),
-    windFrom: from('windDir', ds.windDir),
-    currentSpeed: get('currentSpeed'),
-    currentTo: ds.vars.currentDir ? to('currentDir', ds.currentDir) : null,
-  };
+  const out = [];
+  for (let n = 0; n < nt; n++) {
+    const idx = n * cells + bestK;
+    const get = f => { const v = ds.vars[f]; const x = v && slabs[v] ? slabs[v][idx] : null; return valid(x) ? x : null; };
+    const from = (f, conv) => { const d = get(f); return d == null ? null : conv === 'to' ? (d + 180) % 360 : d; };
+    const to = (f, conv) => { const d = get(f); return d == null ? null : conv === 'from' ? (d + 180) % 360 : d; };
+    out.push({
+      source: ds.id,
+      dataset: ds.path,
+      validTime: new Date(meta.time[tk0 + n] * 1000).toISOString(),
+      hs: get('hs'),
+      tp: get('tp'),
+      tm: get('tm'),
+      hmax: get('hmax'),
+      waveFrom: from('waveDir', ds.waveDir),
+      sea:   { hs: get('seaHs'),   tp: get('seaTp'),   from: from('seaDir', ds.waveDir) },
+      swell: { hs: get('swellHs'), tp: get('swellTp'), from: from('swellDir', ds.waveDir) },
+      windSpeed: get('windSpeed'),
+      windFrom: from('windDir', ds.windDir),
+      currentSpeed: get('currentSpeed'),
+      currentTo: ds.vars.currentDir ? to('currentDir', ds.currentDir) : null,
+    });
+  }
+  return out;
 }
 
 // Warm all grid metadata at once (six small requests) instead of paying for
@@ -201,7 +230,7 @@ function warmMeta() {
 async function getWavePoint(lat, lon, date) {
   for (const ds of DATASETS) {
     try {
-      const hit = await readDataset(ds, lat, lon, date);
+      const hit = (await readDataset(ds, lat, lon, date))?.[0];
       if (hit && hit.hs != null && hit.tp != null) return hit;
     } catch (err) {
       console.error(`Wave read failed (${ds.path}):`, err.message);
@@ -210,4 +239,22 @@ async function getWavePoint(lat, lon, date) {
   return null;
 }
 
-module.exports = { getWavePoint, warmMeta, toRotated };
+/**
+ * Hourly wave conditions at a position from `from` to `to`, from the first
+ * model that covers the point. One OPeNDAP request per dataset tried, so a
+ * 48 h window costs the same number of round trips as a single time.
+ * @returns {Promise<object[]>} steps with hs and tp, oldest first ([] if none).
+ */
+async function getWaveSeries(lat, lon, from, to) {
+  for (const ds of DATASETS) {
+    try {
+      const steps = (await readDataset(ds, lat, lon, from, to))?.filter(w => w.hs != null && w.tp != null);
+      if (steps?.length) return steps;
+    } catch (err) {
+      console.error(`Wave series read failed (${ds.path}):`, err.message);
+    }
+  }
+  return [];
+}
+
+module.exports = { getWavePoint, getWaveSeries, warmMeta, toRotated, readDataset, parseSlab };

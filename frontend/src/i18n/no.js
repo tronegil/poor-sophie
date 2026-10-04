@@ -174,6 +174,10 @@ export default {
     boatIncompleteLink: 'Legg inn lengde, deplasement og kjøltype',
     total: 'Score for overfarten',
     peak: 'Verste øyeblikk',
+    span: '{{from}} til {{to}}. {{nm}} nm på {{hours}} timer.',
+    worstAt: 'Verst rundt {{time}}, med {{score}} ({{band}}).',
+    showHours: 'Vis time for time',
+    hideHours: 'Skjul time for time',
     duration: '{{hours}} t · {{nm}} nm',
     crew: {
       title: 'Mannskapet',
@@ -290,7 +294,7 @@ export default {
     },
     window: {
       title: 'Beste avgang de neste 48 timene',
-      calmest: 'Roligst',
+      calmestAt: 'Roligst er avgang {{when}}, med {{score}} ({{band}}).',
       useBest: 'Velg roligste avgang',
       loading: 'Sjekker hvordan turen blir for hver avgang de neste to døgnene…',
       hint: 'Hver søyle er hele turen med avgang på det tidspunktet. Trykk på en for å regne ut den. Prikken markerer den roligste.',

@@ -202,6 +202,7 @@ It's an estimate, not a measurement. Forecasts are forecasts, no two hulls move 
 - **Your passage on the scale** — when a passage is scored, a magenta buoy floats on its band's line (*Eksempelturen 5,9*, *Din tur 3,2*); tap it to jump to the full result. Coming back later, the last saved result shows as an outlined buoy until you recalculate
 - **Its own type** — the front page is set in [Schibsted Grotesk](https://fonts.google.com/specimen/Schibsted+Grotesk), the house face of a Norwegian newspaper group, with plain sentence-case labels instead of mono capitals. The app behind the login keeps the sea-chart system as it is
 - **Quieter everywhere else** — no navy hero block, no badge chips, no three-card feature grid. *Slik regnes det ut* and *Hvorfor dette finnes* are plain paragraphs in two columns
+- **Results without the card kit** — the answer comes first, set like one line of the scale: *5,9 Ubehagelig* on a waterline in the band colour, heeled as far as that band lists, then the band's one-liner, the worst hour and the tide in plain sentences. Below it, hairline-separated sections in the order you'd ask: the crew, the best departure in the next 48 h, what drives the score, and the route hour by hour (the full table behind *Vis time for time*). Same on the boat page
 
 ---
 
@@ -240,7 +241,7 @@ Poor Sophie should look like a Norwegian sea chart: cool chart paper, deep navy 
 
 **Voice** — a seasoned skipper talking to the crew: direct, dry, never dramatic ("Kaffen blir i koppen."). Sentence case, buttons are verbs, no emoji in the UI — the wordmark is the name in Bricolage with a small magenta "light" dot.
 
-**Components** (each with guidelines + preview in `design/components/`): `Button`, `Field`, `NavBar`, `ScoreBadge`, `PassageScore` (result panel with hour-by-hour strip), `BoatCard`, `BandScale`.
+**Components** (each with guidelines + preview in `design/components/`): `Button`, `Field`, `NavBar`, `ScoreBadge`, `PassageScore` (the result: heeled verdict, then hairline sections), `BoatCard`, `BandScale`.
 
 **The front page** has its own type and layout on top of these colours: Schibsted Grotesk throughout, sentence-case labels, and the heel scale as the hero (`components/landing/HeelScale.jsx`, styles in `pages/landing.css`). Everything is scoped under `.kv`, so the shared passage components pick up the font there and nowhere else.
 

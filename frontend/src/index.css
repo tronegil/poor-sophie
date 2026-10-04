@@ -35,6 +35,37 @@
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 
+/* The verdict above a passage result (PassageResults): score and band name on
+   a waterline in the band colour, heeled like that band's line on the front
+   page's scale (--heel from BAND_HEEL in components/passage/bands.js). The
+   bottom margin leaves room for the list. */
+.verdict {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 1.25rem;
+  margin: 0.75rem 0 calc(1.25rem + sin(var(--heel)) * 26rem);
+  padding: 0 1.5rem 0.4rem 0;
+  border-bottom: 6px solid var(--band);
+  transform: rotate(var(--heel));
+  transform-origin: 0 100%;
+  color: rgb(var(--c-ink));
+}
+.verdict-score {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 2.6rem + 5.5vw, 6.5rem);
+  font-weight: 800;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+}
+.verdict-band {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
 /* Leaflet: numbered waypoint labels without the tooltip chrome */
 .leaflet-tooltip.wp-label {
   background: transparent;

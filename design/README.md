@@ -71,6 +71,14 @@ Forsiden (Kvalmeindeks) bruker fargene her, men har egen typografi og layout, sc
 - Beregnet tur vises som en magenta bøye på linja til båndet sitt. Magenta fordi det er rutens farge i kartet.
 - Ingen navy hero-flate, ingen skygge på planleggeren, ingen ikonkort. Tekstseksjonene er avsnitt i to kolonner.
 
+## Resultatet
+
+Gjelder både forsiden og båtsiden (`components/passage/PassageResults.jsx`):
+
+- Svaret først, satt som én linje fra skalaen: score og båndnavn på en vannlinje i båndfargen, krenget like mye som båndet (`.verdict` i `index.css`, vinkel fra `BAND_HEEL`). Under: båndets enlinjer, så verste time og tidevann som vanlige setninger.
+- Ingen kort. Resten er seksjoner skilt med `line`-hårlinjer, overskrift til venstre på brede skjermer (`ResultSection`). Rekkefølge: mannskapet, beste avgang, hva som drar opp, langs ruten.
+- Tabellen time for time ligger bak «Vis time for time». Stripa langs ruten viser det samme i grove trekk.
+
 ## I koden
 
 - Fargene ligger som CSS-variabler per tema i `frontend/src/theme.css` (Dag på `:root`, Natt via `prefers-color-scheme: dark` eller `data-theme="dark"`). Temavalget (Som enheten / Dag / Natt) lagres i `localStorage` (`theme`) via `src/theme.js`, settes før første tegning i `index.html`, og velges i Innstillinger og på forsiden (`components/brand/ThemePicker`).

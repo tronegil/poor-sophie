@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Clock } from 'lucide-react';
 import { bandColor, bandInk } from './bands';
 import { useFormat } from '../../i18n/format';
+import ResultSection from './ResultSection';
 
 const near = (a, b) => Math.abs(new Date(a).getTime() - new Date(b).getTime()) < 90 * 60e3;
 
@@ -16,23 +17,21 @@ export default function DepartureStrip({ window: win, loading, error, departure,
 
   if (loading) {
     return (
-      <section className="bg-surface rounded-lg border border-line p-5" aria-busy="true">
-        <p className="label-mono">{t('passage.window.title')}</p>
-        <div className="mt-4 flex items-end gap-1 h-24" aria-hidden="true">
+      <ResultSection title={t('passage.window.title')} aria-busy="true">
+        <div className="flex items-end gap-1 h-24" aria-hidden="true">
           {Array.from({ length: 17 }, (_, i) => (
             <div key={i} className="flex-1 rounded-t bg-shallow animate-pulse" style={{ height: `${30 + ((i * 37) % 50)}%` }} />
           ))}
         </div>
         <p className="text-sm text-ink-muted mt-3">{t('passage.window.loading')}</p>
-      </section>
+      </ResultSection>
     );
   }
   if (error) {
     return (
-      <section className="bg-surface rounded-lg border border-line p-5">
-        <p className="label-mono">{t('passage.window.title')}</p>
-        <p className="text-sm text-ink-muted mt-2">{error}</p>
-      </section>
+      <ResultSection title={t('passage.window.title')}>
+        <p className="text-ink-muted">{error}</p>
+      </ResultSection>
     );
   }
   if (!win) return null;
@@ -42,18 +41,13 @@ export default function DepartureStrip({ window: win, loading, error, departure,
   const bestIsSelected = best && near(best.departure, departure);
 
   return (
-    <section className="bg-surface rounded-lg border border-line p-5">
+    <ResultSection title={t('passage.window.title')}>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="label-mono">{t('passage.window.title')}</p>
-          {best && (
-            <p className="mt-1.5 text-ink">
-              <span className="font-semibold">{t('passage.window.calmest')}:</span>{' '}
-              <span className="data">{day(best.departure)} {time(best.departure)}</span>{' · '}
-              <span className="data">{num(best.score)}</span> {t(`passage.band.${best.band}`)}
-            </p>
-          )}
-        </div>
+        {best && (
+          <p className="min-w-0 max-w-prose text-ink">
+            {t('passage.window.calmestAt', { when: `${day(best.departure)} ${time(best.departure)}`, score: num(best.score), band: t(`passage.band.${best.band}`) })}
+          </p>
+        )}
         {best && !bestIsSelected && (
           <button
             type="button"
@@ -114,7 +108,7 @@ export default function DepartureStrip({ window: win, loading, error, departure,
           })}
         </div>
       </div>
-      <p className="text-xs text-ink-muted mt-3">{t('passage.window.hint')}</p>
-    </section>
+      <p className="text-sm text-ink-muted mt-3">{t('passage.window.hint')}</p>
+    </ResultSection>
   );
 }

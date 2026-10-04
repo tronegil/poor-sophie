@@ -1,19 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { bandColor } from '../passage/bands';
+import { bandColor, BAND_HEEL } from '../passage/bands';
 import { useFormat } from '../../i18n/format';
 
-// Each band's name sits on its own waterline, and the worse the band, the
-// harder that line lists: level at Blikkstille, eight degrees at Bli på land.
-// All lines heel the same way, so each one falls away from the one above
-// instead of into it. Hovering a line rolls it around that heel (`roll` either
-// way, once every `period` seconds).
-const HEEL = {
-  flat: { rest: 0, roll: 0.4, period: 5 },
-  comfortable: { rest: 1.4, roll: 1, period: 4.2 },
-  uncomfortable: { rest: 3, roll: 1.8, period: 3.6 },
-  bucket: { rest: 5, roll: 2.8, period: 3 },
-  ashore: { rest: 8, roll: 4, period: 2.6 },
-};
+// Each band's name sits on its own waterline, heeled by BAND_HEEL (level at
+// Blikkstille, eight degrees at Bli på land, all the same way so each line
+// falls away from the one above). Hovering a line rolls it around that heel.
 
 /**
  * The 0–10 scale as the front page's centrepiece.
@@ -31,7 +22,7 @@ export default function HeelScale({ marker, onMarker }) {
   return (
     <ol className="kv-scale" aria-label={t('landing.scaleLabel')}>
       {bands.map(b => {
-        const h = HEEL[b.band] ?? HEEL.flat;
+        const h = BAND_HEEL[b.band] ?? BAND_HEEL.flat;
         const here = marker?.band === b.band;
         return (
           <li

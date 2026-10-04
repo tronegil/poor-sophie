@@ -174,6 +174,10 @@ export default {
     boatIncompleteLink: 'Add length, displacement and keel type',
     total: 'Passage score',
     peak: 'Worst moment',
+    span: '{{from}} to {{to}}. {{nm}} nm in {{hours}} hours.',
+    worstAt: 'Worst around {{time}}, at {{score}} ({{band}}).',
+    showHours: 'Show hour by hour',
+    hideHours: 'Hide hour by hour',
     duration: '{{hours}} h · {{nm}} nm',
     crew: {
       title: 'The crew',
@@ -290,7 +294,7 @@ export default {
     },
     window: {
       title: 'Best departure in the next 48 hours',
-      calmest: 'Calmest',
+      calmestAt: 'Calmest is leaving {{when}}, at {{score}} ({{band}}).',
       useBest: 'Use calmest departure',
       loading: 'Checking the passage for every departure over the next two days…',
       hint: 'Each bar is the whole passage leaving at that time. Tap one to score it. The dot marks the calmest.',

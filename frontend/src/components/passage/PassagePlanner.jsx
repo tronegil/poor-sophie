@@ -189,6 +189,11 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
     calculate(local);
   };
 
+  // The best-departure strip sits inside the result, after the crew advice.
+  const strip = (win || winLoading || winError)
+    ? <DepartureStrip window={win?.data} loading={winLoading} error={winError} departure={departure} onPick={pickDeparture} />
+    : null;
+
   // A shared link opens straight to its result; otherwise the last saved
   // result (if any) is reported once, so the page around can show it too.
   useEffect(() => {
@@ -282,9 +287,6 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
         </p>
       )}
       <div ref={resultsRef} data-results className="space-y-5 scroll-mt-4">
-        {(win || winLoading || winError) && (
-          <DepartureStrip window={win?.data} loading={winLoading} error={winError} departure={departure} onPick={pickDeparture} />
-        )}
         {stale && result && !loading && (
           <div className="flex flex-wrap items-center gap-3 text-sm bg-shallow text-ink rounded-lg px-4 py-3">
             <p className="flex-1 min-w-[12rem]">
@@ -298,10 +300,11 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
         {loading && !result && <ResultSkeleton label={t('passage.reading', { n: waypoints.length })} />}
         {result && (
           <div className={`relative space-y-5 transition-opacity ${stale === 'edited' || loading ? 'opacity-45' : stale === 'saved' ? 'opacity-75' : ''}`} aria-busy={loading || undefined}>
-            <PassageResults result={result} crew={crew} onCrewChange={setCrew} />
+            <PassageResults result={result} crew={crew} onCrewChange={setCrew} departures={strip} />
             {loading && <p className="absolute top-4 left-1/2 -translate-x-1/2 bg-surface border border-line rounded-full px-4 py-1.5 text-sm text-ink shadow-panel" role="status">{t('passage.calculating')}</p>}
           </div>
         )}
+        {!result && strip}
       </div>
     </div>
   );
@@ -311,13 +314,13 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
 // page doesn't jump and it's clear something is happening.
 function ResultSkeleton({ label }) {
   return (
-    <div className="space-y-4" aria-busy="true">
-      <p className="text-sm text-ink-muted" role="status">{label}</p>
-      <div className="grid sm:grid-cols-3 gap-4" aria-hidden="true">
-        <div className="sm:col-span-2 h-32 rounded-lg bg-shallow animate-pulse" />
-        <div className="h-32 rounded-lg bg-shallow animate-pulse" />
+    <div className="pt-6 sm:pt-8 space-y-4" aria-busy="true">
+      <p className="text-ink-muted" role="status">{label}</p>
+      <div className="h-24 w-80 max-w-full rounded-lg bg-shallow animate-pulse" aria-hidden="true" />
+      <div className="h-5 w-96 max-w-full rounded bg-shallow animate-pulse" aria-hidden="true" />
+      <div className="border-t border-line pt-8" aria-hidden="true">
+        <div className="h-28 rounded-lg bg-shallow animate-pulse" />
       </div>
-      <div className="h-48 rounded-lg bg-shallow animate-pulse" aria-hidden="true" />
     </div>
   );
 }

@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { bandColor, bandFor, bandInk } from './bands';
+import { ChevronDown } from 'lucide-react';
+import { bandColor, bandFor, bandInk, BAND_HEEL } from './bands';
 import { CREWS, crewPercent, adviceTier } from './crew';
-import { useFormat, formatNumber } from '../../i18n/format';
+import { useFormat } from '../../i18n/format';
+import ResultSection from './ResultSection';
 
 
 // Arrow pointing the way the wind/wave is travelling: "from" north → points down.
@@ -11,10 +14,12 @@ function Dir({ from }) {
 }
 
 // Everything below the map once a passage has been scored. Shared by the
-// per-boat page and the public landing page.
-export default function PassageResults({ result, crew, onCrewChange }) {
+// per-boat page and the public landing page. `departures` (the best-departure
+// strip) is slotted in after the crew, where "when should we go?" comes up.
+export default function PassageResults({ result, crew, onCrewChange, departures = null }) {
   const { t } = useTranslation();
   const { num, time: fmtTime } = useFormat();
+  const [hours, setHours] = useState(false);
   const samples = result.samples.filter(s => !s.noData);
   const estimated = result.sources?.some(s => s.includes('estimated'));
 
@@ -32,119 +37,130 @@ export default function PassageResults({ result, crew, onCrewChange }) {
   };
 
   return (
-    <>
-      {/* Headline score: the number in ink, the colour lives in the badge */}
-      <div className="grid sm:grid-cols-3 gap-4">
-        <div className="sm:col-span-2 bg-surface rounded-lg border border-line p-5 flex items-center gap-6">
-          <p className="font-display font-extrabold text-ink text-6xl sm:text-7xl leading-[0.9] tracking-tight tabular-nums shrink-0">
-            {num(result.total.score)}<span className="font-mono font-medium text-lg text-ink-muted tracking-normal ml-0.5">/10</span>
-          </p>
-          <div className="min-w-0 space-y-2">
-            <p className="label-mono">{t('passage.total')}</p>
-            <BandBadge band={result.total.band} score={result.total.score} label={t(`passage.band.${result.total.band}`)} />
-            <p className="data text-sm text-ink-muted">{t('passage.duration', { hours: num(result.totalHours), nm: num(result.totalNm) })}</p>
-          </div>
-        </div>
-        <div className="bg-surface rounded-lg border border-line p-5">
-          <p className="label-mono">{t('passage.peak')}</p>
-          <div className="mt-2">
-            <BandBadge band={bandFor(result.total.peak)} score={result.total.peak} label={t(`passage.band.${bandFor(result.total.peak)}`)} />
-          </div>
-          {result.tideStation && samples[0]?.tide && (
-            <p className="data text-xs text-ink-muted mt-3">
-              {t('passage.tide', { station: result.tideStation })}: {t(`passage.tideTrend.${samples[0].tide.trend}`)}, ±{Math.round(samples[0].tide.rangeCm / 2)} cm
-            </p>
-          )}
-        </div>
-      </div>
+    <div>
+      <Verdict result={result} samples={samples} />
 
       {crew && <CrewAdvice total={result.total} crew={crew} onCrewChange={onCrewChange} />}
 
-      {/* Factors */}
+      {departures}
+
       {result.factors?.length > 0 && (
-        <div className="bg-surface rounded-lg border border-line p-5">
-          <h2 className="label-mono mb-3">{t('passage.factors')}</h2>
-          <ol className="space-y-2">
-            {result.factors.map((f, i) => (
-              <li key={f.key} className="flex gap-3 text-sm text-slate-700">
-                <span className="data w-5 h-5 rounded-full bg-shallow text-ink text-xs flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                {factorText(f)}
-              </li>
-            ))}
+        <ResultSection title={t('passage.factors')}>
+          <ol className="space-y-2 max-w-prose text-ink">
+            {result.factors.map(f => <li key={f.key}>{factorText(f)}</li>)}
           </ol>
-        </div>
+        </ResultSection>
       )}
 
-      {/* Timeline + table */}
-      <div className="bg-surface rounded-lg border border-line p-5">
-        <h2 className="label-mono mb-3">{t('passage.timeline')}</h2>
+      <ResultSection title={t('passage.timeline')}>
         <div className="flex items-end gap-[3px] h-16 border-b border-line">
           {samples.map((s, i) => (
             <div
               key={i}
               className="rounded-t-[3px] min-h-[4px]"
               style={{ flex: s.durationH, height: `${Math.max(6, s.score * 10)}%`, background: bandColor(s.band) }}
-              title={`${fmtTime(s.time)} · ${num(s.score)}`}
+              title={`${fmtTime(s.time)}: ${num(s.score)}`}
             />
           ))}
         </div>
-        <div className="data flex justify-between text-xs text-ink-muted mt-1">
+        <div className="data flex justify-between text-sm text-ink-muted mt-1.5">
           <span>{fmtTime(result.departure)}</span>
           <span>{fmtTime(new Date(new Date(result.departure).getTime() + result.totalHours * 3600e3).toISOString())}</span>
         </div>
 
-        <div className="overflow-x-auto mt-4 -mx-2">
-          <table className="min-w-full text-sm data">
-            <thead>
-              <tr className="label-mono text-left">
-                <th className="px-2 py-1 font-medium">{t('passage.cols.time')}</th>
-                <th className="px-2 py-1 font-medium">{t('passage.legs')}</th>
-                <th className="px-2 py-1 font-medium">{t('passage.cols.wave')}</th>
-                <th className="px-2 py-1 font-medium">{t('passage.cols.wind')}</th>
-                <th className="px-2 py-1 font-medium">{t('passage.cols.current')}</th>
-                <th className="px-2 py-1 font-medium text-right">{t('passage.cols.score')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {samples.map((s, i) => (
-                <tr key={i} className="border-t border-line">
-                  <td className="px-2 py-1.5 text-slate-600 whitespace-nowrap">{fmtTime(s.time)}</td>
-                  <td className="px-2 py-1.5 text-slate-500">{s.leg + 1}</td>
-                  <td className="px-2 py-1.5 text-slate-700 whitespace-nowrap">
-                    <Dir from={s.wave.waveFrom} /> {num(s.wave.hs)} m · {num(s.wave.tp, 0)} s
-                    {s.wave.sea?.hs > 0.2 && s.wave.swell?.hs > 0.2 && s.wave.swell.hs < 0.9 * s.wave.hs && (
-                      <span className="text-slate-400"> · {t('passage.swell')} {num(s.wave.swell.hs)} m/{num(s.wave.swell.tp, 0)} s</span>
-                    )}
-                  </td>
-                  <td className="px-2 py-1.5 text-slate-700 whitespace-nowrap">
-                    {s.wave.windSpeed != null ? <><Dir from={s.wave.windFrom} /> {num(s.wave.windSpeed, 0)} m/s</> : '—'}
-                  </td>
-                  <td className="px-2 py-1.5 text-slate-700 whitespace-nowrap">
-                    {s.wave.currentSpeed != null ? `${num(s.wave.currentSpeed / 0.5144)} kn` : '—'}
-                  </td>
-                  <td className="px-2 py-1.5 text-right">
-                    <span className="inline-block min-w-[2.75rem] text-center text-xs font-semibold rounded px-2 py-0.5" style={{ background: bandColor(s.band), color: bandInk(s.band) }}>{num(s.score)}</span>
-                  </td>
+        <button
+          type="button"
+          onClick={() => setHours(h => !h)}
+          aria-expanded={hours}
+          className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-ink hover:text-magenta"
+        >
+          {hours ? t('passage.hideHours') : t('passage.showHours')}
+          <ChevronDown size={16} strokeWidth={2} className={`transition-transform ${hours ? 'rotate-180' : ''}`} aria-hidden="true" />
+        </button>
+
+        {hours && (
+          <div className="overflow-x-auto mt-3 -mx-2">
+            <table className="min-w-full text-sm data">
+              <thead>
+                <tr className="label-mono text-left">
+                  <th className="px-2 py-1 font-medium">{t('passage.cols.time')}</th>
+                  <th className="px-2 py-1 font-medium">{t('passage.legs')}</th>
+                  <th className="px-2 py-1 font-medium">{t('passage.cols.wave')}</th>
+                  <th className="px-2 py-1 font-medium">{t('passage.cols.wind')}</th>
+                  <th className="px-2 py-1 font-medium">{t('passage.cols.current')}</th>
+                  <th className="px-2 py-1 font-medium text-right">{t('passage.cols.score')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {estimated && <p className="text-xs text-band-bucket mt-3">{t('passage.estimatedPeriod')}</p>}
-        <p className="text-xs text-slate-400 mt-2">{t('passage.sources')}</p>
-      </div>
-    </>
+              </thead>
+              <tbody>
+                {samples.map((s, i) => (
+                  <tr key={i} className="border-t border-line">
+                    <td className="px-2 py-1.5 text-slate-600 whitespace-nowrap">{fmtTime(s.time)}</td>
+                    <td className="px-2 py-1.5 text-slate-500">{s.leg + 1}</td>
+                    <td className="px-2 py-1.5 text-slate-700 whitespace-nowrap">
+                      <Dir from={s.wave.waveFrom} /> {num(s.wave.hs)} m · {num(s.wave.tp, 0)} s
+                      {s.wave.sea?.hs > 0.2 && s.wave.swell?.hs > 0.2 && s.wave.swell.hs < 0.9 * s.wave.hs && (
+                        <span className="text-slate-400"> · {t('passage.swell')} {num(s.wave.swell.hs)} m/{num(s.wave.swell.tp, 0)} s</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-1.5 text-slate-700 whitespace-nowrap">
+                      {s.wave.windSpeed != null ? <><Dir from={s.wave.windFrom} /> {num(s.wave.windSpeed, 0)} m/s</> : '—'}
+                    </td>
+                    <td className="px-2 py-1.5 text-slate-700 whitespace-nowrap">
+                      {s.wave.currentSpeed != null ? `${num(s.wave.currentSpeed / 0.5144)} kn` : '—'}
+                    </td>
+                    <td className="px-2 py-1.5 text-right">
+                      <span className="inline-block min-w-[2.75rem] text-center text-xs font-semibold rounded px-2 py-0.5" style={{ background: bandColor(s.band), color: bandInk(s.band) }}>{num(s.score)}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {estimated && <p className="text-sm text-band-bucket mt-4">{t('passage.estimatedPeriod')}</p>}
+        <p className="text-sm text-ink-muted mt-3">{t('passage.sources')}</p>
+      </ResultSection>
+    </div>
   );
 }
 
-// Score pill: number and band name together, never colour alone.
-function BandBadge({ band, score, label }) {
-  const { i18n } = useTranslation();
+// The answer, set like one line of the front page's scale: the score and the
+// band name on a waterline in the band's colour, heeled as far as that band
+// lists. Then the band's one-liner, the worst moment and the tide.
+function Verdict({ result, samples }) {
+  const { t, i18n } = useTranslation();
+  const { num, time } = useFormat();
+  const band = result.total.band;
+  const bands = t('landing.bands', { returnObjects: true });
+  const says = Array.isArray(bands) ? bands.find(b => b.band === band)?.p : null;
+  const worst = samples.reduce((m, s) => (m == null || s.score > m.score ? s : m), null);
+  const peakBand = worst ? bandFor(worst.score) : null;
+  const locale = i18n.language?.startsWith('en') ? 'en-GB' : 'nb-NO';
+  const day = new Date(result.departure).toLocaleDateString(locale, { weekday: 'short' });
+  const end = new Date(new Date(result.departure).getTime() + result.totalHours * 3600e3).toISOString();
+  const tide = result.tideStation && samples[0]?.tide;
+
   return (
-    <span className="inline-flex items-center gap-2 rounded-full pl-1 pr-3 py-1 text-sm font-semibold" style={{ background: bandColor(band), color: bandInk(band) }}>
-      <b className="data text-[13px] rounded-full px-2 py-1 bg-white/35">{formatNumber(score, 1, i18n.language)}</b>
-      {label}
-    </span>
+    <section className="pt-6 sm:pt-8 pb-8 sm:pb-10">
+      <p className="text-ink-muted">
+        {t('passage.span', { from: `${day} ${time(result.departure)}`, to: time(end), nm: num(result.totalNm), hours: num(result.totalHours) })}
+      </p>
+      <p className="verdict" style={{ '--band': bandColor(band), '--heel': `${BAND_HEEL[band]?.rest ?? 0}deg` }}>
+        <span className="sr-only">{t('passage.total')}: </span>
+        <span className="verdict-score">{num(result.total.score)}</span>
+        <span className="verdict-band">{t(`passage.band.${band}`)}</span>
+      </p>
+      {says && <p className="text-lg sm:text-xl text-ink max-w-[42ch]">{says}</p>}
+      <p className="mt-3 text-ink-muted max-w-prose">
+        {worst && peakBand && (
+          <>
+            <i className="inline-block w-2.5 h-2.5 rounded-sm mr-2 align-[0.05em]" style={{ background: bandColor(peakBand) }} aria-hidden="true" />
+            {t('passage.worstAt', { time: time(worst.time), score: num(worst.score), band: t(`passage.band.${peakBand}`) })}
+          </>
+        )}
+        {tide && <> {t('passage.tide', { station: result.tideStation })}: {t(`passage.tideTrend.${tide.trend}`)}, ±{Math.round(tide.rangeCm / 2)} cm.</>}
+      </p>
+    </section>
   );
 }
 
@@ -156,30 +172,27 @@ function CrewAdvice({ total, crew, onCrewChange }) {
   const pct = crewPercent(total, crew);
   const tier = adviceTier(pct);
   return (
-    <section className="bg-surface rounded-lg border border-line p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="label-mono">{t('passage.crew.title')}</p>
-        <div role="radiogroup" aria-label={t('passage.crew.title')} className="inline-flex flex-wrap border border-line rounded-lg p-0.5 text-sm">
-          {CREWS.map(c => (
-            <button
-              key={c.id}
-              type="button"
-              role="radio"
-              aria-checked={crew === c.id}
-              onClick={() => onCrewChange?.(c.id)}
-              className={`px-2.5 py-1.5 rounded-md transition-colors ${crew === c.id ? 'bg-deep text-deep-on' : 'text-ink-muted hover:text-ink hover:bg-shallow'}`}
-            >
-              {t(`passage.crew.${c.id}`)}
-            </button>
-          ))}
-        </div>
+    <ResultSection title={t('passage.crew.title')}>
+      <div role="radiogroup" aria-label={t('passage.crew.title')} className="inline-flex flex-wrap border border-line rounded-lg p-0.5 text-sm">
+        {CREWS.map(c => (
+          <button
+            key={c.id}
+            type="button"
+            role="radio"
+            aria-checked={crew === c.id}
+            onClick={() => onCrewChange?.(c.id)}
+            className={`px-2.5 py-1.5 rounded-md transition-colors ${crew === c.id ? 'bg-deep text-deep-on' : 'text-ink-muted hover:text-ink hover:bg-shallow'}`}
+          >
+            {t(`passage.crew.${c.id}`)}
+          </button>
+        ))}
       </div>
-      <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <p className="font-display font-bold text-4xl text-ink tabular-nums leading-none">≈ {pct} %</p>
-        <p className="text-ink">{t(`passage.crew.sick.${crew}`)}</p>
-      </div>
+      <p className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="font-display font-bold text-3xl sm:text-4xl text-ink leading-none">≈ {pct} %</span>
+        <span className="text-ink">{t(`passage.crew.sick.${crew}`)}</span>
+      </p>
       <p className="mt-3 text-ink max-w-prose">{t(`passage.crew.advice.${tier}`)}</p>
-      <p className="mt-2 text-xs text-ink-muted">{t('passage.crew.basis')}</p>
-    </section>
+      <p className="mt-2 text-sm text-ink-muted">{t('passage.crew.basis')}</p>
+    </ResultSection>
   );
 }

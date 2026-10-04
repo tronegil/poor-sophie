@@ -76,11 +76,12 @@ export default function Landing() {
   const [plannerKey, setPlannerKey] = useState(0);
   // The last scored passage, shown on the scale at the top of the page and
   // named by its route: the example, the shared trip, or the visitor's own.
+  // A result saved from an earlier visit shows too, marked as not fresh.
   const [marker, setMarker] = useState(null);
-  const onResult = data => {
+  const onResult = (data, { saved = false } = {}) => {
     const kind = shared && sameRoute(data, shared.waypoints) ? 'shared'
       : sameRoute(data, EXAMPLE_TRIP.waypoints) ? 'example' : 'yours';
-    setMarker({ band: data.total.band, score: data.total.score, kind });
+    setMarker({ band: data.total.band, score: data.total.score, kind, saved });
   };
   // Remount the planner on an empty chart, dropping the example route.
   const drawOwn = () => {

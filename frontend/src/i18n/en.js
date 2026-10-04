@@ -356,7 +356,7 @@ export default {
     lead: 'Plot the passage on the sea chart, pick your boat and departure, and get a number from 0 to 10 for the whole trip, hour by hour. Worked out from MET Norway’s wave forecast and tuned to your hull.',
     cta: 'Plot your passage',
     scaleLabel: 'The scale from 0 to 10',
-    marker: { example: 'The example trip', shared: 'The shared trip', yours: 'Your trip', show: 'Show the result' },
+    marker: { example: 'The example trip', shared: 'The shared trip', yours: 'Your trip', saved: 'Calculated earlier', show: 'Show the result' },
     planTitle: 'Plot your passage',
     planHint: 'Search for a start and destination, or tap the chart. Pick a boat and departure, then press Calculate.',
     boat: 'Boat',

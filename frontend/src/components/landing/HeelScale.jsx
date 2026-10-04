@@ -17,8 +17,9 @@ const HEEL = {
 
 /**
  * The 0–10 scale as the front page's centrepiece.
- * @param {{band:string, score:number, kind:'example'|'shared'|'yours'}|null} marker
- *   the last scored passage; shown as a magenta buoy on its band's line
+ * @param {{band:string, score:number, kind:'example'|'shared'|'yours', saved?:boolean}|null} marker
+ *   the last scored passage; shown as a magenta buoy on its band's line,
+ *   outlined when it is a saved result from an earlier visit
  * @param {() => void} onMarker jump to the full result
  */
 export default function HeelScale({ marker, onMarker }) {
@@ -45,9 +46,9 @@ export default function HeelScale({ marker, onMarker }) {
               <div className="kv-hull">
                 <span className="kv-name">{t(`passage.band.${b.band}`)}</span>
                 {here && (
-                  <button type="button" className="kv-buoy" onClick={onMarker}>
+                  <button type="button" className={`kv-buoy${marker.saved ? ' kv-buoy-saved' : ''}`} onClick={onMarker}>
                     {t(`landing.marker.${marker.kind}`)} <b>{num(marker.score)}</b>
-                    <span className="sr-only">. {t('landing.marker.show')}</span>
+                    <span className="sr-only">. {marker.saved && `${t('landing.marker.saved')}. `}{t('landing.marker.show')}</span>
                   </button>
                 )}
               </div>

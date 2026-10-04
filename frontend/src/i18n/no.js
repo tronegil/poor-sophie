@@ -356,7 +356,7 @@ export default {
     lead: 'Tegn overfarten i sjøkartet, velg båt og avgang, og få et tall fra 0 til 10 for hele turen, time for time. Regnet ut fra Meteorologisk institutts bølgevarsel og tilpasset skroget ditt.',
     cta: 'Tegn turen din',
     scaleLabel: 'Skalaen fra 0 til 10',
-    marker: { example: 'Eksempelturen', shared: 'Den delte turen', yours: 'Din tur', show: 'Vis resultatet' },
+    marker: { example: 'Eksempelturen', shared: 'Den delte turen', yours: 'Din tur', saved: 'Beregnet tidligere', show: 'Vis resultatet' },
     planTitle: 'Tegn turen din',
     planHint: 'Søk opp start og mål, eller trykk i kartet. Velg båt og avgang, og trykk Beregn.',
     boat: 'Båt',

@@ -199,7 +199,7 @@ It's an estimate, not a measurement. Forecasts are forecasts, no two hulls move 
 *The old one looked like every other landing page. This one lists.*
 
 - **The scale is the hero** — the five bands, set big, each on a waterline in its band colour. *Blikkstille* sits level; every band after it heels further, until *Bli på land* has eight degrees of list. Hover a line and it rolls at its own amplitude (not with reduced motion on)
-- **Your passage on the scale** — when a passage is scored, a magenta buoy floats on its band's line (*Eksempelturen 5,9*, *Din tur 3,2*); tap it to jump to the full result
+- **Your passage on the scale** — when a passage is scored, a magenta buoy floats on its band's line (*Eksempelturen 5,9*, *Din tur 3,2*); tap it to jump to the full result. Coming back later, the last saved result shows as an outlined buoy until you recalculate
 - **Its own type** — the front page is set in [Schibsted Grotesk](https://fonts.google.com/specimen/Schibsted+Grotesk), the house face of a Norwegian newspaper group, with plain sentence-case labels instead of mono capitals. The app behind the login keeps the sea-chart system as it is
 - **Quieter everywhere else** — no navy hero block, no badge chips, no three-card feature grid. *Slik regnes det ut* and *Hvorfor dette finnes* are plain paragraphs in two columns
 

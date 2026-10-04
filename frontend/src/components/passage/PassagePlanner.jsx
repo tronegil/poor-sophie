@@ -55,6 +55,8 @@ export const inputClass = 'border border-line rounded px-3 py-2 text-sm text-ink
  * @param {{waypoints, departure?:Date, speed?:number, crew?:string}} [initial] a trip to open and score right away
  * @param {(trip:{name, id, waypoints, speedKn, crew}) => Promise} [onSaveTrip] shows "Save passage" (owners only)
  * @param {{id, name}} [loadedTrip] the saved passage currently open, so saving can update it
+ * @param {(result:object, info:{saved:boolean}) => void} [onResult] every new result, and the
+ *   last saved one on mount (`saved: true`) when it is shown instead of a fresh calculation
  */
 export default function PassagePlanner({ storageKey, score, scoreWindow, windowKey = '', shareBoat, initial, onSaveTrip, loadedTrip, extraControls = null, onResult, mapHeight, mapScrollZoom = true }) {
   const { t, i18n } = useTranslation();
@@ -165,7 +167,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
       setStale(null);
       setResultAt(Date.now());
       try { localStorage.setItem(lastKey, JSON.stringify({ result: data, at: Date.now(), route: JSON.stringify(waypoints) })); } catch { /* full or blocked: fine */ }
-      onResult?.(data);
+      onResult?.(data, { saved: false });
       // Bring the result into view on small screens, where it lands below the fold.
       requestAnimationFrame(() => {
         const el = resultsRef.current;
@@ -187,9 +189,11 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
     calculate(local);
   };
 
-  // A shared link opens straight to its result.
+  // A shared link opens straight to its result; otherwise the last saved
+  // result (if any) is reported once, so the page around can show it too.
   useEffect(() => {
     if (initial?.waypoints?.length >= 2) calculate();
+    else if (restored) onResult?.(restored.result, { saved: true });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The boat changing (outside the planner) also makes the result stale.

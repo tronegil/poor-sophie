@@ -195,6 +195,16 @@ It's an estimate, not a measurement. Forecasts are forecasts, no two hulls move 
 
 ---
 
+### ✅ Phase 9 — A Front Page That Gets Seasick
+*The old one looked like every other landing page. This one lists.*
+
+- **The scale is the hero** — the five bands, set big, each on a waterline in its band colour. *Blikkstille* sits level; every band after it heels further, until *Bli på land* has eight degrees of list. Hover a line and it rolls at its own amplitude (not with reduced motion on)
+- **Your passage on the scale** — when a passage is scored, a magenta buoy floats on its band's line (*Eksempelturen 5,9*, *Din tur 3,2*); tap it to jump to the full result
+- **Its own type** — the front page is set in [Schibsted Grotesk](https://fonts.google.com/specimen/Schibsted+Grotesk), the house face of a Norwegian newspaper group, with plain sentence-case labels instead of mono capitals. The app behind the login keeps the sea-chart system as it is
+- **Quieter everywhere else** — no navy hero block, no badge chips, no three-card feature grid. *Slik regnes det ut* and *Hvorfor dette finnes* are plain paragraphs in two columns
+
+---
+
 ## 🎨 Design System — the sea chart
 
 > Live in the frontend in both themes, Dag (light) and Natt (dark). Source of truth in [`design/`](design/), browsable as the [Poor Sophie design system](https://claude.ai/artifact/GSZFJftFCbBkGjb8DDmdr8) (palette, type specimens, live component previews).
@@ -232,7 +242,9 @@ Poor Sophie should look like a Norwegian sea chart: cool chart paper, deep navy 
 
 **Components** (each with guidelines + preview in `design/components/`): `Button`, `Field`, `NavBar`, `ScoreBadge`, `PassageScore` (result panel with hour-by-hour strip), `BoatCard`, `BandScale`.
 
-**In the code** — colours are CSS variables per theme in `frontend/src/theme.css` (choice stored by `src/theme.js`, applied before first paint in `index.html`, picked with `components/brand/ThemePicker`), exposed through `frontend/tailwind.config.js` (`bg-paper`, `text-ink`, `bg-deep`, `text-magenta`, `bg-band-bucket`, `font-display`, `font-mono` …; the old `ocean`/`slate` scales are remapped onto the same palette). `index.css` adds `.label-mono` and `.data`. Band colours live in `components/passage/bands.js` (`bandColor`, `bandInk`). Brand pieces are in `components/brand/` (`Wordmark`, `ChartTile`, `Isobaths`); icons are [Lucide](https://lucide.dev). Change a colour in `design/tokens.json` → update `theme.css` (and `bands.js` for bands). Full rules (in Norwegian): [`design/README.md`](design/README.md).
+**The front page** has its own type and layout on top of these colours: Schibsted Grotesk throughout, sentence-case labels, and the heel scale as the hero (`components/landing/HeelScale.jsx`, styles in `pages/landing.css`). Everything is scoped under `.kv`, so the shared passage components pick up the font there and nowhere else.
+
+**In the code** — colours are CSS variables per theme in `frontend/src/theme.css` (choice stored by `src/theme.js`, applied before first paint in `index.html`, picked with `components/brand/ThemePicker`), exposed through `frontend/tailwind.config.js` (`bg-paper`, `text-ink`, `bg-deep`, `text-magenta`, `bg-band-bucket`, `font-display`, `font-mono` …; font families are variables too — `--font-sans`, `--font-display`, `--font-mono` — so a page can swap them for its subtree; the old `ocean`/`slate` scales are remapped onto the same palette). `index.css` adds `.label-mono` and `.data`. Band colours live in `components/passage/bands.js` (`bandColor`, `bandInk`). Brand pieces are in `components/brand/` (`Wordmark`, `ChartTile`, `Isobaths`); icons are [Lucide](https://lucide.dev). Change a colour in `design/tokens.json` → update `theme.css` (and `bands.js` for bands). Full rules (in Norwegian): [`design/README.md`](design/README.md).
 
 ---
 
@@ -429,6 +441,7 @@ poor-sophie/
 │   │   ├── pages/              # Route-level components (Landing.jsx and Passage.jsx are lazy-loaded — Leaflet is heavy)
 │   │   ├── components/
 │   │   │   ├── passage/        # Planner, map, results, departure strip, crew, place search, share, saved passages, alert bell
+│   │   │   ├── landing/        # HeelScale: the front page's tilting 0–10 scale
 │   │   │   └── brand/          # Wordmark, ChartTile, Isobaths, ThemePicker, InstallApp
 │   │   ├── theme.css / theme.js   # Dag/Natt colour variables and the theme choice
 │   │   ├── push.js             # Browser side of push alerts

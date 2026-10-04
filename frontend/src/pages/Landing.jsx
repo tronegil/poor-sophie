@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link2, Sparkles } from 'lucide-react';
+import { Link2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../api/client';
@@ -7,16 +7,11 @@ import PassagePlanner, { inputClass } from '../components/passage/PassagePlanner
 import BoatPicker from '../components/passage/BoatPicker';
 import HowItWorks from '../components/passage/HowItWorks';
 import { BOAT_PRESETS, DEFAULT_PRESET_ID } from '../components/passage/boatPresets';
-import { Waves, Sailboat, Ear } from 'lucide-react';
-import { bandColor, bandInk } from '../components/passage/bands';
-import Wordmark from '../components/brand/Wordmark';
-import Isobaths from '../components/brand/Isobaths';
 import { parseShareParams } from '../components/passage/shareLink';
 import ThemePicker from '../components/brand/ThemePicker';
 import InstallApp from '../components/brand/InstallApp';
-
-// Icons for the three "how it works" cards, in order: sea, boat, inner ear.
-const HOW_ICONS = [Waves, Sailboat, Ear];
+import HeelScale from '../components/landing/HeelScale';
+import './landing.css';
 
 const BOAT_KEY = 'passage:public:boat';
 
@@ -29,7 +24,6 @@ function loadBoat() {
   return { presetId: p.id, name: p.name, loa_m: p.loa_m, displacement_kg: p.displacement_kg, hull_type: p.hull_type, keel_type: p.keel_type };
 }
 
-// Public front page: the seasickness index for anyone, no account needed.
 const ROUTE_KEY = 'passage:public';
 
 // What a first-time visitor sees instead of an empty chart: the open crossing
@@ -44,6 +38,14 @@ const EXAMPLE_TRIP = {
   ],
   speed: 5.5,
 };
+
+// Did this result come from exactly these waypoints?
+function sameRoute(result, wps) {
+  const legs = result?.legs ?? [];
+  if (!wps || legs.length !== wps.length - 1) return false;
+  const near = (a, b) => Math.abs(a.lat - b.lat) < 1e-4 && Math.abs(a.lon - b.lon) < 1e-4;
+  return legs.every((leg, i) => near(leg.from, wps[i]) && near(leg.to, wps[i + 1]));
+}
 
 function hasOwnRoute() {
   try { return (JSON.parse(localStorage.getItem(ROUTE_KEY))?.waypoints?.length ?? 0) > 0; } catch { return false; }
@@ -62,6 +64,9 @@ function takeSharedTrip() {
   return sharedTrip;
 }
 
+const smooth = () => (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
+
+// Public front page: the seasickness index for anyone, no account needed.
 export default function Landing() {
   const { t, i18n } = useTranslation();
   const [shared] = useState(takeSharedTrip);
@@ -69,76 +74,83 @@ export default function Landing() {
   useEffect(() => { sharedTrip = null; }, []);
   const [example, setExample] = useState(() => !shared && !hasOwnRoute());
   const [plannerKey, setPlannerKey] = useState(0);
+  // The last scored passage, shown on the scale at the top of the page and
+  // named by its route: the example, the shared trip, or the visitor's own.
+  const [marker, setMarker] = useState(null);
+  const onResult = data => {
+    const kind = shared && sameRoute(data, shared.waypoints) ? 'shared'
+      : sameRoute(data, EXAMPLE_TRIP.waypoints) ? 'example' : 'yours';
+    setMarker({ band: data.total.band, score: data.total.score, kind });
+  };
   // Remount the planner on an empty chart, dropping the example route.
   const drawOwn = () => {
     try { localStorage.setItem(ROUTE_KEY, JSON.stringify({ ...JSON.parse(localStorage.getItem(ROUTE_KEY) || '{}'), waypoints: [] })); } catch { /* ignore */ }
     setExample(false);
+    setMarker(null);
     setPlannerKey(k => k + 1);
   };
   const [boat, setBoat] = useState(() => (shared?.boat ? { ...shared.boat, name: shared.boat.name || t('landing.customBoat') } : loadBoat()));
 
   const changeBoat = b => { setBoat(b); try { localStorage.setItem(BOAT_KEY, JSON.stringify(b)); } catch { /* ignore */ } };
   const setLang = lng => { i18n.changeLanguage(lng); localStorage.setItem('language', lng); };
+  const isEn = i18n.language?.startsWith('en');
 
   const boatPayload = { name: boat.name, loa_m: Number(boat.loa_m), displacement_kg: Number(boat.displacement_kg), hull_type: boat.hull_type, keel_type: boat.keel_type };
   const score = payload => api.post('/passage/score', { ...payload, boat: boatPayload }).then(res => res.data);
   const scoreWindow = payload => api.post('/passage/window', { ...payload, boat: boatPayload }).then(res => res.data);
 
+  const showResult = () => document.querySelector('#plan [data-results]')?.scrollIntoView({ behavior: smooth(), block: 'start' });
   const how = t('landing.how', { returnObjects: true });
-  const bands = t('landing.bands', { returnObjects: true });
-  const pills = t('landing.pills', { returnObjects: true });
 
   return (
-    <div className="min-h-screen bg-paper text-ink">
-      {/* Hero: deep water with depth contours */}
-      <header className="relative bg-deep text-deep-on overflow-hidden">
-        <Isobaths className="absolute inset-0 w-full h-full pointer-events-none" />
-        <nav className="relative max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Wordmark className="text-xl">{t('landing.brand')}</Wordmark>
-          <div className="flex items-center gap-2">
-          <ThemePicker onDeep />
-          <div className="inline-flex border border-deep-on/25 rounded-full p-0.5 font-mono text-[11px]">
-            {['no', 'en'].map(l => (
-              <button
-                key={l}
-                onClick={() => setLang(l)}
-                aria-pressed={i18n.language === l}
-                className={`px-2.5 py-1 rounded-full transition-colors ${i18n.language === l ? 'bg-deep-on text-deep' : 'text-deep-on/70 hover:text-deep-on'}`}
-              >
-                {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
-          </div>
-        </nav>
-        <div className="relative max-w-5xl mx-auto px-4 pt-10 pb-28 sm:pt-16 sm:pb-36">
-          <h1 className="max-w-3xl text-4xl sm:text-[56px] font-bold leading-[1.02]">{t('landing.title')}</h1>
-          <p className="mt-5 max-w-2xl text-base sm:text-lg text-deep-on/80 leading-relaxed">{t('landing.lead')}</p>
-          {Array.isArray(pills) && (
-            <ul className="mt-6 flex flex-wrap gap-2">
-              {pills.map((p, i) => (
-                <li key={i} className="font-mono text-[11px] sm:text-xs uppercase tracking-wider border border-deep-on/25 rounded px-2 py-1 text-deep-on/80">{p}</li>
-              ))}
-            </ul>
-          )}
+    <div className="kv">
+      <header className="kv-wrap flex items-center justify-between gap-4 h-16">
+        <a href="/" className="text-xl font-extrabold tracking-tight text-ink">{t('landing.brand')}</a>
+        <div className="flex items-center gap-3 sm:gap-5">
+          <ThemePicker />
+          {/* One button, naming the other language in that language. */}
+          <button
+            type="button"
+            lang={isEn ? 'no' : 'en'}
+            onClick={() => setLang(isEn ? 'no' : 'en')}
+            className="py-1 text-sm font-semibold text-ink underline underline-offset-4 decoration-line hover:decoration-ink"
+          >
+            {isEn ? 'Norsk' : 'English'}
+          </button>
         </div>
       </header>
 
-      <main className="relative max-w-5xl mx-auto px-4 -mt-20 sm:-mt-28 pb-20 space-y-16">
+      <main>
+        {/* The question, and the scale that answers it */}
+        <section className="kv-wrap pt-10 sm:pt-16 pb-16 sm:pb-24">
+          <h1 className="max-w-[18ch] text-[2.25rem] sm:text-[3.25rem] leading-[1.02] font-bold">{t('landing.title')}</h1>
+          <p className="mt-5 max-w-[54ch] text-lg leading-relaxed text-ink-muted">{t('landing.lead')}</p>
+          <a href="#plan" className="mt-7 inline-flex items-center bg-deep text-deep-on px-5 py-3 rounded-lg font-semibold hover:bg-deep-hover transition-colors">
+            {t('landing.cta')}
+          </a>
+          <div className="mt-12 sm:mt-16">
+            <HeelScale marker={marker} onMarker={showResult} />
+          </div>
+        </section>
+
         {/* The tool */}
-        <section>
+        <section id="plan" className="kv-wrap scroll-mt-4 pb-20 sm:pb-28">
+          <div className="mb-6 max-w-[60ch]">
+            <h2 className="text-3xl sm:text-[2.5rem] leading-[1.05] font-bold">{t('landing.planTitle')}</h2>
+            {example ? (
+              <p className="mt-3 text-ink-muted leading-relaxed">
+                {t('landing.example')}{' '}
+                <button type="button" onClick={drawOwn} className="font-semibold text-magenta underline underline-offset-4 decoration-magenta/40 hover:decoration-magenta">{t('landing.drawOwn')}</button>
+              </p>
+            ) : (
+              <p className="mt-3 text-ink-muted leading-relaxed">{t('landing.planHint')}</p>
+            )}
+          </div>
           {shared && (
-            <p className="relative z-10 mb-3 flex items-center gap-2 text-sm bg-surface border border-line rounded-lg px-4 py-2.5 text-ink shadow-panel">
+            <p className="mb-3 flex items-center gap-2 text-sm bg-shallow rounded-lg px-4 py-2.5 text-ink">
               <Link2 size={16} strokeWidth={1.75} className="text-magenta shrink-0" aria-hidden="true" />
               {t('passage.shared')}
             </p>
-          )}
-          {example && (
-            <div className="relative z-10 mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm bg-surface border border-line rounded-lg px-4 py-2.5 text-ink shadow-panel">
-              <Sparkles size={16} strokeWidth={1.75} className="text-magenta shrink-0" aria-hidden="true" />
-              <p className="flex-1 min-w-[14rem]">{t('landing.example')}</p>
-              <button type="button" onClick={drawOwn} className="font-medium text-magenta hover:underline underline-offset-4">{t('landing.drawOwn')}</button>
-            </div>
           )}
           <PassagePlanner
             key={plannerKey}
@@ -148,64 +160,41 @@ export default function Landing() {
             windowKey={JSON.stringify(boatPayload)}
             shareBoat={boat}
             initial={plannerKey === 0 ? (shared ?? (example ? EXAMPLE_TRIP : null)) : null}
+            onResult={onResult}
             mapHeight="h-[24rem] sm:h-[32rem]"
             mapScrollZoom={false}
             extraControls={<BoatPicker value={boat} onChange={changeBoat} inputClass={inputClass} />}
           />
         </section>
 
-        {/* How it works */}
-        <section>
-          <h2 className="text-2xl sm:text-3xl font-bold">{t('landing.howTitle')}</h2>
-          <div className="mt-6 grid sm:grid-cols-3 gap-6">
-            {Array.isArray(how) && how.map((c, i) => {
-              const Icon = HOW_ICONS[i] ?? Waves;
-              return (
-                <div key={i} className="border-t-2 border-ink pt-4">
-                  <Icon size={22} strokeWidth={1.75} className="text-magenta mb-3" aria-hidden="true" />
-                  <h3 className="font-semibold text-ink">{c.h}</h3>
-                  <p className="text-sm text-ink-muted mt-2 leading-relaxed">{c.p}</p>
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-8">
-            <HowItWorks
-              label={t('landing.fullMath')}
-              buttonClassName="inline-flex items-center gap-2 text-sm font-medium text-magenta hover:underline underline-offset-4"
-            />
-          </div>
-        </section>
+        {/* How, and why */}
+        <section className="border-t border-line">
+          <div className="kv-wrap py-16 sm:py-24 grid md:grid-cols-[minmax(0,1fr)_minmax(0,38rem)] gap-x-16 gap-y-6">
+            <h2 className="text-2xl sm:text-3xl leading-tight font-bold">{t('landing.howTitle')}</h2>
+            <div className="space-y-5 text-[1.0625rem] leading-relaxed">
+              {Array.isArray(how) && how.map((c, i) => (
+                <p key={i}><strong className="font-bold">{c.h}.</strong> <span className="text-ink-muted">{c.p}</span></p>
+              ))}
+              <HowItWorks
+                label={t('landing.fullMath')}
+                buttonClassName="inline-flex items-center gap-2 font-semibold text-magenta underline underline-offset-4 decoration-magenta/40 hover:decoration-magenta"
+              />
+            </div>
 
-        {/* Bands */}
-        <section>
-          <h2 className="text-2xl sm:text-3xl font-bold">{t('landing.bandsTitle')}</h2>
-          <ul className="mt-6 border-t border-line">
-            {Array.isArray(bands) && bands.map(b => (
-              <li key={b.band} className="grid grid-cols-[3.5rem_1fr] sm:grid-cols-[3.5rem_10rem_1fr] gap-x-4 gap-y-1 items-center py-3 border-b border-line">
-                <span className="data text-center text-[13px] font-semibold rounded py-1.5" style={{ background: bandColor(b.band), color: bandInk(b.band) }}>{b.range}</span>
-                <span className="font-semibold text-ink">{t(`passage.band.${b.band}`)}</span>
-                <span className="col-start-2 sm:col-start-auto text-sm text-ink-muted">{b.p}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {/* Why */}
-        <section className="max-w-2xl">
-          <h2 className="text-2xl sm:text-3xl font-bold">{t('landing.whyTitle')}</h2>
-          <p className="mt-5 text-ink-muted leading-relaxed">{t('landing.why')}</p>
+            <h2 className="mt-10 md:mt-16 text-2xl sm:text-3xl leading-tight font-bold">{t('landing.whyTitle')}</h2>
+            <p className="md:mt-16 text-[1.0625rem] leading-relaxed text-ink-muted">{t('landing.why')}</p>
+          </div>
         </section>
       </main>
 
-      <footer className="border-t border-line bg-surface">
-        <div className="max-w-5xl mx-auto px-4 py-8 text-xs text-ink-muted space-y-2">
-          <p>{t('landing.footerData')}</p>
-          <p className="flex flex-wrap items-center gap-x-2">
-            <span>{t('landing.footerOwners')}</span>
-            <Link to="/login" className="text-magenta hover:underline underline-offset-2">{t('landing.footerLogin')}</Link>
+      <footer className="border-t border-line">
+        <div className="kv-wrap py-10 text-sm text-ink-muted space-y-3 max-w-[68rem]">
+          <p className="max-w-[70ch]">{t('landing.footerData')}</p>
+          <p>
+            {t('landing.footerOwners')}{' '}
+            <Link to="/login" className="font-semibold text-ink underline underline-offset-4 decoration-line hover:decoration-ink">{t('landing.footerLogin')}</Link>
           </p>
-          <InstallApp className="pt-2" />
+          <InstallApp />
         </div>
       </footer>
     </div>

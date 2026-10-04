@@ -2,6 +2,11 @@
    opacity modifiers work. Dag is the default; Natt applies when the OS is dark
    (unless the user picked Dag) or when the user picked Natt. See src/theme.js. */
 :root {
+  --font-sans: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+:root {
   --c-paper: 246 248 247;
   --c-surface: 255 255 255;
   --c-shallow: 214 233 242;

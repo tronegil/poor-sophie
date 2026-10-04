@@ -51,10 +51,12 @@ export default {
           900: 'rgb(var(--c-slate-900) / <alpha-value>)',
         },
       },
+      // Families are variables (src/theme.css) so a page can swap them for its
+      // subtree; the landing page does (src/pages/landing.css).
       fontFamily: {
-        sans: ['"Hanken Grotesk"', 'system-ui', '-apple-system', '"Segoe UI"', 'sans-serif'],
-        display: ['"Bricolage Grotesque"', '"Arial Narrow"', 'system-ui', 'sans-serif'],
-        mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        sans: ['var(--font-sans)'],
+        display: ['var(--font-display)'],
+        mono: ['var(--font-mono)'],
       },
       boxShadow: {
         panel: 'var(--shadow-panel)',

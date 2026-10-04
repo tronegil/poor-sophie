@@ -61,12 +61,23 @@ Poor Sophie ser ut som et sjøkart: kjølig kartpapir, dypt navy vann, sandgult 
 - Ingen emoji. Bruk en enkel strekikon-familie (Lucide, 1,75px strek) i `ink-muted`, eller i `on-deep` på `deep`.
 - Ordmerket er navnet i `display` med en `magenta`-prikk: et fyr på kartet. Ingen tegnet logo finnes ennå.
 
+## Forsiden
+
+Forsiden (Kvalmeindeks) bruker fargene her, men har egen typografi og layout, scopet under `.kv` i `frontend/src/pages/landing.css`:
+
+- Én familie: Schibsted Grotesk, fra titler til tall. Etiketter i vanlig setningsstor skrift, ikke mono-versaler. Tall med proporsjonale sifre (de tabulære gir kommaet et helt siffers bredde).
+- Heroen er skalaen (`components/landing/HeelScale.jsx`): båndnavnene stort, hvert på en vannlinje i båndfargen, som krenger mer jo verre båndet er (0° til 8°, alle samme vei så linjene ikke krysser). På smale skjermer krenger navn, linje og beskrivelse sammen; på brede står beskrivelsen i vater i egen kolonne.
+- Hover ruller en linje rundt krengningen, med større utslag og kortere periode jo verre båndet er. Ellers står alt stille. `prefers-reduced-motion` slår av begge deler.
+- Beregnet tur vises som en magenta bøye på linja til båndet sitt. Magenta fordi det er rutens farge i kartet.
+- Ingen navy hero-flate, ingen skygge på planleggeren, ingen ikonkort. Tekstseksjonene er avsnitt i to kolonner.
+
 ## I koden
 
 - Fargene ligger som CSS-variabler per tema i `frontend/src/theme.css` (Dag på `:root`, Natt via `prefers-color-scheme: dark` eller `data-theme="dark"`). Temavalget (Som enheten / Dag / Natt) lagres i `localStorage` (`theme`) via `src/theme.js`, settes før første tegning i `index.html`, og velges i Innstillinger og på forsiden (`components/brand/ThemePicker`).
 - Tokenene speiles i `frontend/tailwind.config.js`, som leser variablene: `paper`, `surface`, `shallow`, `land`, `line`, `ink`/`ink-muted`, `deep`/`deep-on`, `magenta`, `band-*`, og fontene `font-display`, `font-sans`, `font-mono`. `ocean` og `slate` er lagt om til samme palett, så eldre klasser følger med.
 - `frontend/src/index.css` har `.label-mono` (etiketter) og `.data` (måleverdier), og setter `h1`/`h2` i display-fonten og magenta fokusring.
 - Båndfargene og tekstfarge på bånd ligger i `components/passage/bands.js` (`bandColor`, `bandInk`).
+- Fontfamiliene er variabler (`--font-sans`, `--font-display`, `--font-mono` i `theme.css`), som `tailwind.config.js` leser. Forsiden bytter dem i `.kv`.
 - Merkevarebiter i `components/brand/`: `Wordmark` (navn + magenta prikk), `ChartTile` (kartutsnitt for båter uten bilde), `Isobaths` (dybdekurver på navy flater).
 - Ikoner: `lucide-react`, 1,75 strek.
 - Endrer du en farge i `tokens.json`, oppdater `theme.css` (og `bands.js` for båndene).

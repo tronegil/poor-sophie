@@ -1,0 +1,165 @@
+/* Kvalmeindeks front page. Everything is scoped under .kv so the app behind
+   the login keeps the sea-chart design system as it is. The shared passage
+   components (planner, results) pick up the font and the plainer labels
+   through the variables and overrides below. */
+
+.kv {
+  --font-sans: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: var(--font-sans);
+  --shadow-panel: none;
+  font-family: var(--font-sans);
+  background: rgb(var(--c-paper));
+  color: rgb(var(--c-ink));
+  min-height: 100vh;
+}
+
+.kv-wrap {
+  max-width: 68rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+@media (min-width: 640px) {
+  .kv-wrap { padding-inline: 2rem; }
+}
+
+/* Labels in the planner and results: sentence case in the text face, not
+   tracked-out mono capitals. */
+.kv .label-mono,
+.kv .stop-tag {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+/* Schibsted's tabular figures give the decimal comma a full digit's width
+   ("5 , 9"), so numbers here stay proportional. */
+.kv .data,
+.kv .tabular-nums { font-variant-numeric: normal; }
+.kv h1, .kv h2 { letter-spacing: -0.02em; }
+.kv .wp-pin span,
+.kv .wp-icon span,
+.kv .leaflet-tooltip.wp-label {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ---- The heel scale (components/landing/HeelScale.jsx) ---------------- */
+
+.kv-scale {
+  list-style: none;
+  margin: 0 0 clamp(2.5rem, 6vw, 5rem);  /* room for the last line's list */
+  padding: 0;
+}
+
+.kv-row {
+  --name: clamp(2.25rem, 1.2rem + 4.2vw, 4.25rem);
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  column-gap: 0.75rem;
+  align-items: start;
+  padding-block: 1rem;
+}
+
+/* Narrow: on the name's baseline (the buoy may wrap in below the name and
+   push the waterline down). Wide: level with the waterline's left end. */
+.kv-range {
+  padding-top: calc(var(--name) * 0.8 - 1rem);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: rgb(var(--c-ink-muted));
+}
+
+/* Narrow: name, waterline and description list together. */
+.kv-tilt {
+  transform: rotate(var(--heel));
+  transform-origin: 0 calc(var(--name) * 0.95 + 0.6rem);
+}
+
+/* The waterline in the band's colour. */
+.kv-hull {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 6px solid var(--band);
+}
+
+.kv-name {
+  font-size: var(--name);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+.kv-says {
+  margin-top: 0.75rem;
+  max-width: 34ch;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: rgb(var(--c-ink-muted));
+}
+
+/* Wide: three columns; only the hull heels, around its left end. */
+@media (min-width: 768px) {
+  .kv-row {
+    grid-template-columns: 3rem minmax(0, 1fr) minmax(12rem, 19rem);
+    column-gap: 1.25rem;
+    align-items: end;
+  }
+  .kv-range { padding-top: 0; padding-bottom: 0.35rem; }
+  .kv-tilt { display: contents; }
+  .kv-hull {
+    transform: rotate(var(--heel));
+    transform-origin: 0 100%;
+  }
+  .kv-says {
+    margin-top: 0;
+    padding-left: 1.75rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+/* The scored passage, floating on its band's line like a buoy. Magenta is
+   the route's colour on the chart, so it reads as "your route". */
+.kv-buoy {
+  flex-shrink: 0;
+  margin-left: auto;  /* stays right when it wraps under the name */
+  margin-bottom: 0.5rem;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  background: rgb(var(--c-magenta));
+  color: rgb(var(--c-on-magenta));
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  animation: kv-buoy 800ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.kv-buoy b { font-weight: 800; }
+.kv-buoy:hover { background: rgb(var(--c-magenta-dark)); }
+
+@keyframes kv-buoy {
+  from { opacity: 0; transform: translateY(-0.9rem); }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .kv-row:hover .kv-tilt { animation: kv-roll var(--period) ease-in-out infinite; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+  .kv-row:hover .kv-tilt { animation: none; }
+  .kv-row:hover .kv-hull { animation: kv-roll var(--period) ease-in-out infinite; }
+}
+
+@keyframes kv-roll {
+  0%, 100% { transform: rotate(var(--heel)); }
+  25% { transform: rotate(calc(var(--heel) + var(--roll))); }
+  75% { transform: rotate(calc(var(--heel) - var(--roll))); }
+}

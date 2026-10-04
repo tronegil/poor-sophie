@@ -17,7 +17,7 @@ export default function RouteStops({ waypoints, maxWaypoints, onSetStart, onSetE
 
   const where = w => w.name || `${num(w.lat, 3)} N ${num(w.lon, 3)} Ø`;
   const tag = (role, i) => (
-    <span className={`shrink-0 w-12 text-center font-mono text-[11px] font-medium uppercase tracking-wider rounded px-1.5 py-1 ${role === 'end' ? 'bg-magenta text-magenta-on' : role === 'start' ? 'bg-deep text-deep-on' : 'bg-shallow text-ink'}`}>
+    <span className={`stop-tag shrink-0 w-12 text-center rounded px-1.5 py-1 ${role === 'end' ? 'bg-magenta text-magenta-on' : role === 'start' ? 'bg-deep text-deep-on' : 'bg-shallow text-ink'}`}>
       {role === 'via' ? t('passage.stops.viaN', { n: i }) : t(`passage.stops.${role}`)}
     </span>
   );

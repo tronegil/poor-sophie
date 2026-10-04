@@ -21,6 +21,10 @@
   .label-mono {
     @apply font-mono text-[11px] leading-snug font-medium uppercase tracking-[0.08em] text-ink-muted;
   }
+  /* Fra / Via / Til tag in the route list. */
+  .stop-tag {
+    @apply font-mono text-[11px] font-medium uppercase tracking-wider;
+  }
   /* Measurements: wave height, period, speed, times (design: `data`). */
   .data {
     @apply font-mono tabular-nums;

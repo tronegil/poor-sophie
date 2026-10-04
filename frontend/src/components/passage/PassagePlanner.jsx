@@ -277,7 +277,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
           {result ? t('passage.offlineShowing') : t('passage.offlineNoResult')}
         </p>
       )}
-      <div ref={resultsRef} className="space-y-5 scroll-mt-4">
+      <div ref={resultsRef} data-results className="space-y-5 scroll-mt-4">
         {(win || winLoading || winError) && (
           <DepartureStrip window={win?.data} loading={winLoading} error={winError} departure={departure} onPick={pickDeparture} />
         )}

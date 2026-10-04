@@ -35,7 +35,7 @@ psql $DATABASE_URL -f backend/db/schema.sql
 4. Frontend `AuthContext` bootstraps by calling `GET /api/auth/me` on mount; loading state gates all protected routes via `ProtectedRoute`
 
 ### Frontend routing
-- `/` — public landing page (`pages/Landing.jsx`): the seasickness index for anonymous users, calls `POST /api/passage/score` and `/window` (no auth, IP rate-limited in `routes/publicPassage.js`). First visit with no saved route opens a scored example (`EXAMPLE_TRIP`, Tananger → Skudeneshavn). Poor Sophie login is a small link in its footer.
+- `/` — public landing page (`pages/Landing.jsx`): the seasickness index for anonymous users, calls `POST /api/passage/score` and `/window` (no auth, IP rate-limited in `routes/publicPassage.js`). First visit with no saved route opens a scored example (`EXAMPLE_TRIP`, Tananger → Skudeneshavn). Poor Sophie login is a small link in its footer. It has its own look on top of the colour tokens — Schibsted Grotesk, plain labels, the tilting band scale (`components/landing/HeelScale.jsx`) as hero — all scoped under `.kv` in `pages/landing.css`; don't let it leak into the app.
 - `/login` — public, redirects to `/dashboard` if already authed
 - `/boats/public/:id` — public shareable boat view (no auth required)
 - Everything else — wrapped in `ProtectedRoute` → `NavLayout` (Navbar + `<Outlet>`)

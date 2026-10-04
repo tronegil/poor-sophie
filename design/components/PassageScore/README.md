@@ -1,12 +1,11 @@
 # PassageScore
 
-Resultatpanelet etter «Beregn»: stort tall, båndmerke, båndets setning, måledata og en stripe med score time for time.
+Resultatet etter «Beregn» (`frontend/src/components/passage/PassageResults.jsx`), likt på forsiden og båtsiden.
 
-- Tallet står i `score`-stilen (`display`, 72px) i `ink`, ikke i båndfargen. Fargen bor i merket og i stripen.
-- Øyenbrynet (`label`) sier ruten og varigheten: «Stavanger → Tau · 3 t 10 min».
-- Setningen under merket er båndets egen tekst fra `landing.bands` («Kaffen blir i koppen.»).
-- Måledata i `data`-stilen: «Hs 1,6 m · Tp 4,1 s · motsjø · 5,5 kn».
-- Timestripen: én søyle per tidssteg, høyden er scoren, fargen er båndet. Akse med klokkeslett i mono under.
-- Dette er skjermens ene `ps-panel` (`radius-lg`, `shadow-panel`).
+- Svaret først, som én linje fra forsidens skala: scoren og båndnavnet i `display`, i `ink`, på en 6px vannlinje i båndfargen. Linja krenger like mye som båndet (0° Blikkstille til 8° Bli på land, `BAND_HEEL` i `bands.js`). Fargen bor i linja, ikke i tallet.
+- Over: tid og distanse som en setning («man. 00:00 til 03:00. 16,6 nm på 3,0 timer.»).
+- Under: båndets egen tekst fra `landing.bands` («Noen blir stille. Spis før, ikke underveis.»), så verste time og tidevann som setninger.
+- Resten er seksjoner skilt med `line`-hårlinjer, ikke kort (`ResultSection`): overskrift til venstre på brede skjermer, over innholdet på smale. Rekkefølge: Mannskapet, Beste avgang de neste 48 timene, Hva som drar opp, Langs ruten.
+- Langs ruten: én søyle per tidssteg, høyden er scoren, fargen er båndet. Full tabell time for time bak «Vis time for time».
 
-Forbrukeren gir: score, bånd, rute-etikett, måleverdier og en liste med timescore.
+Forbrukeren gir: resultatet fra `/passage/score`, valgt mannskap, og avgangsstripa som `departures`.

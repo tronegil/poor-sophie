@@ -79,7 +79,26 @@ export default function PassageResults({ result, crew, onCrewChange, departures 
         </button>
 
         {hours && (
-          <div className="overflow-x-auto mt-3 -mx-2">
+          <>
+          <ul className="mt-3 sm:hidden">
+            {samples.map((s, i) => (
+              <li key={i} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 py-3 border-t border-line data text-sm">
+                <span className="text-ink">{fmtTime(s.time)} <span className="text-ink-muted">{t('passage.leg', { n: s.leg + 1 }).toLowerCase()}</span></span>
+                <span className="min-w-[2.75rem] text-center text-xs font-semibold rounded px-2 py-0.5" style={{ background: bandColor(s.band), color: bandInk(s.band) }}>{num(s.score)}</span>
+                <span className="col-span-2 text-ink-muted">
+                  <Dir from={s.wave.waveFrom} /> {num(s.wave.hs)} m · {num(s.wave.tp, 0)} s
+                  {s.wave.sea?.hs > 0.2 && s.wave.swell?.hs > 0.2 && s.wave.swell.hs < 0.9 * s.wave.hs && (
+                    <> · {t('passage.swell')} {num(s.wave.swell.hs)} m/{num(s.wave.swell.tp, 0)} s</>
+                  )}
+                </span>
+                <span className="col-span-2 text-ink-muted">
+                  {t('passage.cols.wind')} {s.wave.windSpeed != null ? <><Dir from={s.wave.windFrom} /> {num(s.wave.windSpeed, 0)} m/s</> : '—'}
+                  {' · '}{t('passage.cols.current').toLowerCase()} {s.wave.currentSpeed != null ? `${num(s.wave.currentSpeed / 0.5144)} kn` : '—'}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden sm:block overflow-x-auto mt-3 -mx-2">
             <table className="min-w-full text-sm data">
               <thead>
                 <tr className="label-mono text-left">
@@ -116,6 +135,7 @@ export default function PassageResults({ result, crew, onCrewChange, departures 
               </tbody>
             </table>
           </div>
+          </>
         )}
         {estimated && <p className="text-sm text-band-bucket mt-4">{t('passage.estimatedPeriod')}</p>}
         <p className="text-sm text-ink-muted mt-3">{t('passage.sources')}</p>

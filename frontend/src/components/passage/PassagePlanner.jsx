@@ -86,6 +86,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
   const [lastPayload, setLastPayload] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errorAuto, setErrorAuto] = useState(false); // the failed calculation started by itself (example, shared link)
   const [win, setWin] = useState(null);           // { key, data } for the departure strip
   const [winLoading, setWinLoading] = useState(false);
   const [winError, setWinError] = useState('');
@@ -155,7 +156,10 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
     }
   };
 
-  const calculate = async (dep = departure) => {
+  // `auto`: started by the page (the example, a shared link), not by a press.
+  // Then the page stays where the visitor is reading, and a failure is shown
+  // above the chart instead of below the fold.
+  const calculate = async (dep = departure, { auto = false } = {}) => {
     if (waypoints.length < 2) { setError(t('passage.needTwo')); return; }
     setLoading(true);
     setError('');
@@ -169,13 +173,14 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
       try { localStorage.setItem(lastKey, JSON.stringify({ result: data, at: Date.now(), route: JSON.stringify(waypoints) })); } catch { /* full or blocked: fine */ }
       onResult?.(data, { saved: false });
       // Bring the result into view on small screens, where it lands below the fold.
-      requestAnimationFrame(() => {
+      if (!auto) requestAnimationFrame(() => {
         const el = resultsRef.current;
         if (el && el.getBoundingClientRect().top > window.innerHeight * 0.8) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
       loadWindow(payload);
     } catch (err) {
       setError(errorText(err));
+      setErrorAuto(auto);
     } finally {
       setLoading(false);
     }
@@ -197,7 +202,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
   // A shared link opens straight to its result; otherwise the last saved
   // result (if any) is reported once, so the page around can show it too.
   useEffect(() => {
-    if (initial?.waypoints?.length >= 2) calculate();
+    if (initial?.waypoints?.length >= 2) calculate(departure, { auto: true });
     else if (restored) onResult?.(restored.result, { saved: true });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -213,9 +218,22 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
     if (win && win.key !== routeKey) { setWin(null); setWinError(''); }
   }, [routeKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const errorBox = error && (
+    <div role="alert" className="flex flex-wrap items-start gap-3 text-sm text-ink bg-band-ashore/10 border border-band-ashore/30 rounded px-4 py-3">
+      <TriangleAlert size={18} strokeWidth={1.75} className="text-band-ashore shrink-0 mt-0.5" aria-hidden="true" />
+      <p className="flex-1 min-w-[12rem]">{error}</p>
+      {lastPayload && waypoints.length >= 2 && (
+        <button type="button" onClick={() => calculate()} disabled={loading} className="inline-flex items-center gap-1.5 font-medium text-magenta hover:underline disabled:opacity-45">
+          <RefreshCw size={14} strokeWidth={2} aria-hidden="true" />{t('passage.retry')}
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-5">
       <div className="bg-surface rounded-2xl border border-line shadow-panel p-3 space-y-3">
+        {errorAuto && errorBox}
         <RouteStops
           waypoints={waypoints}
           maxWaypoints={MAX_WAYPOINTS}
@@ -267,17 +285,7 @@ export default function PassagePlanner({ storageKey, score, scoreWindow, windowK
             {loading ? t('passage.calculating') : stale ? t('passage.recalculate') : t('passage.calculate')}
           </button>
         </div>
-        {error && (
-          <div role="alert" className="flex flex-wrap items-start gap-3 text-sm text-ink bg-band-ashore/10 border border-band-ashore/30 rounded px-4 py-3">
-            <TriangleAlert size={18} strokeWidth={1.75} className="text-band-ashore shrink-0 mt-0.5" aria-hidden="true" />
-            <p className="flex-1 min-w-[12rem]">{error}</p>
-            {lastPayload && waypoints.length >= 2 && (
-              <button type="button" onClick={() => calculate()} disabled={loading} className="inline-flex items-center gap-1.5 font-medium text-magenta hover:underline disabled:opacity-45">
-                <RefreshCw size={14} strokeWidth={2} aria-hidden="true" />{t('passage.retry')}
-              </button>
-            )}
-          </div>
-        )}
+        {!errorAuto && errorBox}
       </div>
 
       {!online && (
